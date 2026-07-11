@@ -112,6 +112,7 @@
     .boot-log-row:nth-child(2) { animation-delay: 0.45s; }
     .boot-log-row:nth-child(3) { animation-delay: 0.55s; }
     .boot-log-row:nth-child(4) { animation-delay: 0.65s; }
+    .boot-log-row:nth-child(5) { animation-delay: 0.75s; }
 
     .boot-log-ok  { color: var(--success); }
     .boot-log-gt  { color: var(--accent); }
@@ -258,13 +259,16 @@
             <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-1">Initializing system…</span>
           </div>
           <div class="boot-log-row">
-            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-2">Loading data package…</span>
+            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-2">Loading metadata…</span>
           </div>
           <div class="boot-log-row">
-            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-3">Processing manifest…</span>
+            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-3">Loading data package…</span>
           </div>
           <div class="boot-log-row" id="log-4-row" style="display:none">
-            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-4">Manifest loaded</span>
+            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-4">Processing manifest…</span>
+          </div>
+          <div class="boot-log-row" id="log-5-row" style="display:none">
+            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-5">Manifest loaded</span>
           </div>
         </div>
 
