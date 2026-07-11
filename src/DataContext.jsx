@@ -1,5 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
-import metadataRaw from "../data/metadata.yaml?raw";
+
+/* ── Resolve data source paths from env ── */
+function resolveDataSource() {
+  const source = import.meta.env.VITE_DATA_SOURCE || "/data/result.json";
+  const isRemote = /^https?:\/\//i.test(source);
+  const base = source.replace(/\/[^/]*$/, ""); // strip filename → dir
+  return {
+    dataUrl: source,
+    metadataUrl: `${base}/metadata.yaml`,
+    isRemote,
+  };
+}
 
 /* ── Minimal YAML parser for metadata.yaml ── */
 function parseMetadata(text) {
@@ -40,8 +51,6 @@ function parseMetadata(text) {
   }
   return result;
 }
-
-const metadata = parseMetadata(metadataRaw);
 
 const DataContext = createContext();
 
@@ -84,6 +93,7 @@ function loadFinish() {
 
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState(null);
+  const [metadata, setMetadata] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -93,6 +103,7 @@ export const DataProvider = ({ children }) => {
       return;
     }
 
+    const { dataUrl, metadataUrl, isRemote } = resolveDataSource();
     let cancelled = false;
 
     const load = async () => {
@@ -101,21 +112,32 @@ export const DataProvider = ({ children }) => {
         loadAppendLog("log-1", "Initializing system…");
         await new Promise((r) => setTimeout(r, 80));
 
-        loadSet(25, "LOADING DATA PACKAGE", "Fetching manifest from registry");
-        loadAppendLog("log-2", "Loading data package…");
-        const mod = await import("../data/result.json");
+        // ── Fetch metadata ──
+        loadSet(15, "LOADING METADATA", isRemote ? `Fetching ${metadataUrl}` : `Reading ${metadataUrl}`);
+        loadAppendLog("log-2", "Loading metadata…");
+        const metaResp = await fetch(metadataUrl);
+        if (!metaResp.ok) throw new Error(`Metadata fetch failed: ${metaResp.status}`);
+        const metaText = await metaResp.text();
+        const parsedMeta = parseMetadata(metaText);
+        if (!cancelled) setMetadata(parsedMeta);
+
+        // ── Fetch data package ──
+        loadSet(25, "LOADING DATA PACKAGE", isRemote ? `Fetching ${dataUrl}` : `Reading ${dataUrl}`);
+        loadAppendLog("log-3", "Loading data package…");
+        const dataResp = await fetch(dataUrl);
         if (cancelled) return;
+        if (!dataResp.ok) throw new Error(`Data fetch failed: ${dataResp.status}`);
 
         loadSet(55, "PROCESSING MANIFEST", "Parsing entity registries…");
-        loadAppendLog("log-3", "Processing manifest…");
-        const raw = mod.default;
+        loadAppendLog("log-4", "Processing manifest…");
+        const raw = await dataResp.json();
 
         // Gather category stats
         const cats = Object.keys(raw).filter((k) => k !== "language");
         const totalEntities = cats.reduce((sum, k) => sum + Object.keys(raw[k]).length, 0);
 
         loadSet(100, "MANIFEST LOADED", cats.length + " registries · " + totalEntities + " entities catalogued");
-        loadAppendLog("log-4", "Manifest loaded — " + cats.length + " registries, " + totalEntities + " entities");
+        loadAppendLog("log-5", "Manifest loaded — " + cats.length + " registries, " + totalEntities + " entities");
         loadPrompt("Select category to proceed");
 
         // Brief pause so user sees 100%
