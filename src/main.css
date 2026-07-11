@@ -172,3 +172,9 @@ a { text-decoration: none; color: inherit; }
 @media (max-width: 480px) {
   html { font-size: 13px; }
 }
+
+/* ── Card arrow hover: reveal + slide right ── */
+a:hover > .card-arrow {
+  opacity: 1 !important;
+  transform: translateX(2px);
+}

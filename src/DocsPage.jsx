@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Icon } from "@iconify/react";
 import { useT } from "./i18n.jsx";
 import { useI18n } from "./i18n.jsx";
 import { getArticle, getArticleMeta, getArticleSlugs, getAllArticleMetas, searchArticles, buildSearchIndex } from "./docs.js";
@@ -447,14 +448,14 @@ export function DocsListPage({ isMobile }) {
               color: "var(--text-primary)",
               display: "flex", alignItems: "center", gap: isMobile ? 8 : 14,
             }}>
+              {/* Header icon circle */}
               <span style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center",
                 width: isMobile ? 32 : 44, height: isMobile ? 32 : 44,
                 border: "2px solid var(--accent)", borderRadius: "50%",
-                fontSize: isMobile ? "var(--font-base)" : "var(--font-lg)",
                 color: "var(--accent)", flexShrink: 0,
               }}>
-                {'\u2261'}
+                <Icon icon="ph:book-open-text" width={isMobile ? 18 : 24} height={isMobile ? 18 : 24} />
               </span>
               <span>{t("nav_docs")}</span>
             </div>
@@ -469,8 +470,8 @@ export function DocsListPage({ isMobile }) {
           <button onClick={() => setSearchOpen(true)}
             title={t("doc_search_shortcut")}
             style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: isMobile ? "8px 14px" : "10px 18px",
+              display: "flex", alignItems: "center", gap: 6,
+              padding: isMobile ? "8px 12px" : "10px 16px",
               background: "var(--bg-surface)", border: "1px solid var(--border-subtle)",
               color: "var(--text-muted)", cursor: "pointer",
               fontSize: "var(--font-sm)", fontFamily: "var(--font-mono)",
@@ -480,7 +481,7 @@ export function DocsListPage({ isMobile }) {
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.color = "var(--accent)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; e.currentTarget.style.color = "var(--text-muted)"; }}
           >
-            <span>&#8981;</span>
+            <Icon icon="ph:magnifying-glass" width={isMobile ? 14 : 16} height={isMobile ? 14 : 16} />
             <span>{isMobile ? "" : t("doc_search_shortcut")}</span>
           </button>
         </div>
@@ -502,39 +503,39 @@ export function DocsListPage({ isMobile }) {
               <a key={slug} href={`/docs/${slug}`}
                 onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/docs/${slug}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
                 style={{
-                  display: "flex", alignItems: "center", gap: isMobile ? 10 : 14,
-                  padding: isMobile ? "12px 14px" : "16px 20px",
+                  display: "flex", alignItems: "center", gap: isMobile ? 12 : 16,
+                  padding: isMobile ? "14px 14px" : "18px 22px",
                   border: "1px solid var(--border-subtle)",
+                  borderLeft: "3px solid var(--border-subtle)",
                   background: "var(--bg-surface)",
                   textDecoration: "none", cursor: "pointer",
-                  fontSize: isMobile ? "var(--font-sm)" : "var(--font-base)",
                   color: "var(--text-primary)",
                   fontFamily: "var(--font-mono)",
                   animation: `fade-in 0.35s var(--ease-smooth) ${0.2 + i * 0.08}s both`,
-                  transition: "border-color var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth)",
-                  position: "relative",
+                  transition: "all var(--dur-fast) var(--ease-smooth)",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = "var(--accent)";
+                  e.currentTarget.style.borderLeftColor = "var(--accent)";
                   e.currentTarget.style.boxShadow = "var(--glow-accent)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = "var(--border-subtle)";
+                  e.currentTarget.style.borderLeftColor = "var(--border-subtle)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
+                {/* Article icon */}
                 <span style={{
-                  position: "absolute", left: 0, top: 0, bottom: 0, width: 3,
-                  background: "var(--accent)",
-                  opacity: 0,
-                  transition: "opacity var(--dur-fast) var(--ease-smooth)",
-                }} className="card-accent-bar" />
-                <span style={{
-                  fontSize: isMobile ? "var(--font-lg)" : "var(--font-hg)", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: isMobile ? 36 : 44, height: isMobile ? 36 : 44,
+                  flexShrink: 0,
                   color: "var(--accent)", opacity: 0.5,
                 }}>
-                  {'\u2261'}
+                  <Icon icon="ph:article" width={isMobile ? 28 : 36} height={isMobile ? 28 : 36} />
                 </span>
+
+                {/* Text */}
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     fontWeight: 700, letterSpacing: "0.06em",
@@ -546,23 +547,28 @@ export function DocsListPage({ isMobile }) {
                   </div>
                   {meta.description && (
                     <div style={{
-                      fontSize: "var(--font-xs)",
-                      color: "var(--text-muted)", marginTop: isMobile ? 2 : 4,
-                      lineHeight: 1.4,
+                      fontSize: "var(--font-xs)", color: "var(--text-muted)",
+                      marginTop: isMobile ? 2 : 4, lineHeight: 1.5,
+                      maxWidth: 520,
                     }}>
                       {meta.description}
                     </div>
                   )}
                   <div style={{
-                    fontSize: "var(--font-xxs)", color: "var(--text-dim)", marginTop: isMobile ? 2 : 4,
+                    fontSize: "var(--font-xxs)", color: "var(--text-dim)",
+                    marginTop: isMobile ? 2 : 4,
                   }}>
                     {slug}
                   </div>
                 </span>
+
+                {/* Arrow */}
                 <span style={{
-                  color: "var(--accent)", fontSize: isMobile ? "var(--font-sm)" : "var(--font-base)",
-                  flexShrink: 0, opacity: 0.6,
-                }}>&#8594;</span>
+                  color: "var(--accent)", flexShrink: 0,
+                  opacity: 0.3, transition: "opacity var(--dur-fast) var(--ease-smooth), transform var(--dur-fast) var(--ease-smooth)",
+                }} className="card-arrow">
+                  <Icon icon="ph:caret-right" width={isMobile ? 14 : 18} height={isMobile ? 14 : 18} />
+                </span>
               </a>
             );
           })}
