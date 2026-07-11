@@ -1,63 +1,67 @@
-// Custom hash router utility for handling complex paths like #/weapon/amethyst.carry_item
+// React Router v7 BrowserRouter compatibility layer
+// Replaces the legacy custom hash router with History API routing.
+// Exports the same API surface so consumers need minimal changes.
 
-import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from "react-router-dom";
 
-// Parse hash path into segments
+/**
+ * Parse current URL pathname into segments.
+ * (Legacy API — kept for compatibility; prefer useHashRoute / useRouteParams.)
+ */
 export function parseHashPath() {
-  const hash = window.location.hash || '#';
-  // Remove leading # and split by /
-  const path = hash.startsWith('#') ? hash.substring(1) : hash;
-  const segments = path.split('/').filter(segment => segment.length > 0);
+  const path = window.location.pathname;
+  const segments = path.split("/").filter((s) => s.length > 0);
   return {
-    path: '/' + segments.join('/'),
-    segments: segments,
-    type: segments[0] || '',
-    itemId: segments[1] || null
+    path: "/" + segments.join("/"),
+    segments,
+    type: segments[0] || "",
+    itemId: segments[1] || null,
   };
 }
 
-// Hook to get current route state
+/**
+ * React hook — reactive route state from BrowserRouter.
+ */
 export function useHashRoute() {
-  const [route, setRoute] = useState(parseHashPath());
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      setRoute(parseHashPath());
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, []);
-
-  return route;
+  const location = useLocation();
+  const segments = location.pathname.split("/").filter((s) => s.length > 0);
+  return {
+    path: location.pathname,
+    segments,
+    type: segments[0] || "",
+    itemId: segments[1] || null,
+  };
 }
 
-// Navigate to a new hash path
+/**
+ * Navigate to a new path using History API.
+ * Works both inside React (via hook) and outside (via pushState).
+ *
+ * For use outside React components, falls back to pushState.
+ * Inside components, prefer calling useNavigate() directly.
+ */
 export function navigateTo(path) {
-  if (!path.startsWith('#')) {
-    path = '#' + path;
-  }
-  window.location.hash = path;
+  if (!path.startsWith("/")) path = "/" + path;
+  window.history.pushState(null, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-// Get route parameters based on current hash
-// Note: data should be passed from context, not as a parameter
+/**
+ * React hook — resolves route params against data.
+ * Returns typeExists, itemExists, item alongside standard route info.
+ */
 export function useRouteParams(data) {
   const route = useHashRoute();
   const { type, itemId } = route;
-  
-  // Check if type exists in data
+
   const typeExists = data && data.hasOwnProperty(type);
-  
-  // Check if item exists within the type
-  const itemExists = typeExists && itemId && data[type].hasOwnProperty(itemId);
-  
+  const itemExists =
+    typeExists && itemId && data[type].hasOwnProperty(itemId);
+
   return {
     ...route,
     typeExists,
     itemExists,
-    item: itemExists ? data[type][itemId] : null
+    item: itemExists ? data[type][itemId] : null,
   };
 }

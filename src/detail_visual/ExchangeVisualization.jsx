@@ -25,8 +25,8 @@ function PrizeChip({ entry, data, maxScore, totalScore }) {
 
   return (
     <a
-          href={`#/params/${type}/${fullKey}`}
-          onClick={(e) => { e.preventDefault(); window.location.hash = `#/params/${type}/${fullKey}`; }}
+          href={`/params/${type}/${fullKey}`}
+          onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${type}/${fullKey}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
       style={{
         display: "flex", alignItems: "center", gap: 8,
         padding: "6px 10px",
@@ -110,8 +110,8 @@ function SourceChip({ entry, data, translate }) {
   const iconUrl = useItemIcon(item || { hud_icon_filename: null });
   return (
     <a
-      href={`#/params/${entry.class}/${entry.key}`}
-      onClick={(e) => { e.preventDefault(); window.location.hash = `#/params/${entry.class}/${entry.key}`; }}
+      href={`/params/${entry.class}/${entry.key}`}
+      onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${entry.class}/${entry.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
       style={{
         display: "inline-flex", alignItems: "center", gap: 5,
         padding: "4px 8px",

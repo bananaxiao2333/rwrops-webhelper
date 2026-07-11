@@ -306,7 +306,7 @@ export default function List({ data, type, searchText, isMobile, priceFilter, ex
                   const norm = norms[idx] || 0.5;
                   return (
                     <Tile key={item.key} item={item} config={config} norm={norm} index={idx} isMobile={isMobile}
-                      onClick={() => { window.location.hash = `#/params/${type}/${item.key}`; }}
+                      onClick={() => { window.history.pushState(null, "", `/params/${type}/${item.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
                     />
                   );
                 })

@@ -142,7 +142,7 @@ function buildItemLookup(data) {
 function ItemLink({ text, target, onNavigate }) {
   return (
     <a
-      href={`#/params/${target.type}/${target.key}`}
+      href={`/params/${target.type}/${target.key}`}
       onClick={(e) => { e.preventDefault(); onNavigate(target.type, target.key); }}
       style={{
         color: "var(--accent)",
@@ -281,7 +281,8 @@ export default function Detail({ item, type, onBack, onOpenRoll }) {
   const { data: fullData } = useData();
   const lookupMap = useMemo(() => buildItemLookup(fullData), [fullData]);
   const handleItemNavigate = (targetType, targetKey) => {
-    window.location.hash = `#/params/${targetType}/${targetKey}`;
+    window.history.pushState(null, "", `/params/${targetType}/${targetKey}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
   const iconUrl = useItemIcon(item);

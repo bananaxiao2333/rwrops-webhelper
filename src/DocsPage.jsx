@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useT } from "./i18n.jsx";
 import { useI18n } from "./i18n.jsx";
 import { getArticle, getArticleMeta, getArticleSlugs, getAllArticleMetas, searchArticles, buildSearchIndex } from "./docs.js";
+import SEO, { ArticleStructuredData } from "./SEO.jsx";
 
 // ── 语言名称映射 ──
 const LANG_NAMES = { cn: "中文", en: "EN", de: "DE", es: "ES", fr: "FR", ru: "RU" };
@@ -127,8 +128,8 @@ export function ArticleList({ isMobile }) {
       {slugs.map((slug) => {
         const meta = metas[slug] || getArticleMeta(slug, lang);
         return (
-          <a key={slug} href={`#/docs/${slug}`}
-            onClick={(e) => { e.preventDefault(); window.location.hash = `#/docs/${slug}`; }}
+          <a key={slug} href={`/docs/${slug}`}
+            onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/docs/${slug}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
             style={{
               display: "flex", alignItems: "center", gap: isMobile ? 6 : 10,
               padding: isMobile ? "8px 10px" : "10px 14px",
@@ -413,7 +414,8 @@ export function DocsListPage({ isMobile }) {
 
   const handleSelectArticle = (targetSlug, _lang, query) => {
     const hl = query ? `?hl=${encodeURIComponent(query)}` : "";
-    window.location.hash = `#/docs/${targetSlug}${hl}`;
+    window.history.pushState(null, "", `/docs/${targetSlug}${hl}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
   return (
@@ -497,8 +499,8 @@ export function DocsListPage({ isMobile }) {
           {slugs.map((slug, i) => {
             const meta = metas[slug] || getArticleMeta(slug, lang);
             return (
-              <a key={slug} href={`#/docs/${slug}`}
-                onClick={(e) => { e.preventDefault(); window.location.hash = `#/docs/${slug}`; }}
+              <a key={slug} href={`/docs/${slug}`}
+                onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/docs/${slug}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
                 style={{
                   display: "flex", alignItems: "center", gap: isMobile ? 10 : 14,
                   padding: isMobile ? "12px 14px" : "16px 20px",
@@ -690,8 +692,8 @@ export default function DocsPage({ slug }) {
       setArticle(articleResult);
       setResolvedLang(articleResult?.resolvedLang || null);
 
-      // 从 URL hash 读取搜索词用于高亮
-      const raw = window.location.hash;
+      // 从 URL search 读取搜索词用于高亮
+      const raw = window.location.search;
       const hMatch = raw.match(/[?&]hl=([^&]+)/);
       if (hMatch) {
         try {
@@ -738,7 +740,8 @@ export default function DocsPage({ slug }) {
 
   const handleSelectArticle = useCallback((targetSlug, _lang, query) => {
     const hl = query ? `?hl=${encodeURIComponent(query)}` : "";
-    window.location.hash = `#/docs/${targetSlug}${hl}`;
+    window.history.pushState(null, "", `/docs/${targetSlug}${hl}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
   }, []);
 
   if (loading) {
@@ -762,7 +765,7 @@ export default function DocsPage({ slug }) {
         <div style={{ fontSize: "2rem", color: "var(--danger)" }}>&#9608;</div>
         <p>{t("doc_not_found", slug)}</p>
         {error && <p style={{ fontSize: "var(--font-xs)" }}>{error}</p>}
-        <a href="#/" onClick={(e) => { e.preventDefault(); window.location.hash = "#/"; }}
+        <a href="/" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/"); window.dispatchEvent(new PopStateEvent("popstate")); }}
           style={{ color: "var(--accent)", cursor: "pointer", textDecoration: "underline" }}>
           {t("nav_home")}
         </a>
@@ -780,11 +783,30 @@ export default function DocsPage({ slug }) {
       fontSize: "var(--font-base)",
       position: "relative",
     }}>
+      {/* ── SEO ── */}
+      <SEO
+        title={meta.title}
+        description={meta.description}
+        canonicalPath={`/docs/${slug}`}
+        lang={resolvedLang || lang}
+        langAlt={(() => {
+          const allSlugs = getArticleSlugs();
+          return allSlugs.map((s) => ({ lang: s === slug ? (resolvedLang || lang) : "en", url: `/docs/${s}` }));
+        })()}
+        articleMeta={meta.date ? { publishedTime: meta.date } : undefined}
+      />
+      <ArticleStructuredData
+        title={meta.title}
+        description={meta.description}
+        slug={slug}
+        lang={resolvedLang || lang}
+        datePublished={meta.date}
+      />
       <style>{DOC_CSS}</style>
 
       <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <a href="#/" onClick={(e) => { e.preventDefault(); window.location.hash = "#/"; }}
+          <a href="/" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/"); window.dispatchEvent(new PopStateEvent("popstate")); }}
             style={{ color: "var(--text-muted)", fontSize: "var(--font-sm)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
             <span>&#8592;</span> {t("nav_home")}
           </a>

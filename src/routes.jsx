@@ -32,8 +32,8 @@ function CategoryCard({ cat, meta, index, style, isMobile }) {
 
   return (
     <a
-      href={`#/params/${cat.type}`}
-      onClick={(e) => { e.preventDefault(); window.location.hash = `#/params/${cat.type}`; }}
+      href={`/params/${cat.type}`}
+      onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${cat.type}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
       style={{
         border: "1px solid var(--border-mid)",
         padding,

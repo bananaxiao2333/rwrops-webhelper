@@ -63,8 +63,8 @@ function ActionRow({ action, index, data }) {
 
         {/* Item link */}
         <a
-          href={`#/params/${type}/${fullKey}`}
-          onClick={(e) => { e.preventDefault(); window.location.hash = `#/params/${type}/${fullKey}`; }}
+          href={`/params/${type}/${fullKey}`}
+          onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${type}/${fullKey}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
           style={{
             color: "var(--accent)",
             textDecoration: "underline",

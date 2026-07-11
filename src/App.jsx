@@ -1,9 +1,11 @@
-import { useHashRoute, useRouteParams } from "./hashRouter.js";
+import { useHashRoute, useRouteParams, navigateTo } from "./hashRouter.js";
+import { useNavigate } from "react-router-dom";
 import { useI18n } from "./i18n.jsx";
 import { HomePage, extractAllKeywords } from "./routes.jsx";
+import SEO from "./SEO.jsx";
 import ExchangeRollModal from "./detail_visual/ExchangeRollModal";
 import DocsPage, { DocsListPage } from "./DocsPage.jsx";
-import { getArticleSlugs, getAllArticleMetas } from "./docs.js";
+import { getArticleSlugsSync, getArticleSlugs, getAllArticleMetas } from "./docsLazy.js";
 import GlobalSearch from "./GlobalSearch.jsx";
 
 /* ── Language first-time picker modal ── */
@@ -250,10 +252,10 @@ function LanguageSelector() {
 
 /* ── Navigation section descriptor ── */
 const NAV_SECTIONS = [
-  { id: "home",   labelKey: "nav_home",   path: "#/",            icon: "\u{2302}" },  // ⌂
-  { id: "params", labelKey: "nav_params", path: "#/params",      icon: "\u{2699}",   // ⚙
-    dynamic: "categories", childPath: (id) => `#/params/${id}` },
-  { id: "docs",   labelKey: "nav_docs",   path: "#/docs",        icon: "\u{2261}",
+  { id: "home",   labelKey: "nav_home",   path: "/",            icon: "\u{2302}" },  // ⌂
+  { id: "params", labelKey: "nav_params", path: "/params",      icon: "\u{2699}",   // ⚙
+    dynamic: "categories", childPath: (id) => `/params/${id}` },
+  { id: "docs",   labelKey: "nav_docs",   path: "/docs",        icon: "\u{2261}",
     dynamic: "articles" },
 ];
 
@@ -287,7 +289,7 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, isMo
               {/* Section header */}
               <a
                 href={section.path}
-                onClick={(e) => { e.preventDefault(); onNav?.(); window.location.hash = section.path; }}
+                onClick={(e) => { e.preventDefault(); onNav?.(); navigateTo(section.path); }}
                 style={{
                   ...linkBase,
                   ...(secActive ? linkActive : {}),
@@ -307,7 +309,7 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, isMo
                       <a
                         key={child.id}
                         href={child.path}
-                        onClick={(e) => { e.preventDefault(); onNav?.(); window.location.hash = child.path; }}
+                        onClick={(e) => { e.preventDefault(); onNav?.(); navigateTo(child.path); }}
                         style={{
                           ...linkBase,
                           paddingLeft: isMobile ? 20 : 24,
@@ -457,6 +459,7 @@ export default function App() {
   const { data } = useData();
   const route = useHashRoute();
   useRouteParams(data);
+  const navigate = useNavigate();
 
   const { lang, languages, setLang, t } = useI18n();
   const [showLangModal, setShowLangModal] = useState(!localStorage.getItem("rwrops_lang"));
@@ -497,28 +500,28 @@ export default function App() {
   }, []);
 
   // Build nav sections: config + dynamic children
-  const articleSlugs = useMemo(() => getArticleSlugs(), []);
+  // Use sync fallback initially — slugs derived from file glob, no docs.js needed
+  const articleSlugs = useMemo(() => getArticleSlugsSync(), []);
   const navSections = useMemo(() => NAV_SECTIONS.map((sec) => {
     if (sec.dynamic === "categories") {
       return { ...sec, children: typeList.map((t) => ({
-        id: t.type, labelKey: t.type, path: `#/params/${t.type}`, count: t.count,
+        id: t.type, labelKey: t.type, path: `/params/${t.type}`, count: t.count,
       }))};
     }
     if (sec.dynamic === "articles") {
       return { ...sec, children: articleSlugs.map((slug) => ({
-        id: slug, path: `#/docs/${slug}`,
+        id: slug, path: `/docs/${slug}`,
       }))};
     }
     return sec;
   }), [typeList, articleSlugs]);
 
-  // Initialize hash + redirect bare #/params to first category
+  // Initialize route + redirect bare /params to first category
   useEffect(() => {
-    if (!window.location.hash) window.location.hash = "#/";
     if (segmentsList.length === 1 && segmentsList[0] === "params" && typeList.length > 0) {
-      window.location.hash = `#/params/${typeList[0].type}`;
+      navigate(`/params/${typeList[0].type}`, { replace: true });
     }
-  }, [typeList, segmentsList]);
+  }, [typeList, segmentsList, navigate]);
 
   // Load article metadata for sidebar titles
   useEffect(() => {
@@ -531,6 +534,24 @@ export default function App() {
       height: "100vh",
       background: "var(--bg-deep)",
     }}>
+      {/* ── SEO meta tags ── */}
+      {(() => {
+        let seoTitle = "";
+        let seoDesc = "";
+        let seoPath = route.path;
+        if (isHome) {
+          seoTitle = t("omni_parser");
+          seoDesc = t("subtitle");
+        } else if (isParams && itemKey && data?.[activeType]?.[itemKey]) {
+          const item = data[activeType][itemKey];
+          const itemName = item.name ? (typeof item.name === "string" ? item.name : String(item.name)) : itemKey;
+          seoTitle = `${itemName} (${activeType})`;
+          seoDesc = `${activeType} entry: ${itemKey}`;
+        } else if (isParams && activeType) {
+          seoTitle = t(activeType);
+        }
+        return <SEO title={seoTitle} description={seoDesc} canonicalPath={seoPath} lang={lang} />;
+      })()}
       {/* Status Bar */}
       <StatusBar
         viewName={isHome ? t("omni_parser") : isDocs ? t("nav_docs") : (itemKey ? itemKey.toUpperCase() : (activeType || "").toUpperCase())}
@@ -578,7 +599,7 @@ export default function App() {
         ) : null}
 
         {/* Main Area */}
-        <div style={{
+        <main style={{
           flex: 1,
           overflow: "auto",
           background: "var(--bg-deep)",
@@ -605,7 +626,7 @@ export default function App() {
             <Detail
               item={data[activeType][itemKey]}
               type={activeType}
-              onBack={() => { window.location.hash = `#/params/${activeType}`; }}
+              onBack={() => { navigate(`/params/${activeType}`); }}
               onOpenRoll={(item) => setRollItem(item)}
             />
           ) : activeType ? (
@@ -615,8 +636,8 @@ export default function App() {
                 <p>{!data?.[activeType] ? `TYPE "${activeType}" NOT FOUND` : `ITEM "${itemKey}" NOT FOUND`}</p>
               </div>
             </div>
-          ) : null}
-        </div>
+           ) : null}
+        </main>
       </div>
       {showLangModal && languages.length > 0 && (
         <LanguageModal
@@ -630,7 +651,7 @@ export default function App() {
         open={globalSearchOpen}
         onClose={() => setGlobalSearchOpen(false)}
         data={data}
-        onNavigate={(path) => { window.location.hash = path; }}
+        onNavigate={(path) => { navigate(path); }}
       />
 
       {/* ── Footer ── */}
