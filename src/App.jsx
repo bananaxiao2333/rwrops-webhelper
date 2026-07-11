@@ -7,6 +7,9 @@ import ExchangeRollModal from "./detail_visual/ExchangeRollModal";
 import DocsPage, { DocsListPage } from "./DocsPage.jsx";
 import { getArticleSlugsSync, getArticleSlugs, getAllArticleMetas } from "./docsLazy.js";
 import GlobalSearch from "./GlobalSearch.jsx";
+import ToolsListPage from "./tools/ToolsListPage.jsx";
+import StallGenerator from "./tools/StallGenerator.jsx";
+import ErrorBoundary from "./ErrorBoundary.jsx";
 
 /* ── Language first-time picker modal ── */
 import List from "./List.jsx";
@@ -257,10 +260,12 @@ const NAV_SECTIONS = [
     dynamic: "categories", childPath: (id) => `/params/${id}` },
   { id: "docs",   labelKey: "nav_docs",   path: "/docs",        icon: "\u{2261}",
     dynamic: "articles" },
+  { id: "tools", labelKey: "nav_tools", path: "/tools",      icon: "\u{2692}",
+    children: [{ id: "stall", labelKey: "tools_stall", path: "/tools/stall" }] },
 ];
 
 /* ── Sidebar: section-driven navigation panel ── */
-function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, isMobile, priceFilter, onPriceFilterChange, exchangeSourceFilter, onExchangeSourceFilterChange, exchangePrizeFilter, onExchangePrizeFilterChange, onNav, articleMetas = {} }) {
+function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, toolsSlug, isMobile, priceFilter, onPriceFilterChange, exchangeSourceFilter, onExchangeSourceFilterChange, exchangePrizeFilter, onExchangePrizeFilterChange, onNav, articleMetas = {} }) {
   const { translate, t } = useI18n();
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -304,7 +309,11 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, isMo
               {secOn && section.children && section.children.length > 0 && (
                 <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 4, marginTop: 2 }}>
                   {section.children.map((child, ci) => {
-                    const childActive = child.id === (section.id === "docs" ? activeDocSlug : activeType);
+                    const childActive = child.id === (
+                      section.id === "docs" ? activeDocSlug :
+                      section.id === "tools" ? toolsSlug :
+                      activeType
+                    );
                     return (
                       <a
                         key={child.id}
@@ -394,9 +403,9 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, isMo
 }
 
 /* ── Sidebar shell (desktop inline / mobile overlay) ── */
-function CategoryTree({ sections, activeSection, activeType, activeDocSlug, isMobile, sidebarOpen, onClose, priceFilter, onPriceFilterChange, exchangeSourceFilter, onExchangeSourceFilterChange, exchangePrizeFilter, onExchangePrizeFilterChange, articleMetas = {} }) {
+function CategoryTree({ sections, activeSection, activeType, activeDocSlug, toolsSlug, isMobile, sidebarOpen, onClose, priceFilter, onPriceFilterChange, exchangeSourceFilter, onExchangeSourceFilterChange, exchangePrizeFilter, onExchangePrizeFilterChange, articleMetas = {} }) {
   const { t } = useI18n();
-  const nav = <SidebarPanel sections={sections} activeSection={activeSection} activeType={activeType} activeDocSlug={activeDocSlug} isMobile={isMobile}
+  const nav = <SidebarPanel sections={sections} activeSection={activeSection} activeType={activeType} activeDocSlug={activeDocSlug} toolsSlug={toolsSlug} isMobile={isMobile}
     priceFilter={priceFilter} onPriceFilterChange={onPriceFilterChange}
     exchangeSourceFilter={exchangeSourceFilter} onExchangeSourceFilterChange={onExchangeSourceFilterChange}
     exchangePrizeFilter={exchangePrizeFilter} onExchangePrizeFilterChange={onExchangePrizeFilterChange}
@@ -483,8 +492,10 @@ export default function App() {
   const activeSection = isHome ? null : segmentsList[0];
   const isParams = activeSection === "params";
   const isDocs = activeSection === "docs";
+  const isTools = activeSection === "tools";
   const activeType = isParams ? segmentsList[1] || null : null;
   const activeDocSlug = isDocs ? (segmentsList[1] || "").split("?")[0] || null : null;
+  const toolsSlug = isTools ? (segmentsList[1] || null) : null;
   const itemKey = isParams ? segmentsList[2] || null : null;
 
   // Global search keyboard shortcut
@@ -554,7 +565,7 @@ export default function App() {
       })()}
       {/* Status Bar */}
       <StatusBar
-        viewName={isHome ? t("omni_parser") : isDocs ? t("nav_docs") : (itemKey ? itemKey.toUpperCase() : (activeType || "").toUpperCase())}
+        viewName={isHome ? t("omni_parser") : isDocs ? t("nav_docs") : isTools ? t("nav_tools") : (itemKey ? itemKey.toUpperCase() : (activeType || "").toUpperCase())}
         count={activeType && data?.[activeType] ? Object.keys(data[activeType]).length : undefined}
         isMobile={isMobile}
         onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
@@ -570,6 +581,7 @@ export default function App() {
             activeSection={activeSection}
             activeType={activeType}
             activeDocSlug={activeDocSlug}
+            toolsSlug={toolsSlug}
             isMobile={isMobile}
             sidebarOpen={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
@@ -587,6 +599,7 @@ export default function App() {
             activeSection={activeSection}
             activeType={activeType}
             activeDocSlug={activeDocSlug}
+            toolsSlug={toolsSlug}
             isMobile={isMobile}
             priceFilter={priceFilter}
             onPriceFilterChange={setPriceFilter}
@@ -604,6 +617,7 @@ export default function App() {
           overflow: "auto",
           background: "var(--bg-deep)",
         }}>
+          <ErrorBoundary t={t} key={route.path}>
           {isHome ? (
             <HomePage
               allKeywords={extractAllKeywords(data)}
@@ -629,7 +643,11 @@ export default function App() {
               onBack={() => { navigate(`/params/${activeType}`); }}
               onOpenRoll={(item) => setRollItem(item)}
             />
-          ) : activeType ? (
+           ) : isTools && toolsSlug === "stall" ? (
+            <StallGenerator />
+           ) : isTools ? (
+            <ToolsListPage />
+           ) : activeType ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "2rem", color: "var(--danger)", marginBottom: "0.5rem" }}>&#9608;</div>
@@ -637,6 +655,7 @@ export default function App() {
               </div>
             </div>
            ) : null}
+          </ErrorBoundary>
         </main>
       </div>
       {showLangModal && languages.length > 0 && (
