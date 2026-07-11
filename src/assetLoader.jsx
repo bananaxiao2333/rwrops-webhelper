@@ -1,57 +1,79 @@
 import { useState, useEffect } from "react";
+import { getDataSource, fetchFromSource } from "./dataSource.js";
 
-/* ── Load index mapping: original_path → flat_filename ── */
-import assetIndex from "../data/assets/_index.json";
+/* ── Lazy-load asset index from data source ── */
+let _index = null;
+let _indexPromise = null;
+let _reverseMap = null; // basename → flat filename (fast direct lookup)
 
-/* ── Scan ALL PNGs and SVGs under assets/ (any depth) ── */
-const pngModules = import.meta.glob("../data/assets/**/*.png", {
-  query: { format: "url" },
-  import: "default",
-  eager: false,
-});
-const svgModules = import.meta.glob("../data/assets/**/*.svg", {
-  query: { format: "url" },
-  import: "default",
-  eager: false,
-});
-const assetModules = { ...pngModules, ...svgModules };
-
-/* ── Build reverse lookup: basename → module loader ── */
-const reverseMap = {};
-for (const path of Object.keys(assetModules)) {
-  const name = path.split("/").pop();
-  if (!reverseMap[name]) reverseMap[name] = assetModules[path];
+async function loadIndex() {
+  if (_indexPromise) return _indexPromise;
+  _indexPromise = (async () => {
+    try {
+      const resp = await fetchFromSource("assets/_index.json");
+      _index = await resp.json();
+      // Build reverse lookup: basename → flat filename
+      _reverseMap = {};
+      for (const [origPath, flatName] of Object.entries(_index)) {
+        const basename = origPath.replace(/\\/g, "/").split("/").pop();
+        if (basename && !_reverseMap[basename]) {
+          _reverseMap[basename] = flatName;
+        }
+      }
+    } catch {
+      // No index available — assets will resolve via direct URL guess
+      _index = {};
+      _reverseMap = {};
+    }
+  })();
+  return _indexPromise;
 }
 
-/* ── Resolve asset by filename or path ── */
-function resolveAsset(filename) {
+/* ── Resolve asset URL by filename ── */
+function assetUrl(flatName) {
+  const { assetsUrl } = getDataSource();
+  return `${assetsUrl}/${flatName}`;
+}
+
+/* ── Find flat filename for a given original filename ── */
+function resolveFlat(filename) {
   if (!filename) return null;
-  // Try direct match by name first
-  if (reverseMap[filename]) return reverseMap[filename];
-  // Look up in index: original path → flat filename
-  for (const [origPath, flatName] of Object.entries(assetIndex)) {
-    const norm = origPath.replace(/\\/g, "/");
-    if (norm.endsWith("/" + filename) || norm === filename) {
-      if (reverseMap[flatName]) return reverseMap[flatName];
+
+  // 1. Direct basename match in reverse map
+  if (_reverseMap && _reverseMap[filename]) return _reverseMap[filename];
+
+  // 2. Search index: original path ends with filename
+  if (_index) {
+    for (const [origPath, flatName] of Object.entries(_index)) {
+      const norm = origPath.replace(/\\/g, "/");
+      if (norm.endsWith("/" + filename) || norm === filename) {
+        return flatName;
+      }
     }
   }
-  // Try without extension
+
+  // 3. Bare name (no extension)
   const bare = filename.replace(/\.\w+$/, "");
-  if (reverseMap[bare]) return reverseMap[bare];
-  return null;
+  if (bare !== filename && _reverseMap && _reverseMap[bare]) return _reverseMap[bare];
+
+  // 4. Fallback: use filename directly
+  return filename;
 }
 
-/* ── Hook: load any asset by filename (original name or flat name) ── */
+/* ── Hook: load any asset by filename ── */
 export function useAsset(filename) {
   const [url, setUrl] = useState(null);
 
   useEffect(() => {
     if (!filename) return;
     let cancelled = false;
-    const loader = resolveAsset(filename);
-    if (loader) {
-      loader().then((u) => { if (!cancelled) setUrl(u); });
-    }
+
+    loadIndex().then(() => {
+      if (cancelled) return;
+      const flat = resolveFlat(filename);
+      if (flat) setUrl(assetUrl(flat));
+    });
+
     return () => { cancelled = true; };
   }, [filename]);
 
@@ -69,27 +91,34 @@ export function useItemIcon(item) {
   return useAsset(file);
 }
 
-/* ── Synchronous check if an asset exists ── */
+/* ── Check if an asset exists ── */
 export function hasAsset(filename) {
-  return !!resolveAsset(filename);
+  if (!_index) return false;
+  return !!resolveFlat(filename);
 }
 
 /* ── Reverse lookup: flat filename → original path(s) ── */
-const flatToOrig = {};
-for (const [orig, flat] of Object.entries(assetIndex)) {
-  if (!flatToOrig[flat]) flatToOrig[flat] = [];
-  flatToOrig[flat].push(orig);
+function getFlatToOrig() {
+  const map = {};
+  if (!_index) return map;
+  for (const [orig, flat] of Object.entries(_index)) {
+    if (!map[flat]) map[flat] = [];
+    map[flat].push(orig);
+  }
+  return map;
 }
 
 /* ── Get display value: if it's an indexed asset, show original path ── */
 export function displayPath(value) {
   if (typeof value !== "string") return value;
+  const flatToOrig = getFlatToOrig();
   const origins = flatToOrig[value];
   if (origins && origins.length > 0) return origins[0].replace(/\\/g, "/");
-  // Also check if value matches the end of any original path
-  for (const [orig, flat] of Object.entries(assetIndex)) {
-    if (orig.endsWith(value) || orig.replace(/\\/g, "/").endsWith(value)) {
-      return orig.replace(/\\/g, "/");
+  if (_index) {
+    for (const [orig, flat] of Object.entries(_index)) {
+      if (orig.endsWith(value) || orig.replace(/\\/g, "/").endsWith(value)) {
+        return orig.replace(/\\/g, "/");
+      }
     }
   }
   return value;

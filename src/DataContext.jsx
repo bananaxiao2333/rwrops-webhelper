@@ -1,16 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
-
-/* ── Resolve data source paths from env ── */
-function resolveDataSource() {
-  const source = import.meta.env.VITE_DATA_SOURCE || "/data/result.json";
-  const isRemote = /^https?:\/\//i.test(source);
-  const base = source.replace(/\/[^/]*$/, ""); // strip filename → dir
-  return {
-    dataUrl: source,
-    metadataUrl: `${base}/metadata.yaml`,
-    isRemote,
-  };
-}
+import { getDataSource } from "./dataSource.js";
 
 /* ── Minimal YAML parser for metadata.yaml ── */
 function parseMetadata(text) {
@@ -103,7 +92,7 @@ export const DataProvider = ({ children }) => {
       return;
     }
 
-    const { dataUrl, metadataUrl, isRemote } = resolveDataSource();
+    const { dataUrl, metadataUrl, isRemote } = getDataSource();
     let cancelled = false;
 
     const load = async () => {
