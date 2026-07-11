@@ -21,8 +21,8 @@ function PrizeResult({ entry, data, delay }) {
 
   return (
     <a
-      href={`#/params/${entry.class}/${entry.key}`}
-      onClick={(e) => { e.preventDefault(); window.location.hash = `#/params/${entry.class}/${entry.key}`; }}
+      href={`/params/${entry.class}/${entry.key}`}
+      onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${entry.class}/${entry.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
       style={{
         display: "flex", alignItems: "center", gap: 8,
         padding: "8px 10px",
@@ -82,8 +82,8 @@ function ResultTile({ entry, data, index }) {
 
   return (
     <a
-      href={`#/params/${type}/${entry.key}`}
-      onClick={(e) => { e.preventDefault(); window.location.hash = `#/params/${type}/${entry.key}`; }}
+      href={`/params/${type}/${entry.key}`}
+      onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${type}/${entry.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
       style={{
         background: iconUrl
           ? `url(${iconUrl}) left center / contain no-repeat, rgba(${r},${g},${b},0.35)`

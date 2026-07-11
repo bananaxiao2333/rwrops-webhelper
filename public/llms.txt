@@ -1,0 +1,38 @@
+# RWROPS — Tactical Data Terminal
+> Running with Rifles game data browser and community guide hub.
+
+## Site Structure
+- Home: /
+- Game Data Index: /params
+  - Weapons: /params/weapon
+  - Vehicles: /params/vehicle
+  - Carry Items: /params/carry_item
+  - Projectiles: /params/projectile
+  - Calls: /params/call
+  - Achievements: /params/achievement
+  - Factions: /params/faction
+  - Ranks: /params/rank
+  - Stances: /params/stance
+  - Map Configs: /params/map_config
+  - Commands: /params/command
+- Documentation: /docs
+  - Articles: /docs/{article-slug}
+
+## Key Features
+- Browse all RWR game entities with translated names (CN/EN/DE/ES/FR/RU)
+- Interactive exchange/roll simulations for loot items
+- Weapon performance visualization with 3D models
+- Community-authored guides in Markdown (MDX)
+- Full-text search across game data and documentation
+- Tactical CRT terminal aesthetic
+
+## Tech Stack
+- React 19 + Vite 8
+- Material UI v6
+- react-router-dom v7 (History API)
+- Three.js via @react-three/fiber for 3D previews
+
+## Notes
+- All game data is loaded from a static JSON manifest at /data/result.json
+- Articles are .mdx/.md files in docs/articles/
+- Multi-language support: cn, en, de, es, fr, ru

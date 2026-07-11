@@ -6,7 +6,7 @@
  * ─────────────────────────────────────────────────── */
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useI18n } from "./i18n.jsx";
-import { searchArticles, buildSearchIndex } from "./docs.js";
+import { searchArticles, buildSearchIndex } from "./docsLazy.js";
 
 const LANG_NAMES = { cn: "中文", en: "EN", de: "DE", es: "ES", fr: "FR", ru: "RU" };
 const TYPE_LABELS = {
@@ -77,7 +77,7 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
                 section: type,
                 label: transName || rawName || rawKey,
                 key,
-                path: `#/params/${type}/${key}`,
+                path: `/params/${type}/${key}`,
               });
             }
           }
@@ -94,7 +94,7 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
             label: r.title,
             key: r.slug,
             snippet: r.snippet,
-            path: `#/docs/${r.slug}?hl=${encodeURIComponent(q)}`,
+            path: `/docs/${r.slug}?hl=${encodeURIComponent(q)}`,
           }));
         } catch (_) { /* ignore */ }
       }
