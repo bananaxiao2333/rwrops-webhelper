@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RWROPS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    /* ════════════════════════════════════════════════
+       RWROPS · Terminal Boot Sequence
+       ════════════════════════════════════════════════ */
+
+    :root {
+      --bg-deep:       #080c12;
+      --bg-surface:    #131a24;
+      --accent:        #f59e0b;
+      --accent-glow:   rgba(245, 158, 11, 0.35);
+      --accent-dim:    #b45309;
+      --success:       #22c55e;
+      --text-primary:  #e8edf3;
+      --text-muted:    #556677;
+      --text-dim:      #3a4a5a;
+      --border-subtle: #1e2d3d;
+      --border-mid:    #2a3a4e;
+      --font-display:  'Rajdhani', sans-serif;
+      --font-mono:     'Share Tech Mono', monospace;
+      --ease-smooth:   cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ═══════════════════════════ loading screen ═══════════════════════════ */
+    #loading-screen {
+      position: fixed; inset: 0; z-index: 99999;
+      background: var(--bg-deep);
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      transition: opacity 0.35s ease;
+      overflow: hidden;
+    }
+    #loading-screen.fade-out { opacity: 0; pointer-events: none; }
+
+    /* dot grid */
+    #loading-screen::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: radial-gradient(circle, rgba(245,158,11,0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* scanline */
+    #loading-screen::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(245,158,11,0.018) 3px, rgba(245,158,11,0.018) 6px);
+    }
+
+    /* ════════════ main split layout ════════════ */
+    .boot-layout {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: row;
+      height: 100vh; width: 100%;
+      padding: 0;
+    }
+
+    /* ── LEFT: brand + boot log ── */
+    .boot-left {
+      flex: 0 0 45%;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 4rem 5rem;
+    }
+
+    .boot-brand-group { margin-bottom: 3rem; }
+    .boot-brand-line {
+      font-family: var(--font-display); font-weight: 700;
+      letter-spacing: 0.12em; line-height: 0.85;
+      font-size: clamp(42px, 5vw, 72px);
+      color: var(--text-primary);
+      opacity: 0;
+      animation: boot-fade-in 0.5s var(--ease-smooth) both;
+    }
+    .boot-brand-line:nth-child(2) { animation-delay: 0.1s; }
+
+    .boot-brand-accent {
+      height: 1px; width: 200px;
+      background: linear-gradient(to right, var(--accent), transparent);
+      margin: 1.25rem 0 1.75rem;
+      opacity: 0;
+      animation: boot-scale-in 0.5s var(--ease-smooth) 0.2s both;
+      transform-origin: left center;
+    }
+
+    .boot-subtitle {
+      font-family: var(--font-mono); font-size: 0.7rem;
+      letter-spacing: 0.15em; color: var(--text-muted);
+      opacity: 0;
+      animation: boot-fade-in 0.4s var(--ease-smooth) 0.25s both;
+    }
+
+    /* boot log rows */
+    .boot-log {
+      font-family: var(--font-mono); line-height: 2;
+      font-size: 0.6rem; color: var(--text-dim);
+    }
+    .boot-log-row {
+      opacity: 0;
+      animation: boot-fade-in 0.3s ease both;
+    }
+    .boot-log-row:nth-child(1) { animation-delay: 0.35s; }
+    .boot-log-row:nth-child(2) { animation-delay: 0.45s; }
+    .boot-log-row:nth-child(3) { animation-delay: 0.55s; }
+    .boot-log-row:nth-child(4) { animation-delay: 0.65s; }
+
+    .boot-log-ok  { color: var(--success); }
+    .boot-log-gt  { color: var(--accent); }
+    .boot-log-dim { color: var(--text-dim); }
+
+    /* blinking prompt */
+    .boot-prompt {
+      margin-top: 1.25rem; display: flex; align-items: center; gap: 6px;
+      font-size: 0.6rem; color: var(--accent); font-family: var(--font-mono);
+      opacity: 0;
+      animation: boot-fade-in 0.3s ease 0.75s both;
+    }
+    .boot-prompt span { width: 6px; height: 11px; background: var(--accent); animation: boot-blink 0.9s step-end infinite; }
+    .boot-prompt-label { color: var(--text-dim); margin-left: 4px; }
+
+    /* ── RIGHT: visual panel ── */
+    .boot-right {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+
+    /* vertical separator */
+    .boot-sep {
+      position: absolute; left: 0; top: 15%; bottom: 15%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--border-mid) 30%, var(--border-mid) 70%, transparent);
+      opacity: 0.5;
+    }
+
+    /* progress panel */
+    .progress-panel {
+      width: 320px; text-align: center;
+      opacity: 0;
+      animation: boot-fade-in 0.4s var(--ease-smooth) 0.25s both;
+    }
+
+    /* progress ring + center text */
+    .progress-ring {
+      position: relative; width: 160px; height: 160px;
+      margin: 0 auto 2rem;
+    }
+
+    /* background circle (track) */
+    .progress-ring-bg {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 3px solid var(--border-subtle);
+      opacity: 0.4;
+    }
+
+    /* rotating arc — pseudo-ring that looks like scanning */
+    .progress-ring-arc {
+      position: absolute; inset: -4px; border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: var(--accent);
+      opacity: 0.7;
+      animation: boot-spin 3s linear infinite;
+    }
+    .progress-ring-arc:nth-child(3) {
+      inset: 4px;
+      border-top-color: var(--accent-dim);
+      animation: boot-spin 4s linear infinite reverse;
+      opacity: 0.4;
+    }
+
+    .progress-ring-pct {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 600;
+      font-size: 2.5rem; color: var(--accent);
+      letter-spacing: 0.06em;
+    }
+    .progress-ring-pct sup { font-size: 1rem; margin-left: 2px; opacity: 0.6; }
+
+    /* horizontal progress bar */
+    .progress-bar-track {
+      height: 2px; width: 100%;
+      background: var(--border-subtle);
+      margin: 0 auto 0.75rem; position: relative; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(to right, var(--accent-dim), var(--accent));
+      box-shadow: 0 0 10px var(--accent-glow);
+      transition: width 0.5s var(--ease-out);
+    }
+
+    .progress-stage {
+      font-size: 0.6rem; color: var(--text-muted);
+      letter-spacing: 0.2em; margin-bottom: 0.35rem;
+      text-transform: uppercase;
+    }
+    .progress-detail {
+      font-size: 0.5rem; color: var(--text-dim);
+      letter-spacing: 0.12em; line-height: 1.6;
+      min-height: 1.6em;
+    }
+
+    /* ════════════ keyframes ════════════ */
+    @keyframes boot-fade-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes boot-scale-in {
+      from { opacity: 0; transform: scaleX(0); }
+      to   { opacity: 1; transform: scaleX(1); }
+    }
+    @keyframes boot-blink {
+      0%, 100% { opacity: 1; } 50% { opacity: 0; }
+    }
+    @keyframes boot-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* ════════════ responsive ════════════ */
+    @media (max-width: 768px) {
+      .boot-layout { flex-direction: column; }
+      .boot-left { flex: 0 0 auto; padding: 2rem 1.5rem 1rem; }
+      .boot-brand-line { font-size: clamp(28px, 9vw, 40px); }
+      .boot-brand-accent { width: 120px; margin: 0.75rem 0 1rem; }
+      .boot-right { flex: 1; }
+      .boot-sep { display: none; }
+      .progress-ring { width: 120px; height: 120px; margin-bottom: 1.25rem; }
+      .progress-ring-pct { font-size: 2rem; }
+      .progress-panel { width: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ═══════════════════════════ Loading Screen ═══════════════════════════ -->
+  <div id="loading-screen">
+    <div class="boot-layout">
+      <!-- LEFT -->
+      <div class="boot-left">
+        <div class="boot-brand-group">
+          <div class="boot-brand-line">RWROPS</div>
+        </div>
+        <div class="boot-brand-accent"></div>
+        <div class="boot-subtitle">Running With Rifles (RWR) · DATA TERMINAL</div>
+
+        <div class="boot-log" style="margin-top:2.5rem">
+          <div class="boot-log-row">
+            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-1">Initializing system…</span>
+          </div>
+          <div class="boot-log-row">
+            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-2">Loading data package…</span>
+          </div>
+          <div class="boot-log-row">
+            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-3">Processing manifest…</span>
+          </div>
+          <div class="boot-log-row" id="log-4-row" style="display:none">
+            <span class="boot-log-ok">[ OK ]</span>&nbsp;&nbsp;<span class="boot-log-dim" id="log-4">Manifest loaded</span>
+          </div>
+        </div>
+
+        <div class="boot-prompt">
+          <span></span>
+          <span class="boot-prompt-label" id="prompt-label">Awaiting category selection</span>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="boot-right">
+        <div class="boot-sep"></div>
+        <div class="progress-panel">
+          <div class="progress-ring">
+            <div class="progress-ring-bg"></div>
+            <div class="progress-ring-arc"></div>
+            <div class="progress-ring-arc"></div>
+            <div class="progress-ring-pct">
+              <span id="ring-pct">0</span><sup>%</sup>
+            </div>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-bar"></div>
+          </div>
+          <div class="progress-stage" id="stage-text">INITIALIZING</div>
+          <div class="progress-detail" id="detail-text"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
