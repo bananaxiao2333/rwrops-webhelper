@@ -239,11 +239,9 @@ export default function Showcase() {
     if (shouldSkip) setIndex((i) => (i + 1) % pool.length);
   }, [shouldSkip, pool.length]);
 
-  if (shouldSkip) return null;
-
   // Timer countdown — starts only after icon resolves + 300ms buffer
   useEffect(() => {
-    if (!pool.length || !iconUrl) { setTimer(0); return; }
+    if (!pool.length || shouldSkip) { setTimer(0); return; }
     let iv;
     const delay = setTimeout(() => {
       setTimer(5.0);
@@ -256,7 +254,9 @@ export default function Showcase() {
       }, 50);
     }, 300);
     return () => { clearTimeout(delay); if (iv) clearInterval(iv); };
-  }, [index, pool.length, iconUrl]);
+  }, [index, pool.length, shouldSkip]);
+
+  if (shouldSkip) return null;
 
   // Stats
   const stats = [];
