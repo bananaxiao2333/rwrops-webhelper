@@ -10,6 +10,7 @@ import GlobalSearch from "./GlobalSearch.jsx";
 import ToolsListPage, { TOOLS } from "./tools/ToolsListPage.jsx";
 import StallGenerator from "./tools/StallGenerator.jsx";
 import MetaGen from "./tools/MetaGen.jsx";
+import Showcase from "./tools/Showcase.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
 
 /* ── Language first-time picker modal ── */
@@ -544,6 +545,11 @@ export default function App() {
   useEffect(() => {
     getAllArticleMetas(lang).then(setArticleMetas);
   }, [lang]);
+
+  // Showcase: fullscreen 3D immersive mode — renders outside standard layout
+  if (isTools && toolsSlug === "showcase") {
+    return <Showcase />;
+  }
 
   return (
     <div style={{

@@ -690,5 +690,7 @@
   "tools_metagen_then_placeholder": "текст",
   "tools_metagen_template_hint": "пусто=по умолч.",
   "tools_metagen_export_cfg_label": "Конф",
-  "tools_metagen_import_cfg_label": "Конф"
+  "tools_metagen_import_cfg_label": "Конф",
+  "tools_showcase": "ГАЛЕРЕЯ",
+  "tools_showcase_desc": "Полноэкранная 3D-галерея. Случайный показ оружия, техники и предметов с иммерсивным 3D-рендерингом, частицами и навигацией с клавиатуры."
 }

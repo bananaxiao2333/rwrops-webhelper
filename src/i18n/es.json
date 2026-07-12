@@ -690,5 +690,7 @@
   "tools_metagen_then_placeholder": "mostrar texto",
   "tools_metagen_template_hint": "vacío=defecto",
   "tools_metagen_export_cfg_label": "Conf",
-  "tools_metagen_import_cfg_label": "Conf"
+  "tools_metagen_import_cfg_label": "Conf",
+  "tools_showcase": "GALERÍA",
+  "tools_showcase_desc": "Galería 3D a pantalla completa. Muestra aleatoriamente armas, vehículos y objetos con renderizado 3D inmersivo, efectos de partículas y navegación por teclado."
 }
