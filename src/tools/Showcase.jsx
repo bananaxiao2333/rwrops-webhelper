@@ -83,21 +83,26 @@ function IconCard({ iconUrl, opacity }) {
       <mesh>
         <planeGeometry args={[w, h]} />
         {tex ? (
-          <meshStandardMaterial map={tex} transparent alphaTest={0.05} side={THREE.DoubleSide} opacity={opacity}
-            roughness={0.1} metalness={0} emissive="#ffffff" emissiveIntensity={0.15} emissiveMap={tex} />
+          <meshStandardMaterial map={tex} transparent premultipliedAlpha side={THREE.DoubleSide} opacity={opacity}
+            roughness={0.05} metalness={0} emissive="#ffffff" emissiveIntensity={0.8} emissiveMap={tex} />
         ) : (
           <meshStandardMaterial color="#131a24" roughness={0.3} opacity={opacity} transparent />
         )}
       </mesh>
-      {/* Glow border */}
+      {/* Glow border — bright outer rim */}
       <mesh position={[0, 0, 0.005]}>
-        <planeGeometry args={[w + 0.15, h + 0.15]} />
-        <meshBasicMaterial color="#f59e0b" side={THREE.BackSide} opacity={0.15 * opacity} transparent />
+        <planeGeometry args={[w + 0.25, h + 0.25]} />
+        <meshBasicMaterial color="#fbbf24" side={THREE.BackSide} opacity={0.35 * opacity} transparent />
+      </mesh>
+      {/* Glow aura — larger softer halo */}
+      <mesh position={[0, 0, -0.02]}>
+        <planeGeometry args={[w + 0.6, h + 0.6]} />
+        <meshBasicMaterial color="#f59e0b" opacity={0.1 * opacity} transparent />
       </mesh>
       {/* Ground reflection ring */}
       <mesh position={[0, -h/2 - 0.3, 0]} rotation={[Math.PI/2, 0, 0]}>
-        <torusGeometry args={[w/2 + 0.2, 0.015, 8, 48]} />
-        <meshBasicMaterial color="#f59e0b" opacity={0.35 * opacity} transparent />
+        <torusGeometry args={[w/2 + 0.2, 0.025, 8, 48]} />
+        <meshBasicMaterial color="#f59e0b" opacity={0.5 * opacity} transparent />
       </mesh>
     </group>
   );
