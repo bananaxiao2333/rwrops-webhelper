@@ -7,7 +7,7 @@
  *  · 粒子背景 + 随机运镜
  * ─────────────────────────────────────────────────── */
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
