@@ -40,15 +40,22 @@ function CameraRotator({ moveIdx, moveKey }) {
   const { camera } = useThree();
   const startRef = useRef(performance.now()/1000);
   const durRef = useRef(5);
+  const oldPosRef = useRef(new THREE.Vector3());
   const moveFn = MOVES[moveIdx % MOVES.length];
-  // Reset timer when move changes
-  useMemo(() => { startRef.current = performance.now()/1000; }, [moveKey]);
+  // On move change: save current position for lerp transition
+  useMemo(() => { oldPosRef.current.copy(camera.position); startRef.current = performance.now()/1000; }, [moveKey]);
   useMemo(() => { durRef.current = 3 + Math.random() * 5; }, [moveKey]);
   useFrame(() => {
     const t = performance.now()/1000 - startRef.current;
     const r = (lo, hi) => lo + Math.random()*(hi-lo);
     const [x, y, z] = moveFn(t, durRef.current, r);
     camera.position.set(x, y, z);
+    // Lerp from old position during first 0.3s of new move
+    if (t < 0.3) {
+      const a = t / 0.3; // 0→1 easing
+      const ease = a < 0.5 ? 2*a*a : -1+(4-2*a)*a; // ease in-out
+      camera.position.lerpVectors(oldPosRef.current, new THREE.Vector3(x, y, z), ease);
+    }
     camera.lookAt(-1, 0, 0);
   });
   return null;
