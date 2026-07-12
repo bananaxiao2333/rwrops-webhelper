@@ -11,7 +11,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SITE_URL = process.argv[2] || "https://rwrops.example.com";
+const SITE_URL = process.argv[2] || "https://rwrops.079682.xyz";
 const DOCS_DIR = resolve(__dirname, "..", "docs", "articles");
 const OUT_DIR = resolve(__dirname, "..", "dist");
 

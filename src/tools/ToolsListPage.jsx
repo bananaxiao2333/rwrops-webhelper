@@ -8,13 +8,20 @@ import { Icon } from "@iconify/react";
 import { useI18n, useT } from "../i18n.jsx";
 
 /* ── Tool definitions (extensible) ── */
-const TOOLS = [
+export const TOOLS = [
   {
     id: "stall",
     labelKey: "tools_stall",
     descKey: "tools_stall_desc",
     icon: "ph:storefront",
     path: "/tools/stall",
+  },
+  {
+    id: "metagen",
+    labelKey: "tools_metagen",
+    descKey: "tools_metagen_desc",
+    icon: "ph:file-xml",
+    path: "/tools/metagen",
   },
 ];
 

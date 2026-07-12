@@ -7,8 +7,9 @@ import ExchangeRollModal from "./detail_visual/ExchangeRollModal";
 import DocsPage, { DocsListPage } from "./DocsPage.jsx";
 import { getArticleSlugsSync, getArticleSlugs, getAllArticleMetas } from "./docsLazy.js";
 import GlobalSearch from "./GlobalSearch.jsx";
-import ToolsListPage from "./tools/ToolsListPage.jsx";
+import ToolsListPage, { TOOLS } from "./tools/ToolsListPage.jsx";
 import StallGenerator from "./tools/StallGenerator.jsx";
+import MetaGen from "./tools/MetaGen.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
 
 /* ── Language first-time picker modal ── */
@@ -261,7 +262,7 @@ const NAV_SECTIONS = [
   { id: "docs",   labelKey: "nav_docs",   path: "/docs",        icon: "\u{2261}",
     dynamic: "articles" },
   { id: "tools", labelKey: "nav_tools", path: "/tools",      icon: "\u{2692}",
-    children: [{ id: "stall", labelKey: "tools_stall", path: "/tools/stall" }] },
+    dynamic: "tools" },
 ];
 
 /* ── Sidebar: section-driven navigation panel ── */
@@ -524,6 +525,11 @@ export default function App() {
         id: slug, path: `/docs/${slug}`,
       }))};
     }
+    if (sec.dynamic === "tools") {
+      return { ...sec, children: TOOLS.map((t) => ({
+        id: t.id, labelKey: t.labelKey, path: t.path,
+      }))};
+    }
     return sec;
   }), [typeList, articleSlugs]);
 
@@ -560,6 +566,13 @@ export default function App() {
           seoDesc = `${activeType} entry: ${itemKey}`;
         } else if (isParams && activeType) {
           seoTitle = t(activeType);
+        } else if (isTools && toolsSlug) {
+          const toolMeta = TOOLS.find((t) => t.id === toolsSlug);
+          seoTitle = toolMeta ? t(toolMeta.labelKey) : t("nav_tools");
+          seoDesc = toolMeta ? t(toolMeta.descKey) : "";
+        } else if (isTools) {
+          seoTitle = t("nav_tools");
+          seoDesc = t("tools_count", TOOLS.length);
         }
         return <SEO title={seoTitle} description={seoDesc} canonicalPath={seoPath} lang={lang} />;
       })()}
@@ -645,6 +658,8 @@ export default function App() {
             />
            ) : isTools && toolsSlug === "stall" ? (
             <StallGenerator />
+           ) : isTools && toolsSlug === "metagen" ? (
+            <MetaGen />
            ) : isTools ? (
             <ToolsListPage />
            ) : activeType ? (

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useT } from "./i18n.jsx";
 import { useData } from "./DataContext.jsx";
 import { ArticleList } from "./DocsPage.jsx";
+import { TOOLS } from "./tools/ToolsListPage.jsx";
 
 /* ── mobile detection hook ── */
 function useIsMobile(breakpoint = 768) {
@@ -304,6 +305,49 @@ export function HomePage({ allKeywords = [], data }) {
             {t("nav_docs")}
           </div>
           <ArticleList isMobile={isMobile} />
+        </div>
+
+        {/* Tools section */}
+        <div style={{
+          borderTop: "1px solid var(--border-subtle)",
+          padding: isMobile ? "12px 14px" : "20px 56px",
+          width: "100%",
+          animation: "fade-in 0.5s var(--ease-smooth) 0.9s both",
+        }}>
+          <div style={{
+            fontSize: isMobile ? "var(--font-xs)" : "var(--font-sm)",
+            color: "var(--accent)", fontFamily: "var(--font-mono)",
+            letterSpacing: "0.15em", marginBottom: isMobile ? 8 : 12,
+            textTransform: "uppercase",
+          }}>
+            {t("nav_tools")}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? 6 : 8 }}>
+            {TOOLS.map((tool, i) => (
+              <a key={tool.id} href={tool.path}
+                onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", tool.path); window.dispatchEvent(new PopStateEvent("popstate")); }}
+                style={{
+                  display: "flex", alignItems: "center", gap: isMobile ? 6 : 8,
+                  padding: isMobile ? "6px 10px" : "8px 14px",
+                  border: "1px solid var(--border-subtle)",
+                  background: "var(--bg-surface)", textDecoration: "none", cursor: "pointer",
+                  fontSize: isMobile ? "var(--font-sm)" : "var(--font-base)",
+                  color: "var(--text-primary)", fontFamily: "var(--font-mono)",
+                  animation: `fade-in 0.3s var(--ease-smooth) ${0.2 + i * 0.06}s both`,
+                  transition: "border-color var(--dur-fast) var(--ease-smooth)",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
+              >
+                <span style={{ fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--accent)" }}>
+                  {t(tool.labelKey)}
+                </span>
+                <span style={{ color: "var(--text-muted)", fontSize: "var(--font-xs)", opacity: 0.6 }}>
+                  {t(tool.descKey)}
+                </span>
+              </a>
+            ))}
+          </div>
         </div>
 
         {/* Metadata — at the very bottom */}

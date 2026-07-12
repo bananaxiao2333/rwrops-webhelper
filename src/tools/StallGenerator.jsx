@@ -16,6 +16,8 @@ import { useItemIcon } from "../assetLoader.jsx";
 const DEFAULT_TYPES = new Set(["carry_item", "weapon", "projectile"]);
 const TYPE_COLORS = { weapon: "#f59e0b", carry_item: "#8899aa", projectile: "#ef4444" };
 function makeKey(type, id) { return `${type}::${id}`; }
+const LOCALE_MAP = { cn: "zh-CN", en: "en-US", de: "de-DE", es: "es-ES", fr: "fr-FR", ru: "ru-RU" };
+function now(lang) { return new Date().toLocaleString(LOCALE_MAP[lang] || lang); }
 function fmtPrice(n, short) {
   const v = Math.round(n);
   if (!short) return String(v);
@@ -43,7 +45,7 @@ function ItemThumb({ item, size = 48 }) {
    ═══════════════════════════════════════════════════ */
 export default function StallGenerator() {
   const { data } = useData();
-  const { translate, t } = useI18n();
+  const { translate, t, lang } = useI18n();
   const isMobile = useIsMobile();
 
   /* ── Stall data (persisted via useLocalStorage) ── */
@@ -213,7 +215,7 @@ export default function StallGenerator() {
       lines.push(`• ${si.name}${qty}  RP ${fmtPrice(si.price, pc.shortPrice)}${disc}${fp}`);
     }
     lines.push("");
-    lines.push(`Generated: ${new Date().toLocaleString()}`);
+    lines.push(`Generated: ${now(lang)}`);
     navigator.clipboard.writeText(lines.join("\n")).then(() => {
       setExportMsg(t("tools_stall_copy_text_done"));
       setTimeout(() => setExportMsg(""), 2000);
@@ -399,7 +401,7 @@ export default function StallGenerator() {
           </div>
           {/* Timestamp watermark */}
           <div style={{ marginTop: M ? 10 : 14, paddingTop: M ? 6 : 8, textAlign: "right", fontSize: "0.6em", opacity: 0.4, fontFamily: "var(--font-mono)" }}>
-            {new Date().toLocaleString()}
+            {now(lang)}
           </div>
           </div>
           {/* Drag-resize handle */}
