@@ -20,6 +20,7 @@ import { useLocalStorage } from "@reactuses/core";
 import { Icon } from "@iconify/react";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
+import DEFAULT_CONFIG from "./MetaGenDefaults.js";
 
 /* ───────────────────────────────────────────────────
  *  HELPERS — everything derived from data, no hardcoding
@@ -1379,16 +1380,11 @@ export default function MetaGen() {
   const isMobile = useIsMobile();
 
   /* ── State ── */
-  /* ── Derive categories & defaults from live data ── */
+  /* ── Derive categories from live data ── */
   const categories = useMemo(() => deriveCategories(data), [data]);
-  const defaultTemplate = useMemo(() => makeDefaultTemplate(categories), [categories]);
 
   const STORAGE_KEY = "rwrops_metagen_v5";
-  const [saved, setSaved] = useLocalStorage(STORAGE_KEY, {
-    templates: [defaultTemplate],
-    activeTemplateId: "default",
-    customEntries: [],
-  });
+  const [saved, setSaved] = useLocalStorage(STORAGE_KEY, DEFAULT_CONFIG);
 
   const activeTemplate = useMemo(
     () =>
