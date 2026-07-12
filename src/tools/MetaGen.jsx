@@ -887,20 +887,42 @@ function LivePreview({ template, data, isMobile, onNavigate }) {
   const { translate, lang, t } = useI18n();
   const langData = useMemo(() => data?.language?.[lang] || data?.language?.en, [data, lang]);
 
-  const previewEntries = useMemo(() => {
-    if (!data || template.fields.length === 0) return [];
-    const results = [];
+  // Build entity lookup from data → language key matching
+  const entityLookup = useMemo(() => {
+    const map = {};
+    if (!data) return map;
     for (const type of template.entityTypes) {
       const bucket = data[type];
       if (!bucket) continue;
-      for (const [key, entity] of Object.entries(bucket)) {
-        if (typeof entity !== "object" || entity === null) continue;
-        const preview = renderEntityPreview(entity, key, template, translate, langData);
-        if (preview) results.push({ ...preview, type });
+      for (const key of Object.keys(bucket)) {
+        // Store both direct key and lowercased for matching
+        map[key.toLowerCase()] = { type, entity: bucket[key], key };
+        if (bucket[key].name) {
+          map[String(bucket[key].name).toLowerCase()] = { type, entity: bucket[key], key };
+        }
+      }
+    }
+    return map;
+  }, [data, template.entityTypes]);
+
+  const previewEntries = useMemo(() => {
+    if (!langData?.texts || template.fields.length === 0) return [];
+    const results = [];
+    const seen = new Set();
+    for (const entry of langData.texts) {
+      if (!entry.key) continue;
+      const match = entityLookup[entry.key.toLowerCase()];
+      if (!match) continue; // only show entries that match an entity
+      if (seen.has(match.key)) continue;
+      seen.add(match.key);
+      const preview = renderEntityPreview(match.entity, match.key, template, translate, langData);
+      if (preview) {
+        preview.originalText = entry.translation || "";
+        results.push({ ...preview, type: match.type });
       }
     }
     return results;
-  }, [data, template, translate, langData]);
+  }, [langData, template, translate, entityLookup]);
 
   // Compute column widths from enabled fields for aligned preview
   const enabledFields = template.fields.filter(f => f.enabled);
@@ -1143,8 +1165,24 @@ function ExportPanel({ template, data, customEntries, isMobile, onExportConfig, 
 
   const langData = useMemo(() => data?.language?.[lang] || data?.language?.en, [data, lang]);
 
+  const entityLookup = useMemo(() => {
+    const map = {};
+    if (!data) return map;
+    for (const type of template.entityTypes) {
+      const bucket = data[type];
+      if (!bucket) continue;
+      for (const key of Object.keys(bucket)) {
+        map[key.toLowerCase()] = { type, entity: bucket[key], key };
+        if (bucket[key].name) {
+          map[String(bucket[key].name).toLowerCase()] = { type, entity: bucket[key], key };
+        }
+      }
+    }
+    return map;
+  }, [data, template.entityTypes]);
+
   const xmlOutput = useMemo(() => {
-    if (!data) return "";
+    if (!data || !langData?.texts) return "";
 
     const lines = [
       '<?xml version="1.0" encoding="utf-8"?>',
@@ -1156,32 +1194,27 @@ function ExportPanel({ template, data, customEntries, isMobile, onExportConfig, 
       (customEntries || []).map((c) => [c.key.toLowerCase(), c.text])
     );
 
-    // Process all matching entities
-    for (const type of template.entityTypes) {
-      const bucket = data[type];
-      if (!bucket) continue;
+    const enabledFields = template.fields.filter((f) => f.enabled);
 
-      for (const [key, entity] of Object.entries(bucket)) {
-        if (typeof entity !== "object" || entity === null) continue;
+    // Iterate language texts — supplement those that match entities
+    for (const entry of langData.texts) {
+      if (!entry.key) continue;
+      const key = entry.key;
+      let text = entry.translation || "";
 
-        let text = "";
-
-        // Check custom override
-        if (customMap.has(key.toLowerCase())) {
-          text = customMap.get(key.toLowerCase());
-        } else {
-          // Build supplement
-          const enabledFields = template.fields.filter((f) => f.enabled);
+      // Custom override
+      if (customMap.has(key.toLowerCase())) {
+        text = customMap.get(key.toLowerCase());
+      } else if (enabledFields.length > 0) {
+        const match = entityLookup[key.toLowerCase()];
+        if (match) {
           const parts = [];
-
-          // Entity name via resolveEntityName (langData → translate fallback)
-          const name = resolveEntityName(entity, key, translate, langData);
+          const name = resolveEntityName(match.entity, match.key, translate, langData);
 
           for (const field of enabledFields) {
-            const val = resolveFieldValue(entity, field.path);
+            const val = resolveFieldValue(match.entity, field.path);
             if (val === undefined || val === null) continue;
 
-            // Conditional check
             const cm = field.condMode || "always";
             if (cm === "if_true" && !val) continue;
             if (cm === "if_false" && val) continue;
@@ -1212,21 +1245,16 @@ function ExportPanel({ template, data, customEntries, isMobile, onExportConfig, 
           if (parts.length > 0) {
             const sep = template.globalSep || "  ";
             text = `${name}  ${parts.join(sep)}`;
-          } else {
-            text = name;
           }
         }
-
-        lines.push(`\t<text key="${esc(key)}" text="${esc(text)}"/>`);
       }
+
+      lines.push(`\t<text key="${esc(key)}" text="${esc(text)}"/>`);
     }
 
-    // Add custom entries not in data
+    // Add custom entries not already in output
     for (const c of customEntries || []) {
-      const already = template.entityTypes.some((type) => {
-        const bucket = data[type];
-        return bucket && bucket[c.key] !== undefined;
-      });
+      const already = langData.texts.some((t) => t.key?.toLowerCase() === c.key.toLowerCase());
       if (!already) {
         lines.push(`\t<text key="${esc(c.key)}" text="${esc(c.text)}"/>`);
       }
@@ -1234,17 +1262,9 @@ function ExportPanel({ template, data, customEntries, isMobile, onExportConfig, 
 
     lines.push("</translation>");
     return lines.join("\n");
-  }, [data, template, customEntries, translate, langData]);
+  }, [data, template, customEntries, translate, langData, entityLookup]);
 
-  const entryCount = useMemo(() => {
-    if (!data) return 0;
-    let count = 0;
-    for (const type of template.entityTypes) {
-      const bucket = data[type];
-      if (bucket) count += Object.keys(bucket).length;
-    }
-    return count;
-  }, [data, template.entityTypes]);
+  const entryCount = langData?.texts?.length || 0;
 
   const downloadXml = useCallback(() => {
     const blob = new Blob([xmlOutput], { type: "application/xml;charset=utf-8" });
