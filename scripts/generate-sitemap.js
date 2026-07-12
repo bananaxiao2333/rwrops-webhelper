@@ -78,8 +78,8 @@ function generateSitemap() {
   // Tools routes
   const TOOLS = [
     { path: "/tools/stall", priority: "0.6", changefreq: "monthly" },
-    { path: "/tools/showcase", priority: "0.5", changefreq: "monthly" },
     { path: "/tools/metagen", priority: "0.6", changefreq: "monthly" },
+    { path: "/tools/showcase", priority: "0.5", changefreq: "monthly" },
   ];
   for (const t of TOOLS) {
     xml += `  <url>\n`;
