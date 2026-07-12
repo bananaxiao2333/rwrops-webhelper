@@ -8,6 +8,7 @@
  * ─────────────────────────────────────────────────── */
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
@@ -134,11 +135,11 @@ export default function Showcase() {
   // Timer countdown
   useEffect(() => {
     if (!pool.length) return;
-    setTimer(10.0);
+    setTimer(5.0);
     const start = performance.now();
     const iv = setInterval(() => {
       const elapsed = (performance.now() - start) / 1000;
-      const remaining = Math.max(0, 10 - elapsed);
+      const remaining = Math.max(0, 5 - elapsed);
       setTimer(remaining);
       if (remaining <= 0) clearInterval(iv);
     }, 50);
@@ -151,7 +152,7 @@ export default function Showcase() {
     const t = setInterval(() => {
       setTransitioning(true);
       setTimeout(() => { setIndex((i)=>(i+1)%pool.length); setTransitioning(false); }, 200);
-    }, 10000);
+    }, 5000);
     return () => clearInterval(t);
   }, [pool.length]);
 
@@ -206,18 +207,19 @@ export default function Showcase() {
         <ambientLight intensity={1.5} />
         <ParticleField count={300} />
         <IconCard iconUrl={iconUrl} opacity={op} />
+        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} maxPolarAngle={Math.PI/2.2} target={[-1,0,0]} />
       </Canvas>
 
-      {/* HTML overlay — asymmetric: text on right side */}
-      <div style={{position:"absolute",inset:0,pointerEvents:"none",display:"flex",flexDirection:"column",justifyContent:"flex-end",alignItems:"flex-end",padding:isMobile?16:40}}>
+      {/* HTML overlay — asymmetric: text on left side */}
+      <div style={{position:"absolute",inset:0,pointerEvents:"none",display:"flex",flexDirection:"column",justifyContent:"flex-end",alignItems:"flex-start",padding:isMobile?16:40}}>
         <div style={{fontFamily:"var(--font-mono)",fontSize:"var(--font-xs)",color:"var(--accent)",letterSpacing:"0.2em",marginBottom:4,opacity:0.7*op,transition:"opacity 0.2s ease"}}>
           {current.type.toUpperCase()}
         </div>
-        <div style={{fontFamily:"var(--font-display)",fontSize:isMobile?"clamp(16px,4vw,28px)":"clamp(22px,2.5vw,36px)",fontWeight:700,color:"var(--text-primary)",letterSpacing:"0.04em",textShadow:"0 2px 16px rgba(0,0,0,0.9)",textAlign:"right",maxWidth:"55vw",opacity:op,transition:"opacity 0.2s ease"}}>
+        <div style={{fontFamily:"var(--font-display)",fontSize:isMobile?"clamp(16px,4vw,28px)":"clamp(22px,2.5vw,36px)",fontWeight:700,color:"var(--text-primary)",letterSpacing:"0.04em",textShadow:"0 2px 16px rgba(0,0,0,0.9)",textAlign:"left",maxWidth:"55vw",opacity:op,transition:"opacity 0.2s ease"}}>
           {name}
         </div>
         {stats.length>0 && (
-          <div style={{display:"flex",gap:isMobile?12:20,marginTop:12,flexWrap:"wrap",justifyContent:"flex-end"}}>
+          <div style={{display:"flex",gap:isMobile?12:20,marginTop:12,flexWrap:"wrap",justifyContent:"flex-start"}}>
             {stats.map((s,i)=>(
               <div key={i} style={{textAlign:"center",opacity:op,transition:"opacity 0.2s ease"}}>
                 <div style={{fontFamily:"var(--font-mono)",fontSize:"var(--font-xxs)",color:"var(--text-dim)",letterSpacing:"0.1em"}}>{s.l}</div>
