@@ -9,18 +9,46 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { Icon } from "@iconify/react";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
 
-/* ── 摄像机旋转 ── */
-function CameraRotator() {
+/* ── 7种电影运镜 ── */
+const MOVES = [
+  // 1. Push（推）— 镜头向前推进
+  (t, dur, r) => { const p = Math.min(t/dur, 1); const d = 8*(1-p)+3.5*p; return [0, 1.5+0.3*Math.sin(p*2), d]; },
+  // 2. Pull（拉）— 镜头向后拉远
+  (t, dur, r) => { const p = Math.min(t/dur, 1); const d = 3.5*(1-p)+7*p; return [0, 1.5, d]; },
+  // 3. Orbit（转/环绕）— 围绕主体旋转
+  (t, dur, r) => { const p = Math.min(t/dur, 1); const a = p*Math.PI*1.5; const d = r(4,5.5); return [Math.sin(a)*d, 1+Math.cos(p*2)*0.8, Math.cos(a)*d]; },
+  // 4. Pan（移/水平移动）— 横向平移
+  (t, dur, r) => { const p = Math.min(t/dur, 1); const x = (p-0.5)*6; return [x, 1.5+Math.sin(p*3)*0.3, 5]; },
+  // 5. Dolly（穿）— 穿过+推进
+  (t, dur, r) => { const p = Math.min(t/dur, 1); const z = 9*(1-p)+3.5*p; const y = 2.5*(1-p)+1.5*p; return [0.3*Math.sin(p*5), y, z]; },
+  // 6. Follow（跟/弧形绕）— 跟随摇摆
+  (t, dur, r) => { const p = Math.min(t/dur, 1); const a = p*Math.PI*0.9; return [Math.sin(a)*5, 1.2+Math.cos(p*3)*0.5, Math.cos(a)*4.5]; },
+  // 7. Sweep（摇）— 原地扫视
+  (t, dur, r) => { const p = Math.min(t/dur, 1); return [Math.sin((p-0.5)*1.6)*4, 1.5+Math.sin(p*4)*0.4, 5+Math.cos((p-0.5)*1.6)*1.5]; },
+];
+
+function pickMove(prev) {
+  const rest = MOVES.filter((_,i) => i !== prev);
+  return { idx: MOVES.indexOf(rest[Math.floor(Math.random()*rest.length)]), dur: 3 + Math.random() * 5 };
+}
+
+function CameraRotator({ moveIdx, moveKey }) {
   const { camera } = useThree();
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime * 0.6;
-    const r = 6;
-    camera.position.set(Math.cos(t) * r, 1.5, Math.sin(t) * r);
+  const startRef = useRef(performance.now()/1000);
+  const durRef = useRef(5);
+  const moveFn = MOVES[moveIdx % MOVES.length];
+  // Reset timer when move changes
+  useMemo(() => { startRef.current = performance.now()/1000; }, [moveKey]);
+  useMemo(() => { durRef.current = 3 + Math.random() * 5; }, [moveKey]);
+  useFrame(() => {
+    const t = performance.now()/1000 - startRef.current;
+    const r = (lo, hi) => lo + Math.random()*(hi-lo);
+    const [x, y, z] = moveFn(t, durRef.current, r);
+    camera.position.set(x, y, z);
     camera.lookAt(-1, 0, 0);
   });
   return null;
@@ -139,6 +167,7 @@ export default function Showcase() {
   const [index, setIndex] = useState(0);
   const [timer, setTimer] = useState(10.0);
   const [transitioning, setTransitioning] = useState(false);
+  const [moveState, setMoveState] = useState(() => pickMove(-1));
   const current = pool[index];
 
   // Preload icons for next 5 entities in pool
@@ -166,7 +195,7 @@ export default function Showcase() {
     return () => clearInterval(iv);
   }, [index, pool.length]);
 
-  // Auto-advance
+  // Auto-advance entity
   useEffect(() => {
     if (!pool.length) return;
     const t = setInterval(() => {
@@ -175,6 +204,13 @@ export default function Showcase() {
     }, 5000);
     return () => clearInterval(t);
   }, [pool.length]);
+
+  // Cycle camera moves (every 6-10s, never repeat previous)
+  useEffect(() => {
+    const cycle = () => setMoveState((prev) => pickMove(prev.idx));
+    const t = setInterval(cycle, 6000 + Math.random() * 4000);
+    return () => clearInterval(t);
+  }, []);
 
   // Keyboard
   useEffect(() => {
@@ -193,22 +229,12 @@ export default function Showcase() {
   const iconUrl = useItemIcon(entity);
   const name = translate(entity.name||current.key)?.slice(0,32) || current.key;
 
-  // Auto-skip entities without icons
-  const skipRef = useRef(null);
+  // Instant-skip entities without icons
   useEffect(() => {
-    if (!iconUrl && pool.length) {
-      skipRef.current = setTimeout(() => setIndex((i) => (i + 1) % pool.length), 100);
-    }
-    return () => { if (skipRef.current) clearTimeout(skipRef.current); };
+    if (!iconUrl && pool.length) setIndex((i) => (i + 1) % pool.length);
   }, [iconUrl, pool.length]);
 
-  if (!iconUrl && pool.length) {
-    return (
-      <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#080c12",color:"var(--text-dim)",fontFamily:"var(--font-mono)"}}>
-        <Icon icon="ph:spinner" width={24} style={{opacity:0.3}} />
-      </div>
-    );
-  }
+  if (!iconUrl && pool.length) return null;
 
   // Stats
   const stats = [];
@@ -244,7 +270,7 @@ export default function Showcase() {
         <ambientLight intensity={1.5} />
         <ParticleField count={300} />
         <IconCard iconUrl={iconUrl} opacity={op} />
-        <CameraRotator />
+        <CameraRotator moveIdx={moveState.idx} moveKey={moveState.idx} />
       </Canvas>
 
       {/* HTML overlay — asymmetric: text on left side */}
