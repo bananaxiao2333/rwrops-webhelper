@@ -690,5 +690,7 @@
   "tools_metagen_then_placeholder": "显示文本",
   "tools_metagen_template_hint": "留空=默认格式",
   "tools_metagen_export_cfg_label": "导出配置",
-  "tools_metagen_import_cfg_label": "导入配置"
+  "tools_metagen_import_cfg_label": "导入配置",
+  "tools_showcase": "3D 展厅",
+  "tools_showcase_desc": "全屏 3D 画廊。随机循环展示武器、载具与物品，沉浸式 3D 渲染、粒子特效，支持键盘导航。"
 }

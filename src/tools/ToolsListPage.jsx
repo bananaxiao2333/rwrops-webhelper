@@ -23,6 +23,13 @@ export const TOOLS = [
     icon: "ph:file-xml",
     path: "/tools/metagen",
   },
+  {
+    id: "showcase",
+    labelKey: "tools_showcase",
+    descKey: "tools_showcase_desc",
+    icon: "ph:cube-focus",
+    path: "/tools/showcase",
+  },
 ];
 
 /* ── mobile detection hook ── */

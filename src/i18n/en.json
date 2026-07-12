@@ -690,5 +690,7 @@
   "tools_metagen_then_placeholder": "display text",
   "tools_metagen_template_hint": "empty=default",
   "tools_metagen_export_cfg_label": "Cfg",
-  "tools_metagen_import_cfg_label": "Cfg"
+  "tools_metagen_import_cfg_label": "Cfg",
+  "tools_showcase": "SHOWCASE",
+  "tools_showcase_desc": "Fullscreen 3D gallery. Randomly cycles through weapons, vehicles and items with immersive 3D rendering, particle effects, and keyboard navigation."
 }
