@@ -207,14 +207,16 @@ export default function Showcase() {
   return (
     <div style={{position:"fixed",inset:0,background:"#080c12",overflow:"hidden",cursor:"grab"}}>
       <Canvas camera={{position:[0,1.5,6],fov:48}} style={{position:"absolute",inset:0}}>
-        {/* Key light */}
-        <spotLight position={[0,3,3]} intensity={3.5} color="#fffef5" angle={0.5} penumbra={0.4} castShadow={false} />
-        {/* Rim light */}
-        <spotLight position={[-3,0.5,0]} intensity={2.5} color="#f59e0b" angle={0.8} penumbra={0.6} />
-        {/* Fill light */}
-        <pointLight position={[2,-1,-2]} intensity={0.6} color="#3b82f6" />
-        {/* Ambient */}
-        <ambientLight intensity={0.3} />
+        {/* Key spotlight — bright white from above-front */}
+        <spotLight position={[0,4,4]} intensity={6} color="#fffef5" angle={0.6} penumbra={0.3} castShadow={false} />
+        {/* Rim light — warm amber for depth */}
+        <spotLight position={[-3,1,0]} intensity={4} color="#f59e0b" angle={0.9} penumbra={0.5} />
+        {/* Fill light — cool blue from front-below */}
+        <pointLight position={[2,1.5,2]} intensity={2} color="#93c5fd" />
+        {/* Ground fill — soft uplight */}
+        <pointLight position={[0,-2,1]} intensity={1.5} color="#334155" />
+        {/* Ambient — bright base illumination */}
+        <ambientLight intensity={1.2} />
         <ParticleField count={150} />
         <IconCard iconUrl={iconUrl} opacity={op} />
         <CamChoreographer />
