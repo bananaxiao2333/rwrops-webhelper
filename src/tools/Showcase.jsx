@@ -7,7 +7,8 @@
  *  · 粒子背景 + 随机运镜
  * ─────────────────────────────────────────────────── */
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
@@ -32,47 +33,6 @@ function ParticleField({ count = 150 }) {
       <pointsMaterial size={0.05} color="#f59e0b" opacity={0.45} transparent sizeAttenuation />
     </points>
   );
-}
-
-/* ── 花式运镜（看向偏左的卡片中心） ── */
-const CAM_MOVES = [
-  (t, cam) => { const r = 4.5 + Math.sin(t*0.3)*1.5; cam.position.set(Math.cos(t*0.5)*r, 0.5+Math.sin(t*0.7)*1.2, Math.sin(t*0.5)*r); cam.lookAt(-1, 0, 0); },
-  (t, cam) => { const r = 5; cam.position.set(Math.cos(t*0.4)*r, 1.5+Math.sin(t*0.3)*1.5, Math.sin(t*0.4)*r); cam.lookAt(-1, 0, 0); },
-  (t, cam) => { cam.position.set(Math.sin(t*0.6)*6, 0.3+Math.sin(t*0.5)*0.8, 3+Math.cos(t*0.3)*2); cam.lookAt(-1, 0, 0); },
-  (t, cam) => { const r = 3; cam.position.set(Math.cos(t*0.8)*r, 0.2+Math.sin(t*0.4)*0.6, Math.sin(t*0.8)*r); cam.lookAt(-1, 0, 0); },
-  (t, cam) => { cam.position.set(Math.sin(t*0.5)*3, 1+Math.cos(t*1.3)*3, 4); cam.lookAt(-1, 0, 0); },
-  (t, cam) => { cam.position.set(Math.sin(t*0.25)*5, 0.5+Math.cos(t*0.35)*1, 3+Math.sin(t*0.2)*3); cam.lookAt(-1, 0, 0); },
-];
-
-function CamChoreographer() {
-  const { camera } = useThree();
-  const moveRef = useRef(CAM_MOVES[0]);
-  const startRef = useRef(performance.now() / 1000);
-  const prevPosRef = useRef(new THREE.Vector3());
-  const targetPosRef = useRef(new THREE.Vector3());
-  const lerpRef = useRef(1); // 0→1 transition progress
-  useFrame(() => {
-    const t = performance.now() / 1000 - startRef.current;
-    moveRef.current(t, camera);
-    // If lerping, blend with previous position
-    if (lerpRef.current < 1) {
-      lerpRef.current = Math.min(1, lerpRef.current + 0.05);
-      camera.position.lerpVectors(prevPosRef.current, targetPosRef.current, lerpRef.current);
-    }
-  });
-  useEffect(() => {
-    const i = setInterval(() => {
-      prevPosRef.current.copy(camera.position);
-      moveRef.current = CAM_MOVES[Math.floor(Math.random()*CAM_MOVES.length)];
-      // Compute target position at t=0 for lerping
-      targetPosRef.current.copy(camera.position);
-      moveRef.current(0, { position: targetPosRef.current });
-      startRef.current = performance.now() / 1000;
-      lerpRef.current = 0;
-    }, 8000);
-    return () => clearInterval(i);
-  }, [camera]);
-  return null;
 }
 
 /* ── 图标卡片（保持宽高比、alpha cutout） ── */
@@ -243,7 +203,7 @@ export default function Showcase() {
         <ambientLight intensity={1.5} />
         <ParticleField count={150} />
         <IconCard iconUrl={iconUrl} opacity={op} />
-        <CamChoreographer />
+        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.6} maxPolarAngle={Math.PI/2.2} target={[-1,0,0]} />
       </Canvas>
 
       {/* HTML overlay — asymmetric: text on right side */}
