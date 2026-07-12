@@ -192,6 +192,13 @@ export default function Showcase() {
   const iconUrl = useItemIcon(entity);
   const name = translate(entity.name||current.key)?.slice(0,32) || current.key;
 
+  // Skip entities without icons — advance immediately
+  useEffect(() => {
+    if (pool.length && !iconUrl) {
+      setIndex((i) => (i + 1) % pool.length);
+    }
+  }, [iconUrl, pool.length]);
+
   // Stats
   const stats = [];
   if (current.type==="weapon") {
