@@ -471,7 +471,7 @@ export default function App() {
   useRouteParams(data);
   const navigate = useNavigate();
 
-  const { lang, languages, setLang, t } = useI18n();
+  const { lang, languages, setLang, t, translate } = useI18n();
   const [showLangModal, setShowLangModal] = useState(!localStorage.getItem("rwrops_lang"));
 
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
@@ -559,13 +559,26 @@ export default function App() {
         if (isHome) {
           seoTitle = t("omni_parser");
           seoDesc = t("subtitle");
+        } else if (isDocs && activeDocSlug) {
+          // Doc article page — use frontmatter metadata
+          const meta = articleMetas[activeDocSlug];
+          seoTitle = meta?.title || activeDocSlug;
+          seoDesc = meta?.description || "";
+          seoPath = `/docs/${activeDocSlug}`;
+        } else if (isDocs) {
+          // Docs list page
+          seoTitle = t("nav_docs");
+          seoDesc = `${t("nav_docs")} — ${articleSlugs.length} articles`;
         } else if (isParams && itemKey && data?.[activeType]?.[itemKey]) {
           const item = data[activeType][itemKey];
           const itemName = item.name ? (typeof item.name === "string" ? item.name : String(item.name)) : itemKey;
-          seoTitle = `${itemName} (${activeType})`;
-          seoDesc = `${activeType} entry: ${itemKey}`;
+          const translatedName = translate(itemName);
+          seoTitle = `${translatedName} — ${t(activeType)}`;
+          seoDesc = `${t(activeType)}: ${itemKey} — ${translatedName}`;
         } else if (isParams && activeType) {
+          const count = data?.[activeType] ? Object.keys(data[activeType]).length : 0;
           seoTitle = t(activeType);
+          seoDesc = `${t(activeType)} — ${count} ${t("units")}`;
         } else if (isTools && toolsSlug) {
           const toolMeta = TOOLS.find((t) => t.id === toolsSlug);
           seoTitle = toolMeta ? t(toolMeta.labelKey) : t("nav_tools");
