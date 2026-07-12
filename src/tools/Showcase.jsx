@@ -225,13 +225,13 @@ export default function Showcase() {
         <div style={{fontFamily:"var(--font-mono)",fontSize:"var(--font-xs)",color:"var(--accent)",letterSpacing:"0.2em",marginBottom:4,opacity:0.7*op,transition:"opacity 0.2s ease"}}>
           {current.type.toUpperCase()}
         </div>
-        <div style={{fontFamily:"var(--font-display)",fontSize:isMobile?"clamp(16px,4vw,28px)":"clamp(22px,2.5vw,36px)",fontWeight:700,color:"var(--text-primary)",letterSpacing:"0.04em",textShadow:"0 2px 16px rgba(0,0,0,0.9)",textAlign:"right",maxWidth:"55vw",opacity,transition:"opacity 0.2s ease"}}>
+        <div style={{fontFamily:"var(--font-display)",fontSize:isMobile?"clamp(16px,4vw,28px)":"clamp(22px,2.5vw,36px)",fontWeight:700,color:"var(--text-primary)",letterSpacing:"0.04em",textShadow:"0 2px 16px rgba(0,0,0,0.9)",textAlign:"right",maxWidth:"55vw",opacity:op,transition:"opacity 0.2s ease"}}>
           {name}
         </div>
         {stats.length>0 && (
           <div style={{display:"flex",gap:isMobile?12:20,marginTop:12,flexWrap:"wrap",justifyContent:"flex-end"}}>
             {stats.map((s,i)=>(
-              <div key={i} style={{textAlign:"center",opacity,transition:"opacity 0.2s ease"}}>
+              <div key={i} style={{textAlign:"center",opacity:op,transition:"opacity 0.2s ease"}}>
                 <div style={{fontFamily:"var(--font-mono)",fontSize:"var(--font-xxs)",color:"var(--text-dim)",letterSpacing:"0.1em"}}>{s.l}</div>
                 <div style={{fontFamily:"var(--font-display)",fontSize:"var(--font-md)",fontWeight:700,color:"var(--accent)"}}>{s.v}</div>
               </div>
