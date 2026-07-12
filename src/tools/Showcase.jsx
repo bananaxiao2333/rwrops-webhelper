@@ -8,7 +8,6 @@
  * ─────────────────────────────────────────────────── */
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
@@ -203,7 +202,6 @@ export default function Showcase() {
         <ambientLight intensity={1.5} />
         <ParticleField count={150} />
         <IconCard iconUrl={iconUrl} opacity={op} />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.6} maxPolarAngle={Math.PI/2.2} target={[-1,0,0]} />
       </Canvas>
 
       {/* HTML overlay — asymmetric: text on right side */}
