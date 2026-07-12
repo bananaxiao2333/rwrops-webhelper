@@ -41,19 +41,27 @@ function CameraRotator({ moveIdx, moveKey }) {
   const startRef = useRef(performance.now()/1000);
   const durRef = useRef(5);
   const oldPosRef = useRef(new THREE.Vector3());
+  const paramsRef = useRef({});
   const moveFn = MOVES[moveIdx % MOVES.length];
-  // On move change: save current position for lerp transition
-  useMemo(() => { oldPosRef.current.copy(camera.position); startRef.current = performance.now()/1000; }, [moveKey]);
-  useMemo(() => { durRef.current = 3 + Math.random() * 5; }, [moveKey]);
+  // On move change: save position, reset timer, precompute stable random params
+  useMemo(() => {
+    oldPosRef.current.copy(camera.position);
+    startRef.current = performance.now()/1000;
+    durRef.current = 3 + Math.random() * 5;
+    // Precompute random params once per move — never change mid-move
+    paramsRef.current = { orbitR: 4 + Math.random() * 1.5, panH: 0.3 + Math.random() * 0.5, dollyCurve: 0.3 + Math.random() * 0.4, followArc: 0.8 + Math.random() * 0.4 };
+  }, [moveKey]);
   useFrame(() => {
     const t = performance.now()/1000 - startRef.current;
-    const r = (lo, hi) => lo + Math.random()*(hi-lo);
+    const p = paramsRef.current;
+    // Deterministic parameter helper (no per-frame randomness)
+    const r = (lo, hi) => lo + p.orbitR % 1 * (hi - lo); // stable pseudo-random from precomputed
     const [x, y, z] = moveFn(t, durRef.current, r);
     camera.position.set(x, y, z);
     // Lerp from old position during first 0.3s of new move
     if (t < 0.3) {
-      const a = t / 0.3; // 0→1 easing
-      const ease = a < 0.5 ? 2*a*a : -1+(4-2*a)*a; // ease in-out
+      const a = t / 0.3;
+      const ease = a < 0.5 ? 2*a*a : -1+(4-2*a)*a;
       camera.position.lerpVectors(oldPosRef.current, new THREE.Vector3(x, y, z), ease);
     }
     camera.lookAt(-1, 0, 0);
@@ -284,16 +292,16 @@ export default function Showcase() {
         <CameraRotator moveIdx={moveState.idx} moveKey={moveState.idx} />
       </Canvas>
 
-      {/* HTML overlay — asymmetric: text on left side */}
-      <div style={{position:"absolute",inset:0,pointerEvents:"none",display:"flex",flexDirection:"column",justifyContent:"flex-end",alignItems:"flex-start",padding:isMobile?16:40}}>
-        <div style={{fontFamily:"var(--font-mono)",fontSize:"var(--font-xs)",color:"var(--accent)",letterSpacing:"0.2em",marginBottom:4,opacity:0.7*op,transition:"opacity 0.2s ease"}}>
+      {/* HTML overlay — left side, good breathing room */}
+      <div style={{position:"absolute",inset:0,pointerEvents:"none",display:"flex",flexDirection:"column",justifyContent:"flex-end",alignItems:"flex-start",padding:`${isMobile?24:48}px ${isMobile?16:40}px`}}>
+        <div style={{fontFamily:"var(--font-mono)",fontSize:"var(--font-xs)",color:"var(--accent)",letterSpacing:"0.2em",marginBottom:8,opacity:0.7*op,transition:"opacity 0.2s ease"}}>
           {current.type.toUpperCase()}
         </div>
-        <div style={{fontFamily:"var(--font-display)",fontSize:isMobile?"clamp(16px,4vw,28px)":"clamp(22px,2.5vw,36px)",fontWeight:700,color:"var(--text-primary)",letterSpacing:"0.04em",textShadow:"0 2px 16px rgba(0,0,0,0.9)",textAlign:"left",maxWidth:"55vw",opacity:op,transition:"opacity 0.2s ease"}}>
+        <div style={{fontFamily:"var(--font-display)",fontSize:isMobile?"clamp(16px,4vw,28px)":"clamp(22px,2.5vw,36px)",fontWeight:700,color:"var(--text-primary)",letterSpacing:"0.04em",textShadow:"0 2px 16px rgba(0,0,0,0.9)",textAlign:"left",maxWidth:"55vw",marginBottom:8,opacity:op,transition:"opacity 0.2s ease"}}>
           {name}
         </div>
         {stats.length>0 && (
-          <div style={{display:"flex",gap:isMobile?12:20,marginTop:12,flexWrap:"wrap",justifyContent:"flex-start"}}>
+          <div style={{display:"flex",gap:isMobile?12:20,marginTop:16,flexWrap:"wrap",justifyContent:"flex-start"}}>
             {stats.map((s,i)=>(
               <div key={i} style={{textAlign:"center",opacity:op,transition:"opacity 0.2s ease"}}>
                 <div style={{fontFamily:"var(--font-mono)",fontSize:"var(--font-xxs)",color:"var(--text-dim)",letterSpacing:"0.1em"}}>{s.l}</div>
