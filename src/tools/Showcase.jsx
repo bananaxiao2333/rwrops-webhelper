@@ -1,115 +1,73 @@
 /* ───────────────────────────────────────────────────
- *  Showcase.jsx — 3D 数据流墙
- *  · 实体卡片网格布局在 3D 空间
- *  · 每张卡片：图标纹理 + 名称 + 关键数值
- *  · 缓慢滚动 + 自动循环
- *  · 高信息密度，2D 纹理投射到 3D 平面
+ *  Showcase.jsx — 3D 实体展台
+ *  · 中心直立图标卡片 + 摄像机自动旋转
+ *  · 四周 HTML 数值叠加层
+ *  · 自动循环切换实体
  * ─────────────────────────────────────────────────── */
-import { useState, useEffect, useMemo, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Text, Plane } from "@react-three/drei";
+import { useState, useEffect, useMemo } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Plane } from "@react-three/drei";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
 import * as THREE from "three";
 
-/* ── 单个实体卡片（3D 平面） ── */
-function EntityCard({ item, index, total, translateFn }) {
-  const iconUrl = useItemIcon(item.entity);
+/* ── 带纹理的直立卡片 ── */
+function IconCard({ iconUrl }) {
   const texture = useMemo(() => {
     if (!iconUrl) return null;
     const t = new THREE.TextureLoader().load(iconUrl);
     t.minFilter = THREE.LinearFilter;
     t.magFilter = THREE.NearestFilter;
+    t.colorSpace = THREE.SRGBColorSpace;
     return t;
   }, [iconUrl]);
 
-  // Grid position
-  const cols = 5;
-  const row = Math.floor(index / cols);
-  const col = index % cols;
-  const x = (col - (cols - 1) / 2) * 2.8;
-  const y = -row * 2.4;
-  const z = 0;
-
-  // Key stats
-  const name = translateFn(item.entity.name || item.key)?.slice(0, 20) || item.key;
-  let statLine = "";
-  if (item.type === "weapon") {
-    const kp = item.entity.projectile_result_kill_probability;
-    const rt = item.entity.retrigger_time;
-    if (kp != null) statLine += `kill ${(kp * 100).toFixed(0)}%`;
-    if (rt != null) statLine += `  ${rt.toFixed(2)}s`;
-    if (item.entity.magazine_size != null) statLine += `  mag ${item.entity.magazine_size}`;
-  } else if (item.type === "vehicle") {
-    if (item.entity.max_speed != null) statLine += `spd ${item.entity.max_speed.toFixed(1)}`;
-    if (item.entity.max_health != null) statLine += `  hp ${item.entity.max_health}`;
-    if (item.entity.mass != null) statLine += `  ${item.entity.mass.toFixed(0)}kg`;
-  } else {
-    const price = item.entity.inventory_price ?? item.entity.inventory?.price;
-    if (price != null) statLine += `$ ${price}`;
-    if (item.entity.inventory_encumbrance != null) statLine += `  ${item.entity.inventory_encumbrance.toFixed(1)}kg`;
-  }
-
   return (
-    <group position={[x, y, z]}>
-      {/* Card background */}
+    <group>
+      {/* Pedestal */}
+      <mesh position={[0, -1.4, 0]}>
+        <cylinderGeometry args={[0.6, 0.8, 0.2, 16]} />
+        <meshStandardMaterial color="#1e2d3d" roughness={0.4} metalness={0.6} />
+      </mesh>
+      {/* Glow ring */}
+      <mesh position={[0, -1.25, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.5, 0.02, 8, 32]} />
+        <meshBasicMaterial color="#f59e0b" />
+      </mesh>
+      {/* Card plane */}
       <mesh position={[0, 0, 0]}>
-        <planeGeometry args={[2.4, 2]} />
-        <meshStandardMaterial color="#131a24" roughness={0.8} metalness={0.2} />
+        <planeGeometry args={[1.6, 1.6]} />
+        {texture ? (
+          <meshBasicMaterial map={texture} transparent side={THREE.DoubleSide} />
+        ) : (
+          <meshStandardMaterial color="#131a24" roughness={0.5} />
+        )}
       </mesh>
-      {/* Border */}
-      <mesh position={[0, 0, 0.01]}>
-        <planeGeometry args={[2.3, 1.9]} />
-        <meshBasicMaterial color="#1e2d3d" side={THREE.BackSide} />
+      {/* Card border */}
+      <mesh position={[0, 0, 0.001]}>
+        <planeGeometry args={[1.7, 1.7]} />
+        <meshBasicMaterial color="#f59e0b" side={THREE.BackSide} opacity={0.3} transparent />
       </mesh>
-      {/* Icon */}
-      {texture && (
-        <mesh position={[-0.6, 0.15, 0.02]}>
-          <planeGeometry args={[1.2, 0.8]} />
-          <meshBasicMaterial map={texture} transparent />
-        </mesh>
-      )}
-      {/* Name */}
-      <Text position={[0, -0.55, 0.03]} fontSize={0.13} color="#e8edf3" anchorX="center" anchorY="middle" maxWidth={2.1}>
-        {name}
-      </Text>
-      {/* Stats */}
-      <Text position={[0, -0.78, 0.03]} fontSize={0.09} color="#f59e0b" anchorX="center" anchorY="middle" maxWidth={2.1}>
-        {statLine}
-      </Text>
     </group>
   );
 }
 
-/* ── 滚动卡片墙 ── */
-function CardWall({ items, translateFn }) {
-  const groupRef = useRef();
-  useFrame((state) => {
-    if (groupRef.current) {
-      // Slow upward scroll, loop back
-      groupRef.current.position.y += 0.003;
-      if (groupRef.current.position.y > (Math.ceil(items.length / 5)) * 2.4) {
-        groupRef.current.position.y = -5;
-      }
-    }
-  });
-
-  return (
-    <group ref={groupRef} position={[0, -3, 0]}>
-      {items.map((item, i) => (
-        <EntityCard key={`${item.type}.${item.key}`} item={item} index={i} total={items.length} translateFn={translateFn} />
-      ))}
-    </group>
-  );
+/* ── 从数据池中选一个随机实体 ── */
+function pickRandom(items, avoid) {
+  if (items.length <= 1) return 0;
+  let i;
+  do { i = Math.floor(Math.random() * items.length); } while (i === avoid && items.length > 1);
+  return i;
 }
 
 /* ═══════════════════════════════════════════════════
  *  MAIN
  *  ═══════════════════════════════════════════════════ */
 export default function Showcase() {
-  const { translate, t } = useI18n();
+  const { translate } = useI18n();
   const { data } = useData();
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
   const pool = useMemo(() => {
     if (!data) return [];
@@ -122,32 +80,114 @@ export default function Showcase() {
         items.push({ type, key, entity });
       }
     }
-    // Shuffle for variety
+    // Shuffle
     for (let i = items.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [items[i], items[j]] = [items[j], items[i]];
     }
-    return items.slice(0, 120); // first 120 shuffled entries
+    return items.slice(0, 200);
   }, [data]);
 
-  if (!pool.length) {
+  const [index, setIndex] = useState(0);
+  const current = pool[index];
+
+  // Auto-cycle
+  useEffect(() => {
+    if (!pool.length) return;
+    const t = setInterval(() => setIndex((i) => pickRandom(pool, i)), 10000);
+    return () => clearInterval(t);
+  }, [pool.length]);
+
+  // Keyboard
+  useEffect(() => {
+    const h = (e) => {
+      if (e.key === "ArrowRight") { e.preventDefault(); setIndex((i) => (i + 1) % pool.length); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); setIndex((i) => (i - 1 + pool.length) % pool.length); }
+      if (e.key === "Escape") { window.history.back(); }
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [pool.length]);
+
+  if (!current) {
     return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#080c12", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>Loading...</div>;
   }
 
+  const entity = current.entity;
+  const iconUrl = useItemIcon(entity);
+  const name = translate(entity.name || current.key)?.slice(0, 30) || current.key;
+
+  // Type-specific stats for overlay
+  const stats = [];
+  if (current.type === "weapon") {
+    if (entity.projectile_result_kill_probability != null) stats.push({ label: "KILL", value: `${(entity.projectile_result_kill_probability * 100).toFixed(0)}%` });
+    if (entity.retrigger_time != null) stats.push({ label: "RATE", value: `${entity.retrigger_time.toFixed(2)}s` });
+    if (entity.magazine_size != null && entity.magazine_size > 0) stats.push({ label: "MAG", value: String(entity.magazine_size) });
+    if (entity.projectiles_per_shot != null && entity.projectiles_per_shot > 1) stats.push({ label: "PEL", value: String(entity.projectiles_per_shot) });
+    if (entity.projectile_speed != null) stats.push({ label: "VEL", value: `${entity.projectile_speed.toFixed(0)}m/s` });
+    if (entity.inventory_price != null) stats.push({ label: "PRICE", value: `$${entity.inventory_price}` });
+  } else if (current.type === "vehicle") {
+    if (entity.max_speed != null) stats.push({ label: "SPD", value: entity.max_speed.toFixed(1) });
+    if (entity.max_health != null) stats.push({ label: "HP", value: String(entity.max_health) });
+    if (entity.mass != null) stats.push({ label: "MASS", value: `${entity.mass.toFixed(0)}kg` });
+    if (entity.acceleration != null) stats.push({ label: "ACC", value: entity.acceleration.toFixed(2) });
+    if (entity.respawn_time != null) stats.push({ label: "RSPN", value: `${entity.respawn_time}s` });
+  } else {
+    const price = entity.inventory_price;
+    if (price != null) stats.push({ label: "PRICE", value: `$${price}` });
+    if (entity.inventory_encumbrance != null) stats.push({ label: "WGT", value: `${entity.inventory_encumbrance.toFixed(1)}kg` });
+    if (entity.commonness_value != null) stats.push({ label: "RARITY", value: entity.commonness_value.toFixed(2) });
+  }
+
   return (
-    <div style={{ position: "fixed", inset: 0, background: "#080c12", overflow: "hidden", cursor: "grab" }}>
-      <Canvas camera={{ position: [0, 0, 8], fov: 55 }}>
-        <ambientLight intensity={0.6} />
-        <pointLight position={[0, 2, 6]} intensity={1.2} color="#f59e0b" />
-        <pointLight position={[-4, -1, 3]} intensity={0.4} color="#3b82f6" />
-        <CardWall items={pool} translateFn={translate} />
+    <div style={{ position: "fixed", inset: 0, background: "#080c12", overflow: "hidden" }}>
+      {/* 3D canvas */}
+      <Canvas camera={{ position: [0, 0.3, 3.5], fov: 50 }} style={{ position: "absolute", inset: 0 }}>
+        <ambientLight intensity={0.5} />
+        <spotLight position={[2, 2, 3]} intensity={2} color="#f59e0b" angle={0.3} penumbra={0.5} />
+        <pointLight position={[-2, -1, -1]} intensity={0.3} color="#3b82f6" />
+        <IconCard iconUrl={iconUrl} />
+        <OrbitControls
+          enableZoom={false}
+          enablePan={false}
+          autoRotate
+          autoRotateSpeed={1.5}
+          maxPolarAngle={Math.PI / 2.2}
+          minPolarAngle={Math.PI / 3}
+        />
       </Canvas>
-      {/* Overlay hint */}
-      <div style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", fontFamily: "var(--font-mono)", fontSize: "var(--font-xxs)", color: "var(--text-muted)", opacity: 0.4 }}>
-        {pool.length} entities · auto-scrolling
+
+      {/* HTML overlay — name & stats around the card */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", padding: isMobile ? 16 : 32 }}>
+        {/* Type badge */}
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--accent)", letterSpacing: "0.2em", marginBottom: 4, opacity: 0.7 }}>
+          {current.type.toUpperCase()}
+        </div>
+        {/* Name */}
+        <div style={{ fontFamily: "var(--font-display)", fontSize: isMobile ? "clamp(16px,4vw,28px)" : "clamp(22px,2.5vw,36px)", fontWeight: 700, color: "var(--text-primary)", letterSpacing: "0.04em", textShadow: "0 2px 16px rgba(0,0,0,0.9)", textAlign: "center", maxWidth: "80vw" }}>
+          {name}
+        </div>
+        {/* Stats row */}
+        {stats.length > 0 && (
+          <div style={{ display: "flex", gap: isMobile ? 12 : 20, marginTop: 12, flexWrap: "wrap", justifyContent: "center" }}>
+            {stats.map((s, i) => (
+              <div key={i} style={{ textAlign: "center", animation: `fade-in 0.3s var(--ease-smooth) ${i * 0.08}s both` }}>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xxs)", color: "var(--text-dim)", letterSpacing: "0.1em" }}>{s.label}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "var(--font-md)", fontWeight: 700, color: "var(--accent)" }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      <div style={{ position: "absolute", top: 24, left: "50%", transform: "translateX(-50%)", fontFamily: "var(--font-display)", fontSize: "var(--font-md)", color: "var(--accent)", letterSpacing: "0.15em", opacity: 0.5 }}>
-        DATA WALL
+
+      {/* Top-right: count */}
+      <div style={{ position: "absolute", top: 20, right: 24, fontFamily: "var(--font-mono)", fontSize: "var(--font-xxs)", color: "var(--text-dim)", opacity: 0.4 }}>
+        {index + 1} / {pool.length}
+      </div>
+
+      {/* Bottom hint */}
+      <div style={{ position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)", fontFamily: "var(--font-mono)", fontSize: "var(--font-xxs)", color: "var(--text-muted)", opacity: 0.25 }}>
+        ← → navigate · auto-cycle 10s
       </div>
     </div>
   );
