@@ -7,12 +7,23 @@
  *  · 粒子背景 + 随机运镜
  * ─────────────────────────────────────────────────── */
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
+
+/* ── 摄像机旋转 ── */
+function CameraRotator() {
+  const { camera } = useThree();
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime * 0.6;
+    const r = 6;
+    camera.position.set(Math.cos(t) * r, 1.5, Math.sin(t) * r);
+    camera.lookAt(-1, 0, 0);
+  });
+  return null;
+}
 
 /* ── 粒子 ── */
 function ParticleField({ count = 150 }) {
@@ -60,8 +71,16 @@ function IconCard({ iconUrl, opacity }) {
   const w = 2.4;
   const h = w / Math.max(aspect, 0.3);
 
+  const groupRef = useRef();
+  useFrame(({ clock }) => {
+    if (groupRef.current) {
+      const s = 1 + Math.sin(clock.elapsedTime * 1.5) * 0.03;
+      groupRef.current.scale.setScalar(s);
+    }
+  });
+
   return (
-    <group position={[-1.2, 0, 0]}>
+    <group ref={groupRef} position={[-1.2, 0, 0]}>
       {/* Card with texture */}
       <mesh>
         <planeGeometry args={[w, h]} />
@@ -207,7 +226,7 @@ export default function Showcase() {
         <ambientLight intensity={1.5} />
         <ParticleField count={300} />
         <IconCard iconUrl={iconUrl} opacity={op} />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} maxPolarAngle={Math.PI/2.2} target={[-1,0,0]} />
+        <CameraRotator />
       </Canvas>
 
       {/* HTML overlay — asymmetric: text on left side */}
