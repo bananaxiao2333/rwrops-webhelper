@@ -256,8 +256,6 @@ export default function Showcase() {
     return () => { clearTimeout(delay); if (iv) clearInterval(iv); };
   }, [index, pool.length, shouldSkip]);
 
-  if (shouldSkip) return null;
-
   // Stats
   const stats = [];
   if (current.type==="weapon") {
