@@ -196,19 +196,22 @@ export default function Showcase() {
     setPreloadQueue(next);
   }, [index, pool]);
 
-  // Timer countdown
+  // Timer countdown — starts only after icon resolves + 300ms buffer
   useEffect(() => {
-    if (!pool.length) return;
-    setTimer(5.0);
-    const start = performance.now();
-    const iv = setInterval(() => {
-      const elapsed = (performance.now() - start) / 1000;
-      const remaining = Math.max(0, 5 - elapsed);
-      setTimer(remaining);
-      if (remaining <= 0) clearInterval(iv);
-    }, 50);
-    return () => clearInterval(iv);
-  }, [index, pool.length]);
+    if (!pool.length || !iconUrl) { setTimer(0); return; }
+    let iv;
+    const delay = setTimeout(() => {
+      setTimer(5.0);
+      const start = performance.now();
+      iv = setInterval(() => {
+        const elapsed = (performance.now() - start) / 1000;
+        const remaining = Math.max(0, 5 - elapsed);
+        setTimer(remaining);
+        if (remaining <= 0) clearInterval(iv);
+      }, 50);
+    }, 300);
+    return () => { clearTimeout(delay); if (iv) clearInterval(iv); };
+  }, [index, pool.length, iconUrl]);
 
   // Auto-advance entity
   useEffect(() => {
