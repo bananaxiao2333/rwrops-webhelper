@@ -48,11 +48,30 @@ function CamChoreographer() {
   const { camera } = useThree();
   const moveRef = useRef(CAM_MOVES[0]);
   const startRef = useRef(performance.now() / 1000);
-  useFrame(() => moveRef.current(performance.now() / 1000 - startRef.current, camera));
+  const prevPosRef = useRef(new THREE.Vector3());
+  const targetPosRef = useRef(new THREE.Vector3());
+  const lerpRef = useRef(1); // 0→1 transition progress
+  useFrame(() => {
+    const t = performance.now() / 1000 - startRef.current;
+    moveRef.current(t, camera);
+    // If lerping, blend with previous position
+    if (lerpRef.current < 1) {
+      lerpRef.current = Math.min(1, lerpRef.current + 0.05);
+      camera.position.lerpVectors(prevPosRef.current, targetPosRef.current, lerpRef.current);
+    }
+  });
   useEffect(() => {
-    const i = setInterval(() => { moveRef.current = CAM_MOVES[Math.floor(Math.random()*CAM_MOVES.length)]; startRef.current = performance.now()/1000; }, 8000);
+    const i = setInterval(() => {
+      prevPosRef.current.copy(camera.position);
+      moveRef.current = CAM_MOVES[Math.floor(Math.random()*CAM_MOVES.length)];
+      // Compute target position at t=0 for lerping
+      targetPosRef.current.copy(camera.position);
+      moveRef.current(0, { position: targetPosRef.current });
+      startRef.current = performance.now() / 1000;
+      lerpRef.current = 0;
+    }, 8000);
     return () => clearInterval(i);
-  }, []);
+  }, [camera]);
   return null;
 }
 
