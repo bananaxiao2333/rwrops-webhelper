@@ -40,13 +40,14 @@ const STATIC_ROUTES = [
   { path: "/", priority: "1.0", changefreq: "weekly" },
   { path: "/params", priority: "0.8", changefreq: "weekly" },
   { path: "/docs", priority: "0.9", changefreq: "weekly" },
+  { path: "/tools", priority: "0.7", changefreq: "monthly" },
 ];
 
 // ── Category routes (game data) ──
 const CATEGORIES = [
   "weapon", "vehicle", "carry_item", "projectile",
   "call", "achievement", "faction", "rank",
-  "stance", "map_config", "command",
+  "stance", "map_config", "command", "command_config", "event",
 ];
 
 function generateSitemap() {
@@ -71,6 +72,19 @@ function generateSitemap() {
     xml += `    <loc>${SITE_URL}/params/${cat}</loc>\n`;
     xml += `    <changefreq>weekly</changefreq>\n`;
     xml += `    <priority>0.7</priority>\n`;
+    xml += `  </url>\n`;
+  }
+
+  // Tools routes
+  const TOOLS = [
+    { path: "/tools/stall", priority: "0.6", changefreq: "monthly" },
+    { path: "/tools/metagen", priority: "0.6", changefreq: "monthly" },
+  ];
+  for (const t of TOOLS) {
+    xml += `  <url>\n`;
+    xml += `    <loc>${SITE_URL}${t.path}</loc>\n`;
+    xml += `    <changefreq>${t.changefreq}</changefreq>\n`;
+    xml += `    <priority>${t.priority}</priority>\n`;
     xml += `  </url>\n`;
   }
 
