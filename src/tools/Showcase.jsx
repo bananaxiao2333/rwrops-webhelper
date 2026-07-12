@@ -19,9 +19,13 @@ function ParticleField({ count = 150 }) {
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count * 3; i += 3) {
-      arr[i] = (Math.random() - 0.5) * 50;
-      arr[i + 1] = (Math.random() - 0.5) * 35;
-      arr[i + 2] = (Math.random() - 0.5) * 25;
+      // Spherical distribution: random radius between 3-15
+      const r = 3 + Math.pow(Math.random(), 0.5) * 12;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      arr[i] = r * Math.sin(phi) * Math.cos(theta);
+      arr[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+      arr[i + 2] = r * Math.cos(phi);
     }
     return arr;
   }, [count]);
@@ -29,7 +33,7 @@ function ParticleField({ count = 150 }) {
   return (
     <points ref={ref}>
       <bufferGeometry><bufferAttribute attach="attributes-position" args={[positions, 3]} /></bufferGeometry>
-      <pointsMaterial size={0.05} color="#f59e0b" opacity={0.45} transparent sizeAttenuation />
+      <pointsMaterial size={0.08} color="#fbbf24" opacity={0.6} transparent sizeAttenuation />
     </points>
   );
 }
@@ -200,7 +204,7 @@ export default function Showcase() {
         <pointLight position={[0,-2,2]} intensity={2} color="#64748b" />
         {/* Ambient — bright base illumination */}
         <ambientLight intensity={1.5} />
-        <ParticleField count={150} />
+        <ParticleField count={300} />
         <IconCard iconUrl={iconUrl} opacity={op} />
       </Canvas>
 
