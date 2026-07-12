@@ -9,6 +9,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { Icon } from "@iconify/react";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
@@ -192,12 +193,22 @@ export default function Showcase() {
   const iconUrl = useItemIcon(entity);
   const name = translate(entity.name||current.key)?.slice(0,32) || current.key;
 
-  // Skip entities without icons — advance immediately
+  // Auto-skip entities without icons
+  const skipRef = useRef(null);
   useEffect(() => {
-    if (pool.length && !iconUrl) {
-      setIndex((i) => (i + 1) % pool.length);
+    if (!iconUrl && pool.length) {
+      skipRef.current = setTimeout(() => setIndex((i) => (i + 1) % pool.length), 100);
     }
+    return () => { if (skipRef.current) clearTimeout(skipRef.current); };
   }, [iconUrl, pool.length]);
+
+  if (!iconUrl && pool.length) {
+    return (
+      <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#080c12",color:"var(--text-dim)",fontFamily:"var(--font-mono)"}}>
+        <Icon icon="ph:spinner" width={24} style={{opacity:0.3}} />
+      </div>
+    );
+  }
 
   // Stats
   const stats = [];
