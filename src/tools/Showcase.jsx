@@ -227,14 +227,18 @@ export default function Showcase() {
 
   const entity = current.entity;
   const iconUrl = useItemIcon(entity);
-  const name = translate(entity.name||current.key)?.slice(0,32) || current.key;
+  const rawKey = entity.name || current.key;
+  const trName = translate(rawKey);
+  const hasTranslation = trName && trName !== "—" && trName !== rawKey;
+  const name = (hasTranslation ? trName : rawKey).slice(0, 32);
 
-  // Instant-skip entities without icons
+  // Skip entities without icon OR without translation
+  const shouldSkip = !!pool.length && (!iconUrl || !hasTranslation);
   useEffect(() => {
-    if (!iconUrl && pool.length) setIndex((i) => (i + 1) % pool.length);
-  }, [iconUrl, pool.length]);
+    if (shouldSkip) setIndex((i) => (i + 1) % pool.length);
+  }, [shouldSkip, pool.length]);
 
-  if (!iconUrl && pool.length) return null;
+  if (shouldSkip) return null;
 
   // Stats
   const stats = [];
