@@ -68,7 +68,7 @@ function IconCard({ iconUrl, opacity }) {
     });
   }, [iconUrl]);
 
-  const w = 2.4;
+  const w = 1.8;
   const h = w / Math.max(aspect, 0.3);
 
   const groupRef = useRef();
