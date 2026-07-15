@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useI18n } from "./i18n.jsx";
 import { useItemIcon, displayPath } from "./assetLoader.jsx";
 import VisualizationComponentPool from "./detail_visual/VisualizationComponentPool";
@@ -257,7 +257,7 @@ function PropRow({ label, raw, tFn, lookupMap, onNavigate, uiT }) {
 }
 
 /* ── Detail ── */
-export default function Detail({ item, type, onBack, onOpenRoll }) {
+export default function Detail({ item, type, onOpenRoll }) {
   if (!item) return null;
 
   const { translate } = useI18n();

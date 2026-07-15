@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { useI18n } from "../i18n.jsx";
-import { useAsset } from "../assetLoader.jsx";
 
 /* ── Faction rank tree visualization ── */
 export default function FactionVisualization({ item }) {
@@ -11,7 +9,6 @@ export default function FactionVisualization({ item }) {
     : "var(--accent)";
 
   const ranks = item.ranks || [];
-  const maxXp = ranks.length > 0 ? ranks[ranks.length - 1].xp : 1;
   const soldierCount = item.soldiers ? item.soldiers.length : 0;
 
   const iconList = [

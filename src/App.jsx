@@ -5,7 +5,7 @@ import { HomePage, extractAllKeywords } from "./routes.jsx";
 import SEO from "./SEO.jsx";
 import ExchangeRollModal from "./detail_visual/ExchangeRollModal";
 import DocsPage, { DocsListPage } from "./DocsPage.jsx";
-import { getArticleSlugsSync, getArticleSlugs, getAllArticleMetas } from "./docsLazy.js";
+import { getArticleSlugsSync, getAllArticleMetas } from "./docsLazy.js";
 import GlobalSearch from "./GlobalSearch.jsx";
 import ToolsListPage, { TOOLS } from "./tools/ToolsListPage.jsx";
 import StallGenerator from "./tools/StallGenerator.jsx";

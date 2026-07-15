@@ -50,7 +50,7 @@ export default function VisualizationComponentPool({ item, onDataNavigate, onOpe
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
     >
-      {visualizationComponents.map(({ component: Component, shouldRender }) => {
+      {visualizationComponents.map(({ component: Comp, shouldRender }) => {
         if (shouldRender(item)) {
           const idx = visIndex++;
           return (
@@ -58,7 +58,7 @@ export default function VisualizationComponentPool({ item, onDataNavigate, onOpe
               animation: `fade-in 0.3s var(--ease-smooth) ${0.06 * idx}s both`,
             }}>
               <VisualizationErrorBoundary>
-                <Component item={item} onDataNavigate={onDataNavigate} onOpenRoll={onOpenRoll} />
+                <Comp item={item} onDataNavigate={onDataNavigate} onOpenRoll={onOpenRoll} />
               </VisualizationErrorBoundary>
             </div>
           );

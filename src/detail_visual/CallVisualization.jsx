@@ -6,7 +6,6 @@ export default function CallVisualization({ item }) {
   if (!item || item.type !== "call") return null;
   const { translate, t } = useI18n();
   const rounds = item.rounds || [];
-  const hudIcon = item.hud_icon?.filename || null;
   const inventory = item.inventory || {};
 
   // Determine call type by rounds content

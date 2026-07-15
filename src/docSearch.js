@@ -45,10 +45,8 @@ let _indexPromise = null;
 
 /**
  * 构建搜索索引
- * @param {Function} loadArticle - (slug, lang) => Promise<{body, meta}>
- *   由 docs.js 提供，负责加载原文并剥离 frontmatter
  */
-export async function buildSearchIndex(loadArticle) {
+export async function buildSearchIndex() {
   if (_indexPromise) return _indexPromise;
   _indexPromise = (async () => {
     // 从 docs.js 动态导入模块获取 slug 列表（避免循环依赖）

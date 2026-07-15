@@ -34,7 +34,7 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
     try {
       await buildSearchIndex();
       setDocsReady(true);
-    } catch (_) { /* ignore */ }
+    } catch { /* ignore */ }
   }, [docsReady]);
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
             snippet: r.snippet,
             path: `/docs/${r.slug}?hl=${encodeURIComponent(q)}`,
           }));
-        } catch (_) { /* ignore */ }
+        } catch { /* ignore */ }
       }
 
       setResults({ data: dataResults.slice(0, 15), docs: docResults.slice(0, 10) });
@@ -107,14 +107,6 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
     return () => clearTimeout(timer);
   }, [query, open, data, docsReady, lang, translate]);
 
-  // 扁平化所有结果用于键盘导航
-  const allResults = useCallback(() => {
-    const flat = [];
-    for (const r of results.data) flat.push(r);
-    for (const r of results.docs) flat.push(r);
-    return flat;
-  }, [results]);
-
   const totalCount = results.data.length + results.docs.length;
 
   const handleKey = useCallback((e) => {
@@ -124,14 +116,11 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
     if (e.key === "ArrowUp") { e.preventDefault(); setSelectedIdx((i) => Math.max(i - 1, 0)); }
     if (e.key === "Enter") {
       e.preventDefault();
-      const flat = allResults();
-      const r = flat[selectedIdx];
+      const all = [...results.data, ...results.docs];
+      const r = all[selectedIdx];
       if (r) { onNavigate(r.path); onClose(); }
     }
-  }, [totalCount, selectedIdx, onClose, onNavigate, allResults]);
-
-  // 扁平结果供外部索引访问
-  const flat = allResults();
+  }, [totalCount, selectedIdx, onClose, onNavigate, results]);
 
   if (!open) return null;
 

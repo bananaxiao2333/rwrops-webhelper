@@ -236,7 +236,7 @@ export default function ProjectileVisualization({ item }) {
   /* ── 8. Capacities ── */
   const caps = useMemo(() => {
     if (!Array.isArray(item.capacities) || item.capacities.length === 0) return null;
-    return item.capacities.map((c, i) => ({
+    return item.capacities.map((c) => ({
       label: safeStr(c.source) || t("unknown"),
       value: c.source_value !== undefined
         ? `${fmt(c.value)} @ ${t("rank")} ${fmt(c.source_value)}`
