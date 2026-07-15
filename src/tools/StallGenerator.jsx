@@ -50,7 +50,7 @@ export default function StallGenerator() {
 
   /* ── Stall data (persisted via useLocalStorage) ── */
   const STORAGE_KEY = "rwrops_stall_v2";
-  const DEFAULT_PC = { textSize: 14, fgColor: "#e8edf3", bgColor: "transparent", forceWidth: 0, titleAlign: "left", subtitleAlign: "left", showTitle: true, showSubtitle: true, showKey: false, showPrice: true, showDiscount: true, showQuantity: true, shortPrice: false, boldPrice: false, focusPrice: false };
+  const DEFAULT_PC = useMemo(() => ({ textSize: 14, fgColor: "#e8edf3", bgColor: "transparent", forceWidth: 0, titleAlign: "left", subtitleAlign: "left", showTitle: true, showSubtitle: true, showKey: false, showPrice: true, showDiscount: true, showQuantity: true, shortPrice: false, boldPrice: false, focusPrice: false }), []);
 
   const [saved, setSaved] = useLocalStorage(STORAGE_KEY, { title: "", subtitle: "", rawItems: [], pc: DEFAULT_PC });
 
@@ -113,19 +113,18 @@ export default function StallGenerator() {
     const q = query.toLowerCase().trim();
     return searchPool.filter(r => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q) || r.type.toLowerCase().includes(q)).slice(0, 20);
   }, [query, searchPool]);
-  useEffect(() => { setSelectedIdx(-1); }, [searchResults.length]);
 
   /* ── Add ── */
   const addItem = useCallback((r) => {
     if (items.some(si => si.key === r.key)) { setQuery(""); setShowDropdown(false); return; }
     setItems(p => [...p, { key: r.key, type: r.type, id: r.id, item: r.item, name: r.name, quantity: 1, price: r.item?.inventory_price ?? 0, discount: 0 }]);
     setQuery(""); setShowDropdown(false);
-  }, [items]);
-  const removeItem = useCallback((idx) => { setItems(p => p.filter((_, i) => i !== idx)); setEditing(null); }, []);
-  const updateItem = useCallback((idx, patch) => { setItems(p => { const n = [...p]; n[idx] = { ...n[idx], ...patch }; return n; }); }, []);
+  }, [items, setItems, setQuery, setShowDropdown]);
+  const removeItem = useCallback((idx) => { setItems(p => p.filter((_, i) => i !== idx)); setEditing(null); }, [setItems]);
+  const updateItem = useCallback((idx, patch) => { setItems(p => { const n = [...p]; n[idx] = { ...n[idx], ...patch }; return n; }); }, [setItems]);
 
   /* ── Drag ── */
-  const hDragStart = useCallback((e, i) => { setDragIdx(i); e.dataTransfer.effectAllowed = "move"; }, []);
+  const hDragStart = useCallback((e, i) => { setDragIdx(i); e.dataTransfer.effectAllowed = "move"; }, [setDragIdx]);
   const hDragOver = useCallback((e) => { e.preventDefault(); }, []);
   const hDragLeave = useCallback(() => {}, []);
   const hDrop = useCallback((e, to) => {
@@ -138,7 +137,7 @@ export default function StallGenerator() {
       return n;
     });
     setDragIdx(null);
-  }, [dragIdx]);
+  }, [dragIdx, setItems, setDragIdx]);
 
   /* ── PNG ── */
   const pngRef = useRef(null);
@@ -193,13 +192,13 @@ export default function StallGenerator() {
     };
     reader.readAsText(file);
     e.target.value = "";
-  }, [t]);
+  }, [t, setSaved, setExportMsg]);
 
   /* ── Reset ── */
   const doReset = useCallback(() => {
     setSaved({ title: "", subtitle: "", rawItems: [], pc: DEFAULT_PC });
     setConfirmReset(false);
-  }, [setSaved]);
+  }, [setSaved, setConfirmReset, DEFAULT_PC]);
 
   /* ── Text copy ── */
   const copyText = useCallback(() => {
@@ -219,7 +218,7 @@ export default function StallGenerator() {
       setExportMsg(t("tools_stall_copy_text_done"));
       setTimeout(() => setExportMsg(""), 2000);
     }).catch(() => {});
-  }, [items, title, subtitle, pc, t]);
+  }, [items, title, subtitle, pc, t, lang]);
 
   /* ── Clipboard image (PNG) ── */
   const copyPNG = useCallback(async () => {
@@ -292,7 +291,7 @@ export default function StallGenerator() {
         <div ref={searchRef} style={{ position: "relative" }}>
           <div style={{ display: "flex", alignItems: "center", border: "1px solid var(--border-mid)", background: "var(--bg-base)", padding: M ? "3px 10px" : "3px 8px", minHeight: inputH }}>
             <Icon icon="ph:magnifying-glass" width={M ? 16 : 14} height={M ? 16 : 14} style={{ color: "var(--text-dim)", flexShrink: 0 }} />
-            <input value={query} onChange={e => { setQuery(e.target.value); setShowDropdown(true); }}
+            <input value={query} onChange={e => { setQuery(e.target.value); setSelectedIdx(-1); setShowDropdown(true); }}
               onFocus={() => { if (query.trim()) setShowDropdown(true); }} onKeyDown={handleKeyDown}
               placeholder={t("tools_stall_search_placeholder")}
               style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "var(--text-primary)", fontSize: M ? "max(16px, var(--font-base))" : "var(--font-sm)", fontFamily: "var(--font-mono)", padding: "4px 6px", minWidth: 0, lineHeight: M ? 1.4 : undefined }} />
@@ -523,10 +522,7 @@ function EditModal({ si, onUpdate, onRemove, onRevert, onClose, t, isMobile }) {
   const mW = M ? "92vw" : 320;
   const mPad = M ? "20px 16px" : "20px 24px";
 
-  const snapRef = useRef(null);
-  useEffect(() => {
-    snapRef.current = { quantity: si.quantity, price: si.price, discount: si.discount };
-  }, []);
+  const snapRef = useRef({ quantity: si.quantity, price: si.price, discount: si.discount });
   const handleClose = useCallback(() => {
     if (snapRef.current) {
       const s = snapRef.current;

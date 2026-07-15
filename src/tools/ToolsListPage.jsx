@@ -5,9 +5,10 @@
  * ─────────────────────────────────────────────────── */
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import { useI18n, useT } from "../i18n.jsx";
+import { useT } from "../i18n.jsx";
 
 /* ── Tool definitions (extensible) ── */
+// eslint-disable-next-line react-refresh/only-export-components
 export const TOOLS = [
   {
     id: "stall",

@@ -11,10 +11,12 @@ import frLabels from "./i18n/fr.json";
 const LANG_KEY = "rwrops_lang";
 const I18nCtx = createContext({ lang: "en", t: (k) => k, translate: (s) => s });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useI18n() {
   return useContext(I18nCtx);
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useT() {
   return useContext(I18nCtx).t;
 }

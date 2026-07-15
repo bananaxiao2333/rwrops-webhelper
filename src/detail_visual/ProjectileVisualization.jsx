@@ -100,13 +100,10 @@ function fmtSounds(sounds) {
 /* ── Projectile Visualization ── */
 export default function ProjectileVisualization({ item }) {
   const t = useT();
-  const inv = item?.inventory || {};
-  const common = item?.commonness || {};
 
   /* ── 1. Ballistics ── */
   const ballistics = useMemo(() => {
     const f = [];
-    // Standard projectile
     if (item.projectile_speed !== undefined)
       f.push({ label: t("field_projectile_speed"), value: fmt(item.projectile_speed) + " m/s" });
     if (item.projectiles_per_shot !== undefined)
@@ -173,6 +170,8 @@ export default function ProjectileVisualization({ item }) {
 
   /* ── 4. Economy ── */
   const economy = useMemo(() => {
+    const inv = item?.inventory || {};
+    const common = item?.commonness || {};
     const f = [];
     if (inv.price !== undefined)
       f.push({ label: t("field_inventory_price"), value: "$" + fmt(inv.price) });
@@ -187,7 +186,7 @@ export default function ProjectileVisualization({ item }) {
     if (item.in_stock !== undefined)
       f.push({ label: t("field_in_stock"), value: item.in_stock ? t("yes") : t("no") });
     return f;
-  }, [item, t, inv, common]);
+  }, [item, t]);
 
   /* ── 5. Lifetime / Config ── */
   const config = useMemo(() => {

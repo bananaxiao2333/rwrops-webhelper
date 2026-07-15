@@ -38,13 +38,13 @@ function pickMove(prev) {
 /* ── Camera Controller ── */
 function CameraRotator({ moveIdx, moveKey }) {
   const { camera } = useThree();
-  const startRef = useRef(performance.now() / 1000);
+  const startRef = useRef(0);
   const durRef = useRef(5);
   const oldPosRef = useRef(new THREE.Vector3());
   const paramsRef = useRef({});
   const moveFn = MOVES[moveIdx % MOVES.length];
 
-  useMemo(() => {
+  useEffect(() => {
     oldPosRef.current.copy(camera.position);
     startRef.current = performance.now() / 1000;
     durRef.current = 3 + Math.random() * 5;
@@ -54,7 +54,7 @@ function CameraRotator({ moveIdx, moveKey }) {
       dollyCurve: 0.3 + Math.random() * 0.4,
       followArc: 0.8 + Math.random() * 0.4,
     };
-  }, [moveKey]);
+  }, [moveKey, camera.position]);
 
   useFrame(() => {
     const t = performance.now() / 1000 - startRef.current;
@@ -75,7 +75,7 @@ function CameraRotator({ moveIdx, moveKey }) {
 /* ── Particle Field ── */
 function ParticleField({ count = 300 }) {
   const ref = useRef();
-  const positions = useMemo(() => {
+  const [positions] = useState(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count * 3; i += 3) {
       const rad = 3 + Math.pow(Math.random(), 0.5) * 12;
@@ -86,7 +86,7 @@ function ParticleField({ count = 300 }) {
       arr[i + 2] = rad * Math.cos(phi);
     }
     return arr;
-  }, [count]);
+  });
   useFrame(({ clock }) => { if (ref.current) ref.current.rotation.y = clock.elapsedTime * 0.02; });
   return (
     <points ref={ref}>
@@ -102,7 +102,7 @@ function IconCard({ iconUrl, opacity }) {
   const [aspect, setAspect] = useState(1);
 
   useEffect(() => {
-    if (!iconUrl) { setTex(null); return; }
+    if (!iconUrl) return;
     const loader = new THREE.TextureLoader();
     loader.load(iconUrl, (t) => {
       t.minFilter = THREE.LinearFilter;

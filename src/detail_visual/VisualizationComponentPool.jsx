@@ -50,8 +50,9 @@ export default function VisualizationComponentPool({ item, onDataNavigate, onOpe
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
     >
-      {visualizationComponents.map(({ component: Comp, shouldRender }) => {
-        if (shouldRender(item)) {
+      {visualizationComponents.map((entry) => {
+        const Comp = entry.component;
+        if (entry.shouldRender(item)) {
           const idx = visIndex++;
           return (
             <div key={idx} style={{

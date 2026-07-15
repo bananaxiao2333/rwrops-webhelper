@@ -939,7 +939,7 @@ function LivePreview({ template, data, isMobile, onNavigate }) {
                 ))}
               </div>
             )}
-            {previewEntries.map((entry, i) => (
+            {previewEntries.map((entry) => (
               <div key={`${entry.type}.${entry.key}`} style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.03)", padding: "1px 0", contentVisibility: "auto", containIntrinsicSize: "0 18px", whiteSpace: "nowrap" }}>
                 <a href={`/params/${entry.type}/${entry.key}`} onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate(entry.type, entry.key); }}
                   style={{ flexShrink: 0, width: nameColWidth, overflow: "hidden", textOverflow: "ellipsis", color: "var(--text-primary)", fontWeight: 600, textDecoration: "none", cursor: "pointer" }}
@@ -1452,7 +1452,7 @@ export default function MetaGen() {
     };
 
     return fieldTree.map(filterNode).filter(Boolean);
-  }, [fieldTree, treeSearch]);
+  }, [fieldTree, treeSearch, t, translate]);
 
   // Set of selected paths (for tree highlighting)
   const selectedPaths = useMemo(() => {
@@ -1523,7 +1523,7 @@ export default function MetaGen() {
         }),
       }));
     },
-    [activeTemplate.fields, setSaved]
+    [activeTemplate.fields, setSaved, t, translate]
   );
 
   const removeField = useCallback(
@@ -1644,7 +1644,7 @@ export default function MetaGen() {
         if (cfg.templates && cfg.customEntries) {
           setSaved({ templates: cfg.templates, activeTemplateId: cfg.activeTemplateId || "default", customEntries: cfg.customEntries });
         }
-      } catch {}
+      } catch { /* ignore */ }
     };
     reader.readAsText(file);
     e.target.value = "";

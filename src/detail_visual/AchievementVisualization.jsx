@@ -5,14 +5,10 @@ import { useI18n } from "../i18n.jsx";
 /* ── Achievement milestone visualization ── */
 export default function AchievementVisualization({ item }) {
   const { translate } = useI18n();
-  if (!item || item.type !== "achievement") return null;
-  const levels = item.levels || [];
-  const criteria = item.criteria_list || [];
-
-  // Merge criteria thresholds into levels
+  const levels = useMemo(() => item?.levels || [], [item?.levels]);
+  const criteria = useMemo(() => item?.criteria_list || [], [item?.criteria_list]);
   const levelData = useMemo(() => {
     if (criteria.length === 0) return levels.map((l, i) => ({ level: l, threshold: null, idx: i }));
-
     const thresholds = criteria.flatMap(c => c.level_thresholds || []);
     return levels.map((l, i) => ({
       level: l,
@@ -20,11 +16,12 @@ export default function AchievementVisualization({ item }) {
       idx: i,
     }));
   }, [levels, criteria]);
-
-  const maxThreshold = levelData.reduce((m, ld) => {
+  const maxThreshold = useMemo(() => levelData.reduce((m, ld) => {
     const v = ld.threshold?.value || 0;
     return v > m ? v : m;
-  }, 0);
+  }, 0), [levelData]);
+
+  if (!item || item.type !== "achievement") return null;
 
   return (
     <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", fontFamily: "var(--font-mono)" }}>
@@ -89,7 +86,6 @@ export default function AchievementVisualization({ item }) {
         <div>
           {levelData.map((ld, i) => {
             const rank = ld.level.rank || {};
-            const notification = ld.level.notification || {};
             const req = ld.threshold?.value || 0;
             const pct = maxThreshold > 0 ? (req / maxThreshold) * 100 : 0;
             const isLast = i === levelData.length - 1;
