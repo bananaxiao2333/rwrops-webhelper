@@ -1,14 +1,12 @@
 import { Icon } from "@iconify/react";
 import { useI18n } from "../i18n.jsx";
 
-/* ── CallVisualization ── */
 export default function CallVisualization({ item }) {
   const { translate, t } = useI18n();
   if (!item || item.type !== "call") return null;
   const rounds = item.rounds || [];
   const inventory = item.inventory || {};
 
-  // Determine call type by rounds content
   const deployTypes = [];
   if (rounds.length > 0) {
     const types = new Set(rounds.map(r => r.instance_class).filter(Boolean));
@@ -17,108 +15,157 @@ export default function CallVisualization({ item }) {
 
   return (
     <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", fontFamily: "var(--font-mono)" }}>
-      {/* Header */}
       <div style={{
         padding: "10px 14px", borderBottom: "1px solid var(--border-subtle)",
         fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)",
         textTransform: "uppercase", letterSpacing: "0.08em",
         display: "flex", alignItems: "center", gap: 8,
+        fontFamily: "var(--font-display)",
       }}>
         <Icon icon="mdi:radio-tower" style={{ fontSize: "var(--font-md)" }} />
-        RADIO CALL
+        {t("radio_call")}
       </div>
 
-      {/* Comms — asymmetric: quotes on left, deploy info on right */}
       <div style={{ display: "flex", gap: 12, padding: "10px 14px", flexWrap: "wrap" }}>
-        {/* Dialogue block */}
-        <div style={{ flex: "1 1 200px", display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ flex: "1 1 200px", display: "flex", flexDirection: "column", gap: 5 }}>
           {item.initiation_comment1 && (
-            <div style={{ fontSize: "var(--font-base)", color: "var(--text-muted)", fontStyle: "italic", padding: "4px 10px", borderLeft: "2px solid var(--border-mid)", animation: "fade-in 0.25s var(--ease-smooth) 0.06s both", fontFamily: "var(--font-text)", lineHeight: 1.5 }}>
+            <div style={{
+              fontSize: "var(--font-base)", color: "var(--text-muted)",
+              fontStyle: "italic", padding: "5px 10px",
+              borderLeft: "2px solid var(--border-mid)",
+              animation: "fade-in 0.25s var(--ease-smooth) 0.06s both",
+              fontFamily: "var(--font-text)", lineHeight: 1.5,
+              background: "linear-gradient(90deg, var(--bg-base) 0%, transparent 100%)",
+            }}>
+              <Icon icon="mdi:radio-handheld" style={{ fontSize: 12, marginRight: 6, color: "var(--text-dim)" }} />
               "{translate(item.initiation_comment1)}"
             </div>
           )}
           {item.acknowledge_comment && (
-            <div style={{ fontSize: "var(--font-base)", color: "var(--accent-dim)", fontStyle: "italic", padding: "4px 10px", borderLeft: "2px solid var(--accent)", animation: "fade-in 0.25s var(--ease-smooth) 0.1s both", fontFamily: "var(--font-text)", lineHeight: 1.5 }}>
+            <div style={{
+              fontSize: "var(--font-base)", color: "var(--accent-dim)",
+              fontStyle: "italic", padding: "5px 10px",
+              borderLeft: "2px solid var(--accent)",
+              animation: "fade-in 0.25s var(--ease-smooth) 0.1s both",
+              fontFamily: "var(--font-text)", lineHeight: 1.5,
+              background: "linear-gradient(90deg, var(--bg-base) 0%, transparent 100%)",
+            }}>
+              <Icon icon="mdi:check-circle-outline" style={{ fontSize: 12, marginRight: 6, color: "var(--accent-dim)" }} />
               "{translate(item.acknowledge_comment)}"
             </div>
           )}
           {item.launch_comment && (
-            <div style={{ fontSize: "var(--font-base)", color: "var(--text-secondary)", fontStyle: "italic", padding: "4px 10px", borderLeft: "2px solid var(--border-mid)", animation: "fade-in 0.25s var(--ease-smooth) 0.14s both", fontFamily: "var(--font-text)", lineHeight: 1.5 }}>
+            <div style={{
+              fontSize: "var(--font-base)", color: "var(--text-secondary)",
+              fontStyle: "italic", padding: "5px 10px",
+              borderLeft: "2px solid var(--border-mid)",
+              animation: "fade-in 0.25s var(--ease-smooth) 0.14s both",
+              fontFamily: "var(--font-text)", lineHeight: 1.5,
+              background: "linear-gradient(90deg, var(--bg-base) 0%, transparent 100%)",
+            }}>
+              <Icon icon="mdi:rocket-launch" style={{ fontSize: 12, marginRight: 6, color: "var(--text-dim)" }} />
               "{translate(item.launch_comment)}"
             </div>
           )}
         </div>
 
-        {/* Metadata badges */}
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "flex-start", animation: "fade-in 0.25s var(--ease-smooth) 0.08s both" }}>
           {deployTypes.map(dt => (
             <span key={dt} style={{
               padding: "3px 8px", fontSize: "var(--font-xs)", fontWeight: 700,
               border: "1px solid var(--accent)",
               color: "var(--accent)", textTransform: "uppercase",
+              display: "inline-flex", alignItems: "center", gap: 4,
+              letterSpacing: "0.06em",
             }}>
-              <Icon icon={dt === "vehicle" ? "mdi:truck" : "mdi:account-multiple"} style={{ fontSize: "var(--font-sm)", marginRight: 4 }} />
+              <Icon icon={dt === "vehicle" ? "mdi:truck" : "mdi:account-multiple"}
+                style={{ fontSize: "var(--font-sm)" }} />
               {dt === "vehicle" ? t("vehicle_drop") : t("infantry_drop")}
             </span>
           ))}
           {item.notify_metagame ? (
-            <span style={{ padding: "3px 8px", fontSize: "var(--font-xs)", border: "1px solid var(--danger)", color: "var(--danger)" }}>
-              GLOBAL NOTIFY
+            <span style={{
+              padding: "3px 8px", fontSize: "var(--font-xs)", fontWeight: 700,
+              border: "1px solid var(--danger)", color: "var(--danger)",
+              display: "inline-flex", alignItems: "center", gap: 4,
+              letterSpacing: "0.06em",
+            }}>
+              <Icon icon="mdi:broadcast" style={{ fontSize: 11 }} />
+              {t("global_notify")}
             </span>
           ) : null}
           {inventory.price > 0 && (
-            <span style={{ padding: "3px 8px", fontSize: "var(--font-xs)", border: "1px solid var(--border-mid)", color: "var(--text-muted)" }}>
+            <span style={{
+              padding: "3px 8px", fontSize: "var(--font-xs)",
+              border: "1px solid var(--border-mid)", color: "var(--text-muted)",
+              display: "inline-flex", alignItems: "center", gap: 4,
+              fontFamily: "var(--font-mono)",
+            }}>
+              <Icon icon="mdi:currency-usd" style={{ fontSize: 11 }} />
               ${inventory.price}
             </span>
           )}
         </div>
       </div>
 
-      {/* Rounds timeline */}
       {rounds.length > 0 && (
         <div style={{ borderTop: "1px solid var(--border-subtle)" }}>
-          <div style={{ padding: "6px 14px", fontSize: "var(--font-xs)", color: "var(--text-muted)", letterSpacing: "0.06em" }}>
-            DEPLOYMENT WAVES
+          <div style={{
+            padding: "6px 14px", fontSize: "var(--font-xs)", color: "var(--text-muted)",
+            letterSpacing: "0.06em",
+            display: "flex", alignItems: "center", gap: 5,
+          }}>
+            <Icon icon="mdi:timeline-clock-outline" style={{ fontSize: 11 }} />
+            {t("deployment_waves")}
           </div>
           {rounds.map((r, i) => {
-            const totalDelay = (r.launch_time || 0) + (r.spawn_time || 0);
+            const totalDelay = (r.launch_time || 0) + (r.spawn_time || 0) || 1;
+            const launchPct = ((r.launch_time || 0) / totalDelay) * 100;
+            const spawnPct = ((r.spawn_time || 0) / totalDelay) * 100;
             return (
               <div key={i} style={{
-                display: "flex", gap: 8, alignItems: "center",
-                padding: "6px 14px",
+                display: "flex", gap: 10, alignItems: "center",
+                padding: "8px 14px",
                 borderTop: i > 0 ? "1px solid var(--border-subtle)" : "none",
                 background: i % 2 ? "var(--bg-base)" : "transparent",
-                animation: `fade-in 0.25s var(--ease-smooth) ${0.1 + i * 0.04}s both`,
+                animation: `fade-in 0.25s var(--ease-smooth) ${0.08 + i * 0.04}s both`,
+                transition: "background var(--dur-fast) var(--ease-smooth)",
               }}>
-                <span style={{ fontSize: "var(--font-sm)", color: "var(--accent)", fontWeight: 700, minWidth: 20 }}>
-                  #{i + 1}
+                <span style={{
+                  fontSize: "var(--font-sm)", color: "var(--accent)", fontWeight: 700,
+                  fontFamily: "var(--font-display)", minWidth: 24,
+                }}>
+                  {i + 1}
                 </span>
+
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "var(--font-sm)", color: "var(--text-primary)", textTransform: "uppercase" }}>
+                  <div style={{ fontSize: "var(--font-sm)", color: "var(--text-primary)", textTransform: "uppercase", fontWeight: 600 }}>
                     {r.instance_key ? translate(r.instance_key) : (r.instance_class || "—")}
-                    {r.instances > 1 && <span style={{ color: "var(--text-muted)", marginLeft: 4 }}>×{r.instances}</span>}
+                    {r.instances > 1 && <span style={{ color: "var(--text-muted)", marginLeft: 4, fontFamily: "var(--font-mono)" }}>×{r.instances}</span>}
                   </div>
-                  <div style={{ display: "flex", gap: 8, fontSize: "var(--font-xxs)", color: "var(--text-muted)", marginTop: 2 }}>
-                    <span>LAUNCH: {r.launch_time || 0}s</span>
-                    <span>SPAWN: {r.spawn_time || 0}s</span>
-                    {r.vertical_offset_at_spawn > 0 && <span>ALT: {r.vertical_offset_at_spawn}m</span>}
+                  <div style={{ display: "flex", gap: 12, fontSize: "var(--font-xxs)", color: "var(--text-dim)", marginTop: 2, fontFamily: "var(--font-mono)" }}>
+                    <span>{t("launch")}: {r.launch_time || 0}s</span>
+                    <span>{t("spawn")}: {r.spawn_time || 0}s</span>
+                    {r.vertical_offset_at_spawn > 0 && <span>{t("alt")}: {r.vertical_offset_at_spawn}m</span>}
                   </div>
                 </div>
-                {/* visual bar */}
+
                 <div style={{
-                  width: 60, height: 4, background: "var(--border-subtle)", borderRadius: 2, flexShrink: 0,
+                  width: 80, height: 6, background: "var(--border-subtle)", flexShrink: 0,
                   position: "relative", overflow: "hidden",
                 }}>
                   <div style={{
-                    width: `${((r.launch_time || 0) / (totalDelay || 1)) * 100}%`,
-                    height: "100%", background: "var(--accent)",
+                    width: `${launchPct}%`, height: "100%",
+                    background: "var(--accent)",
                     position: "absolute", left: 0, top: 0,
+                    transition: "width var(--dur-norm) var(--ease-smooth)",
                   }} />
                   <div style={{
-                    left: `${((r.launch_time || 0) / (totalDelay || 1)) * 100}%`,
-                    width: `${((r.spawn_time || 0) / (totalDelay || 1)) * 100}%`,
-                    height: "100%", background: "var(--danger)",
+                    left: `${launchPct}%`,
+                    width: `${spawnPct}%`, height: "100%",
+                    background: "var(--danger)",
                     position: "absolute", top: 0,
+                    transition: "width var(--dur-norm) var(--ease-smooth)",
                   }} />
                 </div>
               </div>
@@ -127,10 +174,14 @@ export default function CallVisualization({ item }) {
         </div>
       )}
 
-      {/* Capacities if present */}
       {item.capacities && Array.isArray(item.capacities) && item.capacities.length > 0 && (
-        <div style={{ padding: "6px 14px", borderTop: "1px solid var(--border-subtle)", fontSize: "var(--font-xxs)", color: "var(--text-dim)" }}>
-          UNLOCK: RANK {item.capacities.map(c => (c.source_value * 100).toFixed(0) + "%").join(" → ")}
+        <div style={{
+          padding: "6px 14px", borderTop: "1px solid var(--border-subtle)",
+          fontSize: "var(--font-xxs)", color: "var(--text-dim)",
+          display: "flex", alignItems: "center", gap: 5,
+        }}>
+          <Icon icon="mdi:lock-outline" style={{ fontSize: 10 }} />
+          {t("unlock")}: {t("rank")} {item.capacities.map(c => (c.source_value * 100).toFixed(0) + "%").join(" → ")}
         </div>
       )}
     </div>

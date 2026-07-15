@@ -1,64 +1,80 @@
 import { useMemo } from "react";
+import { Icon } from "@iconify/react";
 import { useT } from "../i18n.jsx";
 
-/* ── Section helper ── */
+const SECTION_ICONS = {
+  ballistics: "mdi:chart-bell-curve",
+  results: "mdi:target",
+  behavior: "mdi:cog",
+  economy: "mdi:currency-usd",
+  config: "mdi:tune",
+  visual: "mdi:image",
+  capacities: "mdi:lock-outline",
+  tags: "mdi:tag",
+};
+
 const sectionStyle = {
   border: "1px solid var(--border-subtle)",
   background: "var(--bg-surface)",
   fontFamily: "var(--font-mono)",
   marginBottom: 6,
 };
-const headerStyle = {
-  padding: "9px 14px",
-  borderBottom: "1px solid var(--border-subtle)",
-  fontSize: "var(--font-base)", fontWeight: 700,
-  color: "var(--accent)", textTransform: "uppercase",
-  letterSpacing: "0.08em",
-};
+
 const fieldRowStyle = {
   display: "flex", flexWrap: "wrap",
 };
-const fieldStyle = {
-  flex: "1 1 160px",
-  padding: "6px 14px",
-  borderRight: "1px solid var(--border-subtle)",
-};
+
 const fieldLabelStyle = {
   fontSize: "var(--font-xs)", color: "var(--text-muted)",
   letterSpacing: "0.08em", marginBottom: 2,
 };
-const fieldValueStyle = {
-  fontSize: "var(--font-base)", color: "var(--text-primary)",
-  wordBreak: "break-all",
-};
 
-/* ── Render a list of fields ── */
 function Fields({ fields }) {
   if (!fields || fields.length === 0) return null;
   return (
     <div style={fieldRowStyle}>
       {fields.map((f, i) => (
-        <div key={i} style={{ ...fieldStyle, borderRight: i < fields.length - 1 ? "1px solid var(--border-subtle)" : "none" }}>
+        <div key={i} style={{
+          flex: "1 1 160px",
+          padding: "6px 14px",
+          borderRight: i < fields.length - 1 ? "1px solid var(--border-subtle)" : "none",
+          animation: `fade-in 0.2s var(--ease-smooth) ${0.03 + i * 0.025}s both`,
+        }}>
           <div style={fieldLabelStyle}>{f.label}</div>
-          <div style={fieldValueStyle}>{f.value}</div>
+          <div style={{
+            fontSize: "var(--font-base)", color: "var(--text-primary)",
+            wordBreak: "break-all",
+            fontFamily: "var(--font-mono)",
+          }}>
+            {f.value}
+          </div>
         </div>
       ))}
     </div>
   );
 }
 
-/* ── Section wrapper ── */
-function Section({ title, children }) {
+function Section({ title, titleKey, children }) {
   if (!children) return null;
   return (
     <div style={sectionStyle}>
-      <div style={headerStyle}>{title}</div>
+      <div style={{
+        padding: "9px 14px",
+        borderBottom: "1px solid var(--border-subtle)",
+        fontSize: "var(--font-base)", fontWeight: 700,
+        color: "var(--accent)", textTransform: "uppercase",
+        letterSpacing: "0.08em",
+        display: "flex", alignItems: "center", gap: 8,
+        fontFamily: "var(--font-display)",
+      }}>
+        <Icon icon={SECTION_ICONS[titleKey] || "mdi:information-outline"} style={{ fontSize: "var(--font-sm)" }} />
+        {title}
+      </div>
       {children}
     </div>
   );
 }
 
-/* ── Tag display ── */
 function safeStr(v) {
   if (v === null || v === undefined) return "";
   if (typeof v === "object") return v.name || v.key || v.class || v.fileref || JSON.stringify(v);
@@ -71,17 +87,22 @@ function Tags({ items }) {
     <div style={{ padding: "6px 14px", display: "flex", flexWrap: "wrap", gap: 4 }}>
       {items.map((t, i) => (
         <span key={i} style={{
-          fontSize: "var(--font-sm)", padding: "1px 6px",
-          background: "var(--bg-deep, rgba(0,0,0,0.3))",
+          fontSize: "var(--font-sm)", padding: "2px 7px",
+          background: "var(--bg-deep)",
           border: "1px solid var(--border-subtle)",
           borderRadius: 3, color: "var(--text-secondary)",
-        }}>{safeStr(t)}</span>
+          fontFamily: "var(--font-mono)",
+          transition: "border-color var(--dur-fast) var(--ease-smooth)",
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}>
+          {safeStr(t)}
+        </span>
       ))}
     </div>
   );
 }
 
-/* ── Format a number ── */
 function fmt(n) {
   if (n === undefined || n === null) return null;
   if (typeof n === "object") return safeStr(n);
@@ -90,18 +111,15 @@ function fmt(n) {
   return n.toFixed(3).replace(/\.?0+$/, "");
 }
 
-/* ── Sound list helper ── */
 function fmtSounds(sounds) {
   if (!Array.isArray(sounds)) return null;
   const classes = [...new Set(sounds.map(s => s.class).filter(Boolean))];
   return classes.join(", ") || null;
 }
 
-/* ── Projectile Visualization ── */
 export default function ProjectileVisualization({ item }) {
   const t = useT();
 
-  /* ── 1. Ballistics ── */
   const ballistics = useMemo(() => {
     const f = [];
     if (item.projectile_speed !== undefined)
@@ -110,7 +128,6 @@ export default function ProjectileVisualization({ item }) {
       f.push({ label: t("field_projectiles_per_shot"), value: fmt(item.projectiles_per_shot) });
     if (item.pulldown_in_air !== undefined)
       f.push({ label: t("field_pulldown_in_air"), value: fmt(item.pulldown_in_air) });
-    // Throwable
     if (item.throwable_max_speed !== undefined)
       f.push({ label: t("field_throwable_max_speed"), value: fmt(item.throwable_max_speed) + " m/s" });
     if (item.throwable_near_far_distance !== undefined)
@@ -126,7 +143,6 @@ export default function ProjectileVisualization({ item }) {
     return f;
   }, [item, t]);
 
-  /* ── 2. Effect / Damage ── */
   const effects = useMemo(() => {
     const f = [];
     if (item.result_class)
@@ -146,7 +162,6 @@ export default function ProjectileVisualization({ item }) {
     return f;
   }, [item, t]);
 
-  /* ── 3. Trigger / Behavior ── */
   const behavior = useMemo(() => {
     const f = [];
     if (item.class)
@@ -168,7 +183,6 @@ export default function ProjectileVisualization({ item }) {
     return f;
   }, [item, t]);
 
-  /* ── 4. Economy ── */
   const economy = useMemo(() => {
     const inv = item?.inventory || {};
     const common = item?.commonness || {};
@@ -188,7 +202,6 @@ export default function ProjectileVisualization({ item }) {
     return f;
   }, [item, t]);
 
-  /* ── 5. Lifetime / Config ── */
   const config = useMemo(() => {
     const f = [];
     if (item.time_to_live !== undefined)
@@ -204,7 +217,6 @@ export default function ProjectileVisualization({ item }) {
     return f;
   }, [item, t]);
 
-  /* ── 6. Visual / Audio ── */
   const visual = useMemo(() => {
     const f = [];
     if (item.model_mesh)
@@ -225,10 +237,8 @@ export default function ProjectileVisualization({ item }) {
     return f;
   }, [item, t]);
 
-  /* ── 7. Tags ── */
   const tags = item.tags;
 
-  /* ── 8. Capacities ── */
   const caps = useMemo(() => {
     if (!Array.isArray(item.capacities) || item.capacities.length === 0) return null;
     return item.capacities.map((c) => ({
@@ -242,15 +252,15 @@ export default function ProjectileVisualization({ item }) {
   if (!item || item.type !== "projectile") return null;
 
   const sections = [
-    ballistics.length > 0 && { title: t("ballistics"), children: <Fields fields={ballistics} /> },
-    effects.length > 0 && { title: t("results"), children: <Fields fields={effects} /> },
-    behavior.length > 0 && { title: t("behavior"), children: <Fields fields={behavior} /> },
-    economy.length > 0 && { title: t("economy"), children: <Fields fields={economy} /> },
-    config.length > 0 && { title: t("config"), children: <Fields fields={config} /> },
-    visual.length > 0 && { title: t("visual"), children: <Fields fields={visual} /> },
-    caps && { title: t("capacities"), children: <Fields fields={caps} /> },
+    ballistics.length > 0 && { title: t("ballistics"), titleKey: "ballistics", children: <Fields fields={ballistics} /> },
+    effects.length > 0 && { title: t("results"), titleKey: "results", children: <Fields fields={effects} /> },
+    behavior.length > 0 && { title: t("behavior"), titleKey: "behavior", children: <Fields fields={behavior} /> },
+    economy.length > 0 && { title: t("economy"), titleKey: "economy", children: <Fields fields={economy} /> },
+    config.length > 0 && { title: t("config"), titleKey: "config", children: <Fields fields={config} /> },
+    visual.length > 0 && { title: t("visual"), titleKey: "visual", children: <Fields fields={visual} /> },
+    caps && { title: t("capacities"), titleKey: "capacities", children: <Fields fields={caps} /> },
     tags && Array.isArray(tags) && tags.length > 0 && {
-      title: t("field_tags"),
+      title: t("field_tags"), titleKey: "tags",
       children: <Tags items={tags} />,
     },
   ].filter(Boolean);
@@ -260,7 +270,7 @@ export default function ProjectileVisualization({ item }) {
   return (
     <div>
       {sections.map((s, i) => (
-        <Section key={i} title={s.title}>{s.children}</Section>
+        <Section key={i} title={s.title} titleKey={s.titleKey}>{s.children}</Section>
       ))}
     </div>
   );

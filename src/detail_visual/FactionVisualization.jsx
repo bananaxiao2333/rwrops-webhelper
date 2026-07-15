@@ -1,7 +1,7 @@
+import { Icon } from "@iconify/react";
 import { useI18n } from "../i18n.jsx";
 import { useAsset } from "../assetLoader.jsx";
 
-/* ── Faction rank tree visualization ── */
 export default function FactionVisualization({ item }) {
   const { translate, t } = useI18n();
   if (!item || item.type !== "faction") return null;
@@ -21,23 +21,23 @@ export default function FactionVisualization({ item }) {
 
   return (
     <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", fontFamily: "var(--font-mono)" }}>
-      {/* Header with faction color */}
       <div style={{
         padding: "12px 16px", borderBottom: `2px solid ${factionColor}`,
         fontSize: "var(--font-md)", fontWeight: 700, color: "var(--accent)",
         textTransform: "uppercase", letterSpacing: "0.08em",
         display: "flex", alignItems: "center", justifyContent: "space-between",
+        fontFamily: "var(--font-display)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 12, height: 12, background: factionColor, flexShrink: 0 }} />
-          <span style={{ fontSize: "var(--font-md)" }}>{t("faction")}</span>
+          <Icon icon="mdi:flag" style={{ fontSize: "var(--font-sm)" }} />
+          <span style={{ fontSize: "var(--font-md)" }}>{t("faction_label")}</span>
         </div>
-        <span style={{ fontSize: "var(--font-sm)", color: "var(--text-muted)", fontWeight: 400 }}>
+        <span style={{ fontSize: "var(--font-sm)", color: "var(--text-muted)", fontWeight: 400, fontFamily: "var(--font-mono)" }}>
           {ranks.length} {t("ranks")} · {soldierCount} {t("templates")}
         </span>
       </div>
 
-      {/* Faction icon badges */}
       {iconList.length > 0 && (
         <div style={{
           display: "flex", gap: 6, padding: "8px 14px",
@@ -50,13 +50,13 @@ export default function FactionVisualization({ item }) {
               <FactionIcon file={ic.file} label={ic.label} factionColor={factionColor} />
             </div>
           ))}
-          <span style={{ marginLeft: "auto", fontSize: "var(--font-sm)", color: "var(--text-muted)" }}>
+          <span style={{ marginLeft: "auto", fontSize: "var(--font-sm)", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
+            <Icon icon="mdi:radio" style={{ fontSize: 11 }} />
             {t("queue")}: {item.radio_queue_size || 0}
           </span>
         </div>
       )}
 
-      {/* Soldiers summary */}
       {item.soldiers && item.soldiers.length > 0 && (
         <div style={{ display: "flex", gap: 8, padding: "8px 14px", borderBottom: "1px solid var(--border-subtle)", flexWrap: "wrap" }}>
           {item.soldiers.map((s, i) => (
@@ -64,8 +64,11 @@ export default function FactionVisualization({ item }) {
               border: "1px solid var(--border-subtle)", padding: "6px 10px",
               background: "var(--bg-base)", flex: "1 1 160px",
               animation: `fade-in 0.25s var(--ease-smooth) ${0.08 + i * 0.04}s both`,
-            }}>
-              <div style={{ fontSize: "var(--font-sm)", color: "var(--text-primary)", letterSpacing: "0.06em" }}>
+              transition: "border-color var(--dur-fast) var(--ease-smooth)",
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}>
+              <div style={{ fontSize: "var(--font-sm)", color: "var(--text-primary)", letterSpacing: "0.06em", fontWeight: 600 }}>
                 {translate(s.name)}
               </div>
               {s.item_existence && s.item_existence.length > 0 && (
@@ -74,6 +77,7 @@ export default function FactionVisualization({ item }) {
                     <span key={ji} style={{
                       fontSize: "var(--font-xxs)", padding: "1px 5px",
                       border: "1px solid var(--border-subtle)", color: "var(--text-muted)",
+                      fontFamily: "var(--font-mono)",
                     }}>
                       {ie.class}×SLOT{ie.slot} {(ie.probability * 100).toFixed(0)}%
                     </span>
@@ -85,7 +89,6 @@ export default function FactionVisualization({ item }) {
         </div>
       )}
 
-      {/* Rank ladder */}
       {ranks.length > 0 && (
         <div>
           {ranks.map((rank, i) => {
@@ -94,17 +97,19 @@ export default function FactionVisualization({ item }) {
               <div key={i} style={{
                 display: "flex", gap: 8, alignItems: "center",
                 padding: "8px 14px",
-                borderBottom: "1px solid var(--border-subtle)",
+                borderBottom: i < ranks.length - 1 ? "1px solid var(--border-subtle)" : "none",
                 background: isMajor ? "var(--bg-elevated)" : (i % 2 ? "var(--bg-base)" : "transparent"),
                 animation: `fade-in 0.2s var(--ease-smooth) ${0.04 + i * 0.025}s both`,
+                transition: "background var(--dur-fast) var(--ease-smooth)",
               }}>
                 <RankIcon filename={rank.hud_icon?.filename} rankNum={i + 1} isMajor={isMajor} />
                 <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
                   <div style={{ fontSize: "var(--font-sm)", color: "var(--text-primary)", textTransform: "uppercase", fontWeight: 600 }}>
-                {translate(rank.name)}
-              </div>
+                    {translate(rank.name)}
+                  </div>
                   {rank.hud_icon?.filename && (
-                    <div style={{ fontSize: "var(--font-sm)", color: "var(--text-muted)" }}>
+                    <div style={{ fontSize: "var(--font-xxs)", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+                      <Icon icon="mdi:file-image-outline" style={{ fontSize: 9, marginRight: 3 }} />
                       {rank.hud_icon.filename}
                     </div>
                   )}
@@ -123,7 +128,6 @@ export default function FactionVisualization({ item }) {
   );
 }
 
-/* ── Sub-component: rank icon from PNG ── */
 function RankIcon({ filename, rankNum, isMajor }) {
   const url = useAsset(filename);
   return (
@@ -141,6 +145,7 @@ function RankIcon({ filename, rankNum, isMajor }) {
           border: `1px solid ${isMajor ? "var(--accent)" : "var(--border-mid)"}`,
           fontSize: "var(--font-base)", fontWeight: 800, color: isMajor ? "var(--accent)" : "var(--text-muted)",
           fontFamily: "var(--font-display)",
+          background: isMajor ? "rgba(245,158,11,0.06)" : "transparent",
         }}>
           {rankNum}
         </span>
@@ -149,7 +154,6 @@ function RankIcon({ filename, rankNum, isMajor }) {
   );
 }
 
-/* ── Sub-component: faction icon badge ── */
 function FactionIcon({ file, label, factionColor }) {
   const url = useAsset(file);
   return (
