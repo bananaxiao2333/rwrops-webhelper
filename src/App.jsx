@@ -281,7 +281,7 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, tool
     textDecoration: "none", cursor: "pointer",
     fontSize: "var(--font-sm)", letterSpacing: "0.08em",
   };
-  const linkActive = { color: "var(--accent)", borderLeftColor: "var(--accent)", background: "var(--bg-surface)" };
+  const linkActive = { color: "var(--accent)", borderLeft: "2px solid var(--accent)", background: "var(--bg-surface)" };
 
   return (
     <div style={{

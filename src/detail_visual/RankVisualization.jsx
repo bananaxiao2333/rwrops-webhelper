@@ -51,10 +51,12 @@ export default function RankVisualization({ item }) {
         const fc = f.color
           ? `rgb(${(f.color[0] * 255).toFixed(0)}, ${(f.color[1] * 255).toFixed(0)}, ${(f.color[2] * 255).toFixed(0)})`
           : "var(--accent)";
-        const lastRank = f.ranks[f.ranks.length - 1];
+        const ranks = f.ranks;
+        const maxXp = ranks[ranks.length - 1].xp;
+        const lastRank = maxXp ? ranks[ranks.length - 1] : null;
         const pct = Math.min((xpNeeded / (lastRank?.xp || 1)) * 100, 100);
-        const rankName = translate(f.ranks.find(r => r.xp >= xpNeeded)?.name || lastRank?.name || "");
-        return { key, color: fc, rankName, pct };
+        const rankName = translate(ranks.find(r => r.xp >= xpNeeded)?.name || lastRank?.name || "");
+        return { key, name: f.name || key, color: fc, rankName, pct, ranks, maxXp };
       })
       .filter(r => r.pct > 0);
   }, [data, xpNeeded, translate]);
