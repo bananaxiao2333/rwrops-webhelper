@@ -9,38 +9,154 @@ function getUnlockXp(item) {
   if (!Array.isArray(caps) || caps.length === 0) return null;
   const rankCaps = caps.filter(c => c.source === "rank");
   if (rankCaps.length === 0) return null;
-  // Highest value wins
   const best = rankCaps.reduce((a, b) => (b.value || 0) > (a.value || 0) ? b : a);
   return best.source_value !== undefined ? best.source_value : null;
 }
 
-function FactionRow({ faction, rankName, xpNeeded, factionColor, pct }) {
+/* ── Compact XP display (e.g. "500 XP", "1.5K XP") ── */
+function fmtXp(val) {
+  if (val >= 100000) return (val / 1000).toFixed(0) + "K";
+  if (val >= 1000) return (val / 1000).toFixed(1) + "K";
+  return String(val);
+}
+
+/* ── Per-faction rank progression card ── */
+function FactionRankCard({ faction, xpNeeded, factionColor, idx }) {
+  const { translate } = useI18n();
+  const { ranks, name, maxXp } = faction;
+
+  let matchedRank = null;
+  let matchedIdx = -1;
+  for (let i = ranks.length - 1; i >= 0; i--) {
+    if (ranks[i].xp * 10 <= xpNeeded) { matchedRank = ranks[i]; matchedIdx = i; break; }
+  }
+  if (!matchedRank) return null;
+
+  const pct = maxXp > 0 ? Math.min(((xpNeeded / 10) / maxXp) * 100, 100) : 0;
+  const xpDisplay = Math.round(xpNeeded * 1000);
+  const rankName = translate(matchedRank.name) || matchedRank.name;
+  const factionName = translate(name);
+
   return (
     <div style={{
-      display: "flex", alignItems: "center", gap: 8,
-      padding: "5px 10px", borderBottom: "1px solid var(--border-subtle)",
-      fontSize: "var(--font-sm)", fontFamily: "var(--font-mono)",
+      border: "1px solid var(--border-subtle)",
+      borderTop: `3px solid ${factionColor}`,
+      background: "var(--bg-base)",
+      animation: `fade-in 0.25s var(--ease-smooth) ${0.06 + idx * 0.06}s both`,
     }}>
-      <div style={{ width: 8, height: 8, background: factionColor, flexShrink: 0, borderRadius: "50%" }} />
-      <span style={{ color: "var(--text-muted)", minWidth: 80, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>
-        {faction}
-      </span>
-      <div style={{ flex: 1, height: 4, background: "var(--border-subtle)", minWidth: 60, maxWidth: 160, overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", background: factionColor, opacity: 0.6 }} />
+      {/* Header: faction name + rank position */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "8px 12px",
+        borderBottom: "1px solid var(--border-subtle)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ width: 8, height: 8, background: factionColor, borderRadius: "50%", flexShrink: 0 }} />
+          <span style={{
+            fontSize: "var(--font-sm)", fontWeight: 700, color: "var(--text-primary)",
+            textTransform: "uppercase", letterSpacing: "0.06em",
+          }}>
+            {factionName}
+          </span>
+        </div>
+        <span style={{
+          fontSize: "var(--font-xxs)", color: "var(--text-muted)",
+          fontFamily: "var(--font-mono)", whiteSpace: "nowrap",
+        }}>
+          RANK {matchedIdx + 1}/{ranks.length}
+        </span>
       </div>
-      <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "var(--font-sm)", minWidth: 60 }}>
-        {rankName}
-      </span>
-      <span style={{ color: "var(--text-dim)", fontSize: 8, whiteSpace: "nowrap" }}>
-        {xpNeeded >= 1000 ? (xpNeeded / 1000).toFixed(xpNeeded >= 100000 ? 0 : 1) + "K" : String(xpNeeded)} XP
-      </span>
+
+      {/* Rank progression band */}
+      <div style={{
+        padding: "10px 12px",
+        borderBottom: "1px solid var(--border-subtle)",
+        display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center",
+      }}>
+        {ranks.map((r, i) => {
+          const isMatched = i === matchedIdx;
+          const isPast = i < matchedIdx;
+          const rankLabel = translate(r.name) || r.name;
+          return (
+            <div key={i} style={{
+              display: "flex", alignItems: "center", gap: 0,
+            }}>
+              {i > 0 && (
+                <div style={{
+                  width: 10, height: 1,
+                  background: isPast ? factionColor : "var(--border-subtle)",
+                  opacity: isPast ? 0.5 : 1,
+                  marginRight: 5,
+                  transition: "background var(--dur-fast) var(--ease-smooth)",
+                }} />
+              )}
+              <div style={{
+                fontSize: "var(--font-xxs)", whiteSpace: "nowrap",
+                padding: "3px 7px",
+                border: `1px solid ${isMatched ? factionColor : "var(--border-subtle)"}`,
+                background: isMatched
+                  ? `${factionColor}22`
+                  : isPast ? "var(--bg-surface)" : "transparent",
+                color: isMatched ? factionColor : isPast ? "var(--text-muted)" : "var(--text-dim)",
+                fontWeight: isMatched ? 700 : 400,
+                fontFamily: "var(--font-mono)",
+                textTransform: "uppercase",
+                boxShadow: isMatched ? `0 0 8px ${factionColor}44` : "none",
+                transition: "all var(--dur-fast) var(--ease-smooth)",
+              }}>
+                {rankLabel}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* XP progress bar */}
+      <div style={{
+        padding: "8px 12px",
+        display: "flex", alignItems: "center", gap: 10,
+        fontFamily: "var(--font-mono)",
+      }}>
+        <div style={{
+          flex: 1, height: 6, minWidth: 60,
+          background: "var(--border-subtle)",
+          overflow: "hidden",
+          position: "relative",
+        }}>
+          <div style={{
+            width: `${pct}%`, height: "100%",
+            background: `linear-gradient(90deg, ${factionColor}88, ${factionColor})`,
+            transition: "width var(--dur-norm) var(--ease-smooth)",
+          }} />
+        </div>
+        <span style={{
+          fontSize: "var(--font-sm)", fontWeight: 700,
+          color: factionColor,
+          minWidth: 38, textAlign: "right",
+        }}>
+          {pct.toFixed(0)}%
+        </span>
+        <span style={{
+          fontSize: "var(--font-xxs)", color: "var(--text-dim)",
+          whiteSpace: "nowrap",
+        }}>
+          {fmtXp(xpDisplay)} XP
+        </span>
+        <span style={{
+          fontSize: "var(--font-xxs)", color: "var(--text-muted)",
+          whiteSpace: "nowrap", fontFamily: "var(--font-text)",
+        }}>
+          {rankName}
+        </span>
+      </div>
     </div>
   );
 }
 
+/* ── Main export ── */
 export default function RankVisualization({ item }) {
   const { data } = useData();
-  const { translate, t } = useI18n();
+  const { t } = useI18n();
 
   const xpNeeded = useMemo(() => getUnlockXp(item), [item]);
   const factions = useMemo(() => {
@@ -53,41 +169,32 @@ export default function RankVisualization({ item }) {
           : "var(--accent)";
         const ranks = f.ranks;
         const maxXp = ranks[ranks.length - 1].xp;
-        const lastRank = maxXp ? ranks[ranks.length - 1] : null;
-        const pct = Math.min((xpNeeded / (lastRank?.xp || 1)) * 100, 100);
-        const rankName = translate(ranks.find(r => r.xp >= xpNeeded)?.name || lastRank?.name || "");
-        return { key, name: f.name || key, color: fc, rankName, pct, ranks, maxXp };
-      })
-      .filter(r => r.pct > 0);
-  }, [data, xpNeeded, translate]);
+        return { key, name: f.name || key, color: fc, ranks, maxXp };
+      });
+  }, [data]);
 
   if (xpNeeded === null) return null;
   if (xpNeeded <= 0) return null;
-  if (factions.length === 0) return null;
+  if (!factions || factions.length === 0) return null;
 
   return (
-    <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", fontFamily: "var(--font-mono)" }}>
-      <div style={{ padding: "8px 14px", borderBottom: "1px solid var(--border-subtle)", fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+    <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }}>
+      <div style={{
+        padding: "8px 14px", borderBottom: "1px solid var(--border-subtle)",
+        fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)",
+        textTransform: "uppercase", letterSpacing: "0.08em",
+        fontFamily: "var(--font-display)",
+        display: "flex", alignItems: "center", gap: 8,
+      }}>
+        <span style={{ fontSize: "var(--font-sm)" }}>◆</span>
         {t("unlock_rank")}
       </div>
-      <div style={{ maxHeight: 240, overflow: "auto" }}>
-        {factions.map(f => {
-          let matchedRank = null;
-          for (let i = f.ranks.length - 1; i >= 0; i--) {
-            if (f.ranks[i].xp * 10 <= xpNeeded) { matchedRank = f.ranks[i]; break; }
-          }
-          if (!matchedRank) return null;
-
-          const rankName = translate(matchedRank.name) || matchedRank.name;
-          const xpDisplay = Math.round(xpNeeded * 1000);
-          const pct = f.maxXp > 0 ? Math.min(((xpNeeded / 10) / f.maxXp) * 100, 100) : 0;
-
-          return (
-            <FactionRow key={f.key} faction={translate(f.name) || f.key}
-              rankName={rankName} xpNeeded={xpDisplay}
-              factionColor={f.color} pct={pct} />
-          );
-        })}
+      <div style={{ display: "flex", flexDirection: "column", gap: 1, padding: 1 }}>
+        {factions.map((f, i) => (
+          <FactionRankCard key={f.key}
+            faction={f} xpNeeded={xpNeeded}
+            factionColor={f.color} idx={i} />
+        ))}
       </div>
     </div>
   );
