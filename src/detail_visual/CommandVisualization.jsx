@@ -12,12 +12,13 @@ const PERM_COLORS = {
 /* ── Render an action row ── */
 function ActionRow({ action, index, data }) {
   const { translate } = useI18n();
+  const fullKey = action.key || "";
+  const type = action.class || "";
+  const item = data?.[type]?.[fullKey];
+  const iconUrl = useItemIcon(item || { hud_icon_filename: null });
+
   // Spawn action — show item icon + link
   if (action.type === "spawn") {
-    const fullKey = action.key;
-    const type = action.class;
-    const item = data?.[type]?.[fullKey];
-    const iconUrl = useItemIcon(item || { hud_icon_filename: null });
 
     const fallbackIcon =
       type === "weapon" ? "mdi:sword" :

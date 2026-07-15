@@ -258,8 +258,6 @@ function PropRow({ label, raw, tFn, lookupMap, onNavigate, uiT }) {
 
 /* ── Detail ── */
 export default function Detail({ item, type, onOpenRoll }) {
-  if (!item) return null;
-
   const { translate } = useI18n();
   const config = DETAIL_CONFIG[type] || DETAIL_CONFIG.carry_item;
   const [expandedSections, setExpandedSections] = useState({});
@@ -272,14 +270,17 @@ export default function Detail({ item, type, onOpenRoll }) {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Gate: VisualizationComponentPool has its own internal hasContent check.
-  // We pass true here and let the pool decide per-component.
-  const hasVisData = true;
-
   // Clickable item references lookup
   const t = useT();
   const { data: fullData } = useData();
   const lookupMap = useMemo(() => buildItemLookup(fullData), [fullData]);
+
+  if (!item) return null;
+
+  // Gate: VisualizationComponentPool has its own internal hasContent check.
+  // We pass true here and let the pool decide per-component.
+  const hasVisData = true;
+
   const handleItemNavigate = (targetType, targetKey) => {
     window.history.pushState(null, "", `/params/${targetType}/${targetKey}`);
     window.dispatchEvent(new PopStateEvent("popstate"));

@@ -3,8 +3,8 @@ import { useI18n } from "../i18n.jsx";
 
 /* ── CallVisualization ── */
 export default function CallVisualization({ item }) {
-  if (!item || item.type !== "call") return null;
   const { translate, t } = useI18n();
+  if (!item || item.type !== "call") return null;
   const rounds = item.rounds || [];
   const inventory = item.inventory || {};
 

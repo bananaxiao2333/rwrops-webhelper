@@ -4,8 +4,8 @@ import { useI18n } from "../i18n.jsx";
 
 /* ── Achievement milestone visualization ── */
 export default function AchievementVisualization({ item }) {
-  if (!item || item.type !== "achievement") return null;
   const { translate } = useI18n();
+  if (!item || item.type !== "achievement") return null;
   const levels = item.levels || [];
   const criteria = item.criteria_list || [];
 

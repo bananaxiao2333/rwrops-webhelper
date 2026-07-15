@@ -298,6 +298,14 @@ function StackedMapView({ mapEntry }) {
 
 /* ── Map visualization ── */
 export default function MapVisualization({ item }) {
+  const { data } = useData();
+  const baseMapUrl = useAsset(item?.hud_icon_filename);
+  const heightUrl = useAsset(item?.heightmap);
+  const maskUrl = useAsset(item?.mask_image);
+  const frameUrl = useAsset(item?.frame_image);
+  const [splitOpen, setSplitOpen] = useState(false);
+  const { t } = useI18n();
+
   // Only render if item has map-specific fields
   const isMap =
     item &&
@@ -305,19 +313,9 @@ export default function MapVisualization({ item }) {
 
   if (!isMap) return null;
 
-  const { data } = useData();
   const displayLabel = (item.key || "").replace(/_/g, ".").toUpperCase() || "MAP";
-  const baseMapUrl = useAsset(item?.hud_icon_filename);
-  const heightUrl = useAsset(item?.heightmap);
-  const maskUrl = useAsset(item?.mask_image);
-  const frameUrl = useAsset(item?.frame_image);
-
   const hasStacked = baseMapUrl || heightUrl || maskUrl;
   const hasFrame = !!frameUrl;
-
-  const [splitOpen, setSplitOpen] = useState(false);
-
-  const { t } = useI18n();
   const categories = [
     { key: "vehicles", label: t("vehicles"), icon: "⛟", items: item.vehicles },
     { key: "weapons", label: t("weapons"), icon: "⚔", items: item.weapons },

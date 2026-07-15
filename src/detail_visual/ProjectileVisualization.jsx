@@ -100,12 +100,8 @@ function fmtSounds(sounds) {
 /* ── Projectile Visualization ── */
 export default function ProjectileVisualization({ item }) {
   const t = useT();
-
-  if (!item) return null;
-  if (item.type !== "projectile") return null;
-
-  const inv = item.inventory || {};
-  const common = item.commonness || {};
+  const inv = item?.inventory || {};
+  const common = item?.commonness || {};
 
   /* ── 1. Ballistics ── */
   const ballistics = useMemo(() => {
@@ -243,6 +239,8 @@ export default function ProjectileVisualization({ item }) {
         : fmt(c.value),
     }));
   }, [item, t]);
+
+  if (!item || item.type !== "projectile") return null;
 
   const sections = [
     ballistics.length > 0 && { title: t("ballistics"), children: <Fields fields={ballistics} /> },
