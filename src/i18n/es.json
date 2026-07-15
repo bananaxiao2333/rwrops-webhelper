@@ -703,5 +703,6 @@
   "class_speed": "VELOCIDAD",
   "class_hit_prob": "PROB. ACIERTO",
   "class_detect": "DETECTAR",
-  "branch": "RAMA"
+  "branch": "RAMA",
+  "unlock": "DESBLOQUEAR"
 }

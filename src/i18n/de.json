@@ -703,5 +703,6 @@
   "class_speed": "GESCHWINDIGKEIT",
   "class_hit_prob": "TREFFWKT.",
   "class_detect": "ERKENNUNG",
-  "branch": "ZWEIG"
+  "branch": "ZWEIG",
+  "unlock": "FREISCHALTEN"
 }

@@ -703,5 +703,6 @@
   "class_speed": "SPEED",
   "class_hit_prob": "HIT PROB",
   "class_detect": "DETECT",
-  "branch": "BRANCH"
+  "branch": "BRANCH",
+  "unlock": "UNLOCK"
 }

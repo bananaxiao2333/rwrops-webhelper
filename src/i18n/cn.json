@@ -703,5 +703,6 @@
   "class_speed": "速度",
   "class_hit_prob": "命中率",
   "class_detect": "侦测",
-  "branch": "分支"
+  "branch": "分支",
+  "unlock": "解锁"
 }
