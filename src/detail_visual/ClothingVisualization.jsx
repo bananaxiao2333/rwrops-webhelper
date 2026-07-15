@@ -314,7 +314,7 @@ function ItemCard({ entry, isCurrent, accent, t }) {
   );
 }
 
-function ChainConnector({ triggerLabel }) {
+function ChainConnector({ triggerLabel, t }) {
   return (
     <div style={{
       display: "flex", flexDirection: "column", alignItems: "center",
@@ -334,7 +334,7 @@ function ChainConnector({ triggerLabel }) {
           whiteSpace: "nowrap",
         }}>
           <Icon icon="mdi:delete" style={{ fontSize: 10, color: "var(--danger)" }} />
-          <span style={{ color: "var(--danger)" }}>CONSUME</span>
+          <span style={{ color: "var(--danger)" }}>{t("consumes")}</span>
           <span style={{ color: "var(--text-dim)" }}>→</span>
           {triggerLabel}
         </span>
@@ -484,7 +484,7 @@ export default function ClothingVisualization({ item }) {
                       const ref = resolveKey(curItem.transform_on_consume);
                       if (ref) trigger = ref;
                     }
-                    return <ChainConnector triggerLabel={trigger} />;
+                    return <ChainConnector triggerLabel={trigger} t={t} />;
                   })()}
                 </div>
               ))}
