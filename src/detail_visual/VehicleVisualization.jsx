@@ -5,7 +5,6 @@ import { OrbitControls, Box, Cylinder, Sphere, Plane } from "@react-three/drei";
 import { useAsset } from "../assetLoader.jsx";
 import { useI18n } from "../i18n.jsx";
 
-/* ── Simple vehicle 3D model ── */
 function VehicleModel({ item }) {
   const extent = item.extent || [3, 1, 5];
   const w = Math.abs(extent[0]);
@@ -24,13 +23,11 @@ function VehicleModel({ item }) {
       </Plane>
       <gridHelper args={[24, 24, "#4a4a6a", "#2a2a3a"]} position={[0, 0.01, 0]} />
 
-      {/* Chassis */}
       <mesh position={[0, h / 2, 0]}>
         <boxGeometry args={[w, h, d]} />
         <meshStandardMaterial color={bodyColor} roughness={0.3} metalness={0.5} />
       </mesh>
 
-      {/* Wheels */}
       {item.tire_sets?.map((tire, i) => {
         const [tx,, tz] = tire.offset || [0, 0, 0];
         const r = tire.radius || 0.6;
@@ -43,7 +40,6 @@ function VehicleModel({ item }) {
         );
       })}
 
-      {/* Turrets */}
       {item.turrets?.map((turret, ti) => {
         const to = turret.offset || [0, 0, 0];
         const wp = turret.weapon_offset || [0, 0, 0];
@@ -63,7 +59,6 @@ function VehicleModel({ item }) {
         );
       })}
 
-      {/* Crew */}
       {item.character_slots?.map((slot, i) => {
         const [cx, cy, cz] = slot.offset || [0, 0, 0];
         const colors = { driver: "#2ecc71", gunner: "#e74c3c", passenger: "#3498db" };
@@ -83,7 +78,6 @@ function VehicleModel({ item }) {
   );
 }
 
-/* ── Texture Entry ── */
 function TextureEntry({ visual }) {
   const textureUrl = useAsset(visual.texture);
   return (
@@ -91,7 +85,9 @@ function TextureEntry({ visual }) {
       <div style={{
         fontSize: "var(--font-sm)", color: "var(--text-muted)", marginBottom: 4,
         fontFamily: "var(--font-mono)", letterSpacing: "0.06em",
+        display: "flex", alignItems: "center", gap: 4,
       }}>
+        <Icon icon="mdi:image" style={{ fontSize: 11 }} />
         [{visual.class?.toUpperCase()}] {visual.mesh || ""}
         {visual.key ? ` (${visual.key})` : ""}
       </div>
@@ -101,7 +97,7 @@ function TextureEntry({ visual }) {
             width: "100%", maxHeight: 200, objectFit: "contain",
             border: "1px solid var(--border-mid)",
             imageRendering: "pixelated",
-            transition: "border-color 0.15s ease",
+            transition: "border-color var(--dur-fast) var(--ease-smooth)",
           }}
           onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-mid)"; }}
@@ -112,7 +108,10 @@ function TextureEntry({ visual }) {
           display: "flex", alignItems: "center", justifyContent: "center",
           color: "var(--text-dim)", fontSize: "var(--font-xxs)",
           border: "1px dashed var(--border-subtle)",
+          fontFamily: "var(--font-mono)",
+          gap: 6,
         }}>
+          <Icon icon="mdi:image-off-outline" style={{ fontSize: 12 }} />
           NO TEXTURE
         </div>
       )}
@@ -120,7 +119,6 @@ function TextureEntry({ visual }) {
   );
 }
 
-/* ── Texture Panel ── */
 function TexturePanel({ visuals }) {
   const [open, setOpen] = useState(false);
   if (!visuals || visuals.length === 0) return null;
@@ -136,23 +134,27 @@ function TexturePanel({ visuals }) {
           textTransform: "uppercase", letterSpacing: "0.1em",
           cursor: "pointer", userSelect: "none",
           display: "flex", alignItems: "center", gap: 6,
-          transition: "color 0.15s ease",
+          transition: "color var(--dur-fast) var(--ease-smooth)",
         }}
       >
-        <span>{open ? "▼" : "▶"}</span>
+        <span style={{ fontSize: 10, color: open ? "var(--accent)" : "var(--text-dim)", transition: "transform 0.15s ease", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>
+          ▶
+        </span>
+        <Icon icon="mdi:image-multiple-outline" style={{ fontSize: "var(--font-sm)" }} />
         <span>TEXTURES</span>
-        <span style={{ color: "var(--text-dim)", fontSize: 9 }}>({visuals.length})</span>
+        <span style={{ color: "var(--text-dim)", fontSize: 9, fontFamily: "var(--font-mono)" }}>({visuals.length})</span>
       </div>
       {open && (
         <div style={{ padding: "0 10px 10px", display: "flex", flexDirection: "column", gap: 8 }}>
-          {visuals.map((v, i) => <TextureEntry key={i} visual={v} />)}
+          {visuals.map((v, i) => (
+            <TextureEntry key={i} visual={v} />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-/* ── Vehicle Visualization ── */
 export default function VehicleVisualization({ item }) {
   const { t, translate } = useI18n();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -226,22 +228,25 @@ export default function VehicleVisualization({ item }) {
         color: "var(--accent)", textTransform: "uppercase",
         letterSpacing: "0.08em",
         display: "flex", alignItems: "center", justifyContent: "space-between",
+        fontFamily: "var(--font-display)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Icon icon="mdi:car" style={{ fontSize: "var(--font-md)", color: "var(--accent)" }} />
-          VEHICLE · 3D
+          <span>{t("vehicle_3d")}</span>
         </div>
         <div style={{
           cursor: "pointer", padding: "2px 8px",
           border: "1px solid var(--border-subtle)",
           fontSize: "var(--font-sm)", color: "var(--text-muted)",
+          display: "flex", alignItems: "center", gap: 4,
+          fontFamily: "var(--font-mono)",
         }} onClick={toggleFullscreen}
           title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}>
-          {isFullscreen ? "EXIT FULL" : "FULLSCREEN"}
+          <Icon icon={isFullscreen ? "mdi:fullscreen-exit" : "mdi:fullscreen"} style={{ fontSize: 12 }} />
+          {isFullscreen ? t("exit_full") : t("fullscreen")}
         </div>
       </div>
 
-      {/* Stats row */}
       {!isFullscreen && (
         <div style={{
           display: "flex", gap: 4, flexWrap: "wrap",
@@ -253,8 +258,10 @@ export default function VehicleVisualization({ item }) {
               border: "1px solid var(--border-subtle)",
               padding: "4px 10px",
               textAlign: "center",
+              background: "var(--bg-base)",
+              animation: `fade-in 0.2s var(--ease-smooth) ${0.04 + i * 0.04}s both`,
             }}>
-              <div style={{ fontSize: "var(--font-md)", fontWeight: 700, color: "var(--accent)", fontFamily: "var(--font-mono)" }}>
+              <div style={{ fontSize: "var(--font-md)", fontWeight: 700, color: "var(--accent)", fontFamily: "var(--font-display)" }}>
                 {f.value}
               </div>
               <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", marginTop: 2 }}>
@@ -265,10 +272,8 @@ export default function VehicleVisualization({ item }) {
         </div>
       )}
 
-      {/* Textures panel */}
       {!isFullscreen && <TexturePanel visuals={item.visuals} />}
 
-      {/* 3D Canvas */}
       <div ref={canvasContainerRef} style={{
         ...(isFullscreen ? {
           position: "fixed", inset: 0, width: "100vw", height: "100vh", zIndex: 1300, background: "#1a1a2a",
@@ -287,28 +292,27 @@ export default function VehicleVisualization({ item }) {
 
         {isFullscreen && (
           <>
-            {/* Top HUD */}
             <div style={{
               position: "absolute", top: 16, left: 16, zIndex: 10,
               background: "var(--bg-surface)", border: "1px solid var(--border-subtle)",
               padding: "10px 14px",
             }}>
-              <div style={{ color: "var(--text-primary)", fontSize: "var(--font-lg)", fontWeight: 700, textTransform: "uppercase" }}>
+              <div style={{ color: "var(--text-primary)", fontSize: "var(--font-lg)", fontWeight: 700, textTransform: "uppercase", fontFamily: "var(--font-display)" }}>
                 {translate(item.name) || "UNKNOWN"}
               </div>
-              <div style={{ fontSize: "var(--font-sm)", color: "var(--text-muted)", marginTop: 2 }}>
+              <div style={{ fontSize: "var(--font-sm)", color: "var(--text-muted)", marginTop: 2, fontFamily: "var(--font-mono)" }}>
                 {item.key}
               </div>
             </div>
 
-            {/* Stats HUD */}
             {showHud && (
               <div style={{ position: "absolute", bottom: 16, left: 16, zIndex: 10 }}>
                 <div style={{
                   background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", padding: "8px 14px",
                 }}>
-                  <div style={{ fontSize: "var(--font-base)", color: "var(--accent)", fontWeight: 700, marginBottom: 6, letterSpacing: "0.06em" }}>
-                    STATS
+                  <div style={{ fontSize: "var(--font-base)", color: "var(--accent)", fontWeight: 700, marginBottom: 6, letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
+                    <Icon icon="mdi:chart-box-outline" style={{ fontSize: 14 }} />
+                    {t("stats")}
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {statFields.map((f, i) => (
@@ -322,8 +326,11 @@ export default function VehicleVisualization({ item }) {
                 <div style={{
                   cursor: "pointer", marginTop: 4, fontSize: "var(--font-sm)", color: "var(--text-dim)",
                   padding: "3px 8px", border: "1px solid var(--border-subtle)",
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  fontFamily: "var(--font-mono)",
                 }} onClick={() => setShowHud(false)}>
-                  HIDE HUD
+                  <Icon icon="mdi:eye-off-outline" style={{ fontSize: 11 }} />
+                  {t("hide_stats")}
                 </div>
               </div>
             )}
@@ -333,18 +340,20 @@ export default function VehicleVisualization({ item }) {
                 cursor: "pointer", position: "absolute", bottom: 16, left: 16, zIndex: 10,
                 padding: "4px 10px", fontSize: "var(--font-sm)", color: "var(--text-primary)",
                 border: "1px solid var(--border-subtle)", background: "var(--bg-surface)",
+                display: "inline-flex", alignItems: "center", gap: 4,
+                fontFamily: "var(--font-mono)",
               }} onClick={() => setShowHud(true)}>
-                SHOW HUD
+                <Icon icon="mdi:eye-outline" style={{ fontSize: 11 }} />
+                {t("show_stats")}
               </div>
             )}
 
-            {/* Close */}
             <div style={{
               cursor: "pointer", position: "absolute", top: 16, right: 16, zIndex: 10,
               padding: "6px 12px", fontSize: "var(--font-base)", color: "var(--accent)",
               border: "1px solid var(--border-subtle)", background: "var(--bg-surface)",
             }} onClick={toggleFullscreen}>
-              ✕
+              <Icon icon="mdi:close" style={{ fontSize: 16 }} />
             </div>
           </>
         )}

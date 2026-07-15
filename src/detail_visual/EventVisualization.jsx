@@ -1,19 +1,18 @@
 import { Icon } from "@iconify/react";
 import React, { useState } from "react";
+import { useT } from "../i18n.jsx";
 
 const ICON_MAP = {
   projectile_blast_result: "mdi:explosion",
   projectile_hit_result: "mdi:target",
   melee_hit_result: "mdi:sword",
   speed: "mdi:speedometer",
-  hit_success_probability: "mdi:accuracy",
+  hit_success_probability: "mdi:crosshairs",
   detectability: "mdi:eye-outline",
   spawn: "mdi:plus-circle",
   reward: "mdi:gift",
   faction_resources: "mdi:currency-usd",
 };
-
-import { useT } from "../i18n.jsx";
 
 export default function EventVisualization({ item }) {
   const t = useT();
@@ -61,115 +60,117 @@ export default function EventVisualization({ item }) {
         fontSize: "var(--font-base)", fontWeight: 700,
         color: "var(--accent)", textTransform: "uppercase",
         letterSpacing: "0.08em",
+        display: "flex", alignItems: "center", gap: 8,
+        fontFamily: "var(--font-display)",
       }}>
+        <Icon icon="mdi:lightning-bolt" style={{ fontSize: "var(--font-md)" }} />
         {t("events_modifiers")}
       </div>
 
-      <div style={{ overflow: "auto", maxWidth: "100%" }}>
-      <table style={{
-        minWidth: 480,
-        width: "100%", tableLayout: "fixed",
-        borderCollapse: "collapse",
-        fontSize: "var(--font-sm)", color: "var(--text-primary)",
-      }}>
-        <colgroup>
-          <col style={{ width: "20%" }} />
-          <col style={{ width: "35%" }} />
-          <col style={{ width: "30%" }} />
-          <col style={{ width: "15%" }} />
-        </colgroup>
-        <thead>
-          <tr style={{ borderBottom: "2px solid var(--border-mid)" }}>
-            {[t("start"), t("class_label"), t("details_label"), t("consumes")].map(h => (
-              <th key={h} style={{
-                textAlign: "left", padding: "7px 12px",
-                color: "var(--text-muted)", fontSize: 8,
-                fontWeight: 600, letterSpacing: "0.1em",
-              }}>
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {events.map((event, idx) => {
-            const isExpanded = expandedId === event.id;
-            return (
-              <React.Fragment key={event.id}>
-                <tr onClick={() => setExpandedId(isExpanded ? null : event.id)}
-                  style={{
-                    cursor: "pointer",
-                    borderBottom: isExpanded ? "none" : "1px solid var(--border-subtle)",
-                    background: isExpanded ? "var(--bg-elevated)" : idx % 2 ? "var(--bg-base)" : "transparent",
-                  }}
-                >
-                  <td style={{ padding: "7px 12px", whiteSpace: "nowrap" }}>
-                    <span style={{
-                      display: "inline-block",
-                      padding: "2px 6px", fontSize: "var(--font-xxs)", fontWeight: 700,
-                      border: "1px solid var(--border-mid)",
-                      color: event.type === "combat_result" ? "var(--danger)" : "var(--info)",
-                      textTransform: "uppercase",
-                    }}>
-                      {event.type === "combat_result" ? t("state") : t("stats")}
-                    </span>
-                  </td>
-                  <td style={{ padding: "7px 12px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <Icon icon={ICON_MAP[event.class] || "mdi:information-outline"}
-                        style={{ fontSize: "var(--font-base)", color: "var(--accent)", flexShrink: 0 }} />
-                      <span style={{ textTransform: "uppercase", fontSize: "var(--font-sm)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{event.class}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding: "7px 12px", fontSize: "var(--font-sm)", color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 0 }}>
-                    {event.type === "combat_result"
-                      ? `${event.inputState} → ${event.outputState}`
-                      : `${(event.value * 100).toFixed(1)}%`}
-                  </td>
-                  <td style={{ padding: "7px 12px" }}>
-                    {event.consumesItem !== undefined ? (
-                      event.consumesItem ? (
-                        <span style={{ color: "var(--danger)", fontWeight: 600 }}>YES</span>
-                      ) : (
-                        <span style={{ color: "var(--success)" }}>NO</span>
-                      )
-                    ) : (
-                      <span style={{ color: "var(--text-dim)" }}>—</span>
-                    )}
-                  </td>
-                </tr>
-                {isExpanded && (
-                  <tr style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-elevated)" }}>
-                    <td colSpan={4} style={{ padding: "10px 16px" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "var(--font-sm)", fontFamily: "var(--font-mono)" }}>
-                        {Object.entries(event).filter(([k]) => k !== "id").map(([k, v]) => (
-                          <div key={k} style={{ display: "flex", gap: 12 }}>
-                            <span style={{ color: "var(--text-muted)", minWidth: 80, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                              {k}
-                            </span>
-                            <span style={{ color: "var(--text-primary)" }}>
-                              {String(v)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </tbody>
-      </table>
+      <div>
+        {events.map((event, idx) => {
+          const isExpanded = expandedId === event.id;
+          return (
+            <React.Fragment key={event.id}>
+              <div
+                onClick={() => setExpandedId(isExpanded ? null : event.id)}
+                style={{
+                  cursor: "pointer", userSelect: "none",
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "8px 14px",
+                  borderBottom: isExpanded ? "none" : "1px solid var(--border-subtle)",
+                  background: isExpanded ? "var(--bg-elevated)" : idx % 2 ? "var(--bg-base)" : "transparent",
+                  animation: `fade-in 0.2s var(--ease-smooth) ${0.04 + idx * 0.035}s both`,
+                  transition: "background var(--dur-fast) var(--ease-smooth)",
+                }}
+              >
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  padding: "3px 8px", fontSize: "var(--font-xxs)", fontWeight: 700,
+                  border: `1px solid ${event.type === "combat_result" ? "var(--danger)" : "var(--info)"}`,
+                  color: event.type === "combat_result" ? "var(--danger)" : "var(--info)",
+                  textTransform: "uppercase", flexShrink: 0,
+                }}>
+                  <Icon icon={event.type === "combat_result" ? "mdi:sword-cross" : "mdi:chart-line"}
+                    style={{ fontSize: 10 }} />
+                  {event.type === "combat_result" ? t("state") : t("stats")}
+                </span>
 
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
+                  <Icon icon={ICON_MAP[event.class] || "mdi:information-outline"}
+                    style={{ fontSize: "var(--font-base)", color: "var(--accent)", flexShrink: 0 }} />
+                  <span style={{
+                    textTransform: "uppercase", fontSize: "var(--font-sm)",
+                    color: "var(--text-primary)", fontWeight: 600,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {event.class}
+                  </span>
+                </div>
+
+                <span style={{
+                  fontSize: "var(--font-xs)", color: "var(--text-secondary)", flexShrink: 0,
+                }}>
+                  {event.type === "combat_result"
+                    ? `${event.inputState} → ${event.outputState}`
+                    : `${(event.value * 100).toFixed(1)}%`}
+                </span>
+
+                <span style={{ flexShrink: 0, minWidth: 28, textAlign: "right" }}>
+                  {event.consumesItem !== undefined ? (
+                    event.consumesItem ? (
+                      <span style={{ color: "var(--danger)", fontWeight: 600, fontSize: "var(--font-xxs)" }}>
+                        <Icon icon="mdi:delete" style={{ fontSize: 11, marginRight: 2 }} />
+                        {t("consumes")}
+                      </span>
+                    ) : (
+                      <span style={{ color: "var(--success)", fontSize: "var(--font-xxs)" }}>
+                        <Icon icon="mdi:check" style={{ fontSize: 11 }} />
+                      </span>
+                    )
+                  ) : (
+                    <span style={{ color: "var(--text-dim)", fontSize: "var(--font-xxs)" }}>—</span>
+                  )}
+                </span>
+
+                <Icon icon={isExpanded ? "mdi:chevron-up" : "mdi:chevron-down"}
+                  style={{ fontSize: 14, color: "var(--text-dim)", flexShrink: 0 }} />
+              </div>
+
+              {isExpanded && (
+                <div style={{
+                  borderBottom: "1px solid var(--border-subtle)",
+                  background: "var(--bg-elevated)",
+                  padding: "10px 16px 12px",
+                  animation: "fade-in 0.15s var(--ease-smooth) both",
+                }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: "var(--font-sm)" }}>
+                    {Object.entries(event).filter(([k]) => k !== "id").map(([k, v]) => (
+                      <div key={k} style={{ display: "flex", gap: 12 }}>
+                        <span style={{ color: "var(--text-muted)", minWidth: 80, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          {k}
+                        </span>
+                        <span style={{ color: "var(--text-primary)" }}>
+                          {String(v)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
 
       {expandedId && (
         <div style={{
-          padding: "6px 14px",
+          padding: "5px 14px",
           borderTop: "1px solid var(--border-subtle)",
           fontSize: "var(--font-xxs)", color: "var(--text-dim)",
+          display: "flex", alignItems: "center", gap: 4,
         }}>
+          <Icon icon="mdi:mouse" style={{ fontSize: 10 }} />
           {t("click_collapse")}
         </div>
       )}

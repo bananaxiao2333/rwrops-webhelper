@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
+import { Icon } from "@iconify/react";
 import { useT } from "../i18n.jsx";
 
-/* ── SVG Kill Probability Chart ── */
 const KillChart = ({ killProbability = 0, decayStart = 0, decayEnd = 0 }) => {
   const startD = decayStart * 100, endD = decayEnd * 100;
   const maxD = Math.max(endD + 10, 100);
@@ -34,7 +34,6 @@ const KillChart = ({ killProbability = 0, decayStart = 0, decayEnd = 0 }) => {
       style={{ display: "block", fontFamily: "var(--font-mono)", minWidth: 260 }}
       preserveAspectRatio="xMidYMid meet"
       onMouseMove={handleMove} onMouseLeave={() => setHover(null)}>
-      {/* bg grid */}
       {yTicks.map(v => (
         <g key={`h${v}`}>
           <line x1={pad.l} y1={py(v)} x2={pad.l + iW} y2={py(v)}
@@ -44,16 +43,12 @@ const KillChart = ({ killProbability = 0, decayStart = 0, decayEnd = 0 }) => {
           </text>
         </g>
       ))}
-      {/* flat line */}
       <line x1={px(0)} y1={py(killProbability)} x2={px(startD)} y2={py(killProbability)}
         stroke="var(--success)" strokeWidth="2.5" />
-      {/* decay line */}
       <line x1={px(startD)} y1={py(killProbability)} x2={px(endD)} y2={py(0)}
         stroke="var(--accent-dim)" strokeWidth="2.5" />
-      {/* markers */}
       <circle cx={px(startD)} cy={py(killProbability)} r="3" fill="var(--accent)" />
       <circle cx={px(endD)} cy={py(0)} r="3" fill="var(--danger)" />
-      {/* hover */}
       {hover && (
         <g>
           <line x1={hover.x} y1={pad.t} x2={hover.x} y2={pad.t + iH}
@@ -70,7 +65,6 @@ const KillChart = ({ killProbability = 0, decayStart = 0, decayEnd = 0 }) => {
           </text>
         </g>
       )}
-      {/* axis labels */}
       <text x={px(startD)} y={py(killProbability) - 10} fill="var(--accent)" fontSize="10" textAnchor="middle">
         {startD.toFixed(0)}m
       </text>
@@ -83,7 +77,6 @@ const KillChart = ({ killProbability = 0, decayStart = 0, decayEnd = 0 }) => {
   );
 };
 
-/* ── Gun Performance ── */
 export default function GunPerformanceVisualization({ item }) {
   const t = useT();
   if (!item || (item.projectile_result_kill_probability === undefined
@@ -136,11 +129,13 @@ export default function GunPerformanceVisualization({ item }) {
         fontSize: "var(--font-base)", fontWeight: 700,
         color: "var(--accent)", textTransform: "uppercase",
         letterSpacing: "0.08em",
+        display: "flex", alignItems: "center", gap: 8,
+        fontFamily: "var(--font-display)",
       }}>
+        <Icon icon="mdi:target" style={{ fontSize: "var(--font-md)" }} />
         {t("gun_performance")}
       </div>
 
-      {/* Stats grid */}
       <div style={{
         display: "flex", flexWrap: "wrap",
         borderBottom: "1px solid var(--border-subtle)",
@@ -151,6 +146,8 @@ export default function GunPerformanceVisualization({ item }) {
             padding: "8px 14px",
             textAlign: "center",
             borderRight: i < stats.length - 1 ? "1px solid var(--border-subtle)" : "none",
+            background: i % 2 ? "var(--bg-base)" : "transparent",
+            animation: `fade-in 0.2s var(--ease-smooth) ${0.03 + i * 0.03}s both`,
           }}>
             <div style={{
               fontSize: "var(--font-lg)", fontWeight: 800,
@@ -169,7 +166,6 @@ export default function GunPerformanceVisualization({ item }) {
         ))}
       </div>
 
-      {/* Kill probability chart */}
       {item.projectile_result_kill_probability !== undefined &&
         item.projectile_result_kill_decay_start_time !== undefined &&
         item.projectile_result_kill_decay_end_time !== undefined && (

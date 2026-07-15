@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Icon } from "@iconify/react";
 import { useT } from "../i18n.jsx";
 
 const stanceImageModules = import.meta.glob("./stance_img/*.png", { eager: false });
@@ -32,6 +33,8 @@ export default function StanceVisualization({ item }) {
 
   if (!item?.stances || !Array.isArray(item.stances) || item.stances.length === 0) return null;
 
+  const maxAccuracy = Math.max(...item.stances.map(s => s.accuracy * itemAccuracyFactor), 0.001);
+
   return (
     <div style={{
       border: "1px solid var(--border-subtle)",
@@ -39,70 +42,89 @@ export default function StanceVisualization({ item }) {
       fontFamily: "var(--font-mono)",
     }}>
       <div style={{
-        padding: "10px 14px",
-        borderBottom: "1px solid var(--border-subtle)",
-        fontSize: "var(--font-base)", fontWeight: 700,
-        color: "var(--accent)", textTransform: "uppercase",
-        letterSpacing: "0.08em",
+        padding: "10px 14px", borderBottom: "1px solid var(--border-subtle)",
+        fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)",
+        textTransform: "uppercase", letterSpacing: "0.08em",
+        display: "flex", alignItems: "center", gap: 8,
+        fontFamily: "var(--font-display)",
       }}>
+        <Icon icon="mdi:run" style={{ fontSize: "var(--font-md)" }} />
         {t("stances")}
       </div>
+
       <div style={{
-        padding: "6px 14px",
-        fontSize: "var(--font-xs)", color: "var(--text-muted)",
+        padding: "6px 14px", fontSize: "var(--font-xs)", color: "var(--text-muted)",
         borderBottom: "1px solid var(--border-subtle)",
+        display: "flex", alignItems: "center", gap: 6,
       }}>
+        <Icon icon="mdi:target" style={{ fontSize: 11, color: "var(--info)" }} />
         {t("stance_acc").replace("{0}", itemAccuracyFactor)}
       </div>
-      <table style={{
-        width: "100%", borderCollapse: "collapse",
-        fontSize: "var(--font-sm)", color: "var(--text-primary)",
-      }}>
-        <thead>
-          <tr style={{ borderBottom: "2px solid var(--border-mid)" }}>
-            {[t("stance"), t("state"), t("accuracy"), t("start")].map((h, i) => (
-              <th key={i} style={{
-                textAlign: i === 0 ? "center" : "left",
-                padding: "7px 12px",
-                color: "var(--text-muted)", fontSize: "var(--font-xs)",
-                fontWeight: 600, letterSpacing: "0.1em",
+
+      <div>
+        {item.stances.map((stance, index) => {
+          const finalAccuracy = stance.accuracy * itemAccuracyFactor;
+          const stanceImage = stanceImages[stance.state_key];
+          const pct = finalAccuracy / maxAccuracy;
+          return (
+            <div key={index} style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "7px 10px",
+              borderBottom: index < item.stances.length - 1 ? "1px solid var(--border-subtle)" : "none",
+              background: index % 2 ? "var(--bg-base)" : "transparent",
+              animation: `fade-in 0.2s var(--ease-smooth) ${0.04 + index * 0.035}s both`,
+            }}>
+              <div style={{
+                width: 32, height: 32, flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                border: "1px solid var(--border-subtle)",
+                background: "var(--bg-deep)",
               }}>
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {item.stances.map((stance, index) => {
-            const finalAccuracy = stance.accuracy * itemAccuracyFactor;
-            const stanceImage = stanceImages[stance.state_key];
-            return (
-              <tr key={index} style={{
-                borderBottom: "1px solid var(--border-subtle)",
-                background: index % 2 ? "var(--bg-base)" : "transparent",
-              }}>
-                <td style={{ padding: "6px 12px", textAlign: "center" }}>
-                  {stanceImage ? (
-                    <img src={stanceImage} alt={stance.state_key}
-                      style={{ width: 28, height: 28, objectFit: "contain", imageRendering: "pixelated" }} />
-                  ) : (
-                    <span style={{ color: "var(--text-dim)", fontSize: "var(--font-xs)" }}>—</span>
-                  )}
-                </td>
-                <td style={{ padding: "6px 12px", textTransform: "uppercase", fontSize: "var(--font-sm)" }}>
+                {stanceImage ? (
+                  <img src={stanceImage} alt={stance.state_key}
+                    style={{ width: 26, height: 26, objectFit: "contain", imageRendering: "pixelated" }} />
+                ) : (
+                  <Icon icon="mdi:run-fast" style={{ fontSize: 16, color: "var(--text-dim)" }} />
+                )}
+              </div>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: "var(--font-sm)", textTransform: "uppercase",
+                  color: "var(--text-primary)", fontWeight: 600, letterSpacing: "0.04em",
+                }}>
                   {t(stance.state_key)}
-                </td>
-                <td style={{ padding: "6px 12px", color: "var(--info)", fontSize: "var(--font-sm)" }}>
+                </div>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 6, marginTop: 3,
+                }}>
+                  <div style={{
+                    flex: 1, height: 3, background: "var(--border-subtle)", overflow: "hidden", maxWidth: 140,
+                  }}>
+                    <div style={{
+                      width: `${pct * 100}%`, height: "100%",
+                      background: `linear-gradient(90deg, var(--info)88, var(--info))`,
+                      transition: "width var(--dur-norm) var(--ease-smooth)",
+                    }} />
+                  </div>
+                  <span style={{ fontSize: "var(--font-xxs)", color: "var(--info)", fontWeight: 700 }}>
+                    {(finalAccuracy * 100).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontSize: "var(--font-xxs)", color: "var(--text-dim)" }}>
+                  {t("accuracy")}
+                </div>
+                <div style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "var(--accent)" }}>
                   {stance.accuracy}
-                </td>
-                <td style={{ padding: "6px 12px", color: "var(--accent)", fontWeight: 600, fontSize: "var(--font-sm)" }}>
-                  {finalAccuracy.toFixed(3)}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

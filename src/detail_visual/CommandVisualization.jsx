@@ -3,13 +3,11 @@ import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
 import { useI18n } from "../i18n.jsx";
 
-/* ── Permission badge colors ── */
 const PERM_COLORS = {
-  moderator: { bg: "var(--accent-dim)", text: "var(--accent)" },
-  admin: { bg: "var(--danger)", text: "var(--danger)" },
+  moderator: { accent: "var(--accent-dim)", text: "var(--accent)" },
+  admin: { accent: "var(--danger)", text: "var(--danger)" },
 };
 
-/* ── Render an action row ── */
 function ActionRow({ action, index, data }) {
   const { translate } = useI18n();
   const fullKey = action.key || "";
@@ -17,9 +15,7 @@ function ActionRow({ action, index, data }) {
   const item = data?.[type]?.[fullKey];
   const iconUrl = useItemIcon(item || { hud_icon_filename: null });
 
-  // Spawn action — show item icon + link
   if (action.type === "spawn") {
-
     const fallbackIcon =
       type === "weapon" ? "mdi:sword" :
       type === "carry_item" ? "mdi:package-variant-closed" :
@@ -30,39 +26,45 @@ function ActionRow({ action, index, data }) {
     return (
       <div style={{
         display: "flex", alignItems: "center", gap: 8,
-        padding: "5px 14px",
+        padding: "7px 14px",
         borderTop: index > 0 ? "1px solid var(--border-subtle)" : "none",
         background: index % 2 ? "var(--bg-base)" : "transparent",
-        animation: `fade-in 0.2s var(--ease-smooth) ${0.06 + index * 0.03}s both`,
+        animation: `fade-in 0.2s var(--ease-smooth) ${0.04 + index * 0.03}s both`,
+        transition: "background var(--dur-fast) var(--ease-smooth)",
       }}>
         <span style={{
           fontSize: "var(--font-xxs)", color: "var(--text-dim)",
-          minWidth: 24, fontWeight: 700,
+          fontFamily: "var(--font-mono)", minWidth: 22, fontWeight: 700,
         }}>
           #{index + 1}
         </span>
 
-        {/* Action type badge */}
         <span style={{
           fontSize: "var(--font-xxs)", fontWeight: 700,
-          padding: "2px 6px",
+          padding: "2px 7px",
           border: "1px solid var(--success)",
           color: "var(--success)",
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
+          textTransform: "uppercase", letterSpacing: "0.06em",
+          display: "inline-flex", alignItems: "center", gap: 3,
           flexShrink: 0,
         }}>
+          <Icon icon="mdi:plus-circle-outline" style={{ fontSize: 10 }} />
           {action.type}
         </span>
 
-        {/* Item icon */}
-        {iconUrl ? (
-          <img src={iconUrl} alt="" style={{ width: 20, height: 20, objectFit: "contain", flexShrink: 0, imageRendering: "pixelated" }} />
-        ) : (
-          <Icon icon={fallbackIcon} style={{ fontSize: 18, flexShrink: 0, color: "var(--text-muted)" }} />
-        )}
+        <div style={{
+          width: 24, height: 24, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          border: "1px solid var(--border-subtle)",
+          background: "var(--bg-deep)",
+        }}>
+          {iconUrl ? (
+            <img src={iconUrl} alt="" style={{ width: 18, height: 18, objectFit: "contain", imageRendering: "pixelated" }} />
+          ) : (
+            <Icon icon={fallbackIcon} style={{ fontSize: 14, color: "var(--text-muted)" }} />
+          )}
+        </div>
 
-        {/* Item link */}
         <a
           href={`/params/${type}/${fullKey}`}
           onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${type}/${fullKey}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
@@ -76,6 +78,7 @@ function ActionRow({ action, index, data }) {
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
+            transition: "color var(--dur-fast) var(--ease-smooth)",
           }}
           onMouseEnter={(e) => { e.currentTarget.style.color = "var(--amber)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.color = "var(--accent)"; }}
@@ -84,14 +87,10 @@ function ActionRow({ action, index, data }) {
           {translate(item?.name) || fullKey}
         </a>
 
-        {/* Type badge */}
         <span style={{
-          fontSize: "var(--font-xxs)",
-          color: "var(--text-muted)",
-          padding: "1px 5px",
-          border: "1px solid var(--border-subtle)",
-          flexShrink: 0,
-          marginLeft: "auto",
+          fontSize: "var(--font-xxs)", color: "var(--text-muted)",
+          padding: "1px 6px", border: "1px solid var(--border-subtle)",
+          flexShrink: 0, marginLeft: "auto", fontFamily: "var(--font-mono)",
         }}>
           {type}
         </span>
@@ -99,37 +98,38 @@ function ActionRow({ action, index, data }) {
     );
   }
 
-  // Non-spawn action — show type and details
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 8,
-      padding: "5px 14px",
+      padding: "7px 14px",
       borderTop: index > 0 ? "1px solid var(--border-subtle)" : "none",
       background: index % 2 ? "var(--bg-base)" : "transparent",
-      animation: `fade-in 0.2s var(--ease-smooth) ${0.06 + index * 0.03}s both`,
+      animation: `fade-in 0.2s var(--ease-smooth) ${0.04 + index * 0.03}s both`,
+      transition: "background var(--dur-fast) var(--ease-smooth)",
     }}>
       <span style={{
         fontSize: "var(--font-xxs)", color: "var(--text-dim)",
-        minWidth: 24, fontWeight: 700,
+        fontFamily: "var(--font-mono)", minWidth: 22, fontWeight: 700,
       }}>
         #{index + 1}
       </span>
 
       <span style={{
         fontSize: "var(--font-xs)", fontWeight: 700,
-        padding: "2px 6px",
+        padding: "2px 7px",
         border: "1px solid var(--border-mid)",
         color: "var(--text-muted)",
-        textTransform: "uppercase",
-        flexShrink: 0,
+        textTransform: "uppercase", flexShrink: 0,
+        display: "inline-flex", alignItems: "center", gap: 3,
       }}>
+        <Icon icon="mdi:code-tags" style={{ fontSize: 10 }} />
         {action.type}
       </span>
 
       <span style={{
-        fontSize: "var(--font-xs)",
-        color: "var(--text-secondary)",
+        fontSize: "var(--font-xs)", color: "var(--text-secondary)",
         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        fontFamily: "var(--font-mono)",
       }}>
         {action.message || action.xml || action.variable || action.text || action.detail || ""}
       </span>
@@ -137,7 +137,6 @@ function ActionRow({ action, index, data }) {
   );
 }
 
-/* ── CommandVisualization ── */
 export default function CommandVisualization({ item }) {
   const { data } = useData();
   const { t } = useI18n();
@@ -148,37 +147,36 @@ export default function CommandVisualization({ item }) {
 
   return (
     <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", fontFamily: "var(--font-mono)" }}>
-      {/* Header */}
       <div style={{
         padding: "10px 14px",
-        borderBottom: `1px solid ${permColor.bg}`,
+        borderBottom: `1px solid ${permColor.accent}`,
         fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)",
         textTransform: "uppercase", letterSpacing: "0.08em",
         display: "flex", alignItems: "center", gap: 8,
+        fontFamily: "var(--font-display)",
       }}>
         <Icon icon="mdi:terminal" style={{ fontSize: "var(--font-md)" }} />
-        <span>/{item.command}</span>
+        <span style={{ fontFamily: "var(--font-mono)" }}>/{item.command}</span>
         <span style={{
           marginLeft: "auto",
           fontSize: "var(--font-xxs)", fontWeight: 600,
           padding: "2px 8px",
           border: `1px solid ${permColor.text}`,
           color: permColor.text,
-          textTransform: "uppercase",
+          textTransform: "uppercase", letterSpacing: "0.08em",
         }}>
+          <Icon icon={item.permission === "moderator" ? "mdi:shield-edit-outline" : "mdi:shield-key"}
+            style={{ fontSize: 10, marginRight: 3 }} />
           {item.permission}
         </span>
       </div>
 
-      {/* Description */}
       {item.description && (
         <div style={{
           padding: "8px 14px",
           borderBottom: "1px solid var(--border-subtle)",
-          fontSize: "var(--font-sm)",
-          color: "var(--text-secondary)",
-          fontFamily: "var(--font-text)",
-          lineHeight: 1.5,
+          fontSize: "var(--font-sm)", color: "var(--text-secondary)",
+          fontFamily: "var(--font-text)", lineHeight: 1.5,
           fontStyle: "italic",
           animation: "fade-in 0.25s var(--ease-smooth) 0.06s both",
         }}>
@@ -186,13 +184,11 @@ export default function CommandVisualization({ item }) {
         </div>
       )}
 
-      {/* Effects summary */}
       {item.effects && (
         <div style={{
           padding: "6px 14px",
           borderBottom: "1px solid var(--border-subtle)",
-          fontSize: "var(--font-xxs)",
-          color: "var(--text-dim)",
+          fontSize: "var(--font-xxs)", color: "var(--text-dim)",
           display: "flex", alignItems: "center", gap: 6,
           animation: "fade-in 0.2s var(--ease-smooth) 0.08s both",
         }}>
@@ -201,7 +197,6 @@ export default function CommandVisualization({ item }) {
         </div>
       )}
 
-      {/* Actions timeline */}
       {actions.length > 0 && (
         <div>
           <div style={{
@@ -209,10 +204,11 @@ export default function CommandVisualization({ item }) {
             fontSize: "var(--font-xs)", color: "var(--text-muted)",
             letterSpacing: "0.06em",
             borderBottom: "1px solid var(--border-subtle)",
+            display: "flex", alignItems: "center", gap: 5,
           }}>
+            <Icon icon="mdi:format-list-numbered" style={{ fontSize: 11 }} />
             {t("actions_label", actions.length)}
           </div>
-
           {actions.map((action, i) => (
             <ActionRow key={i} action={action} index={i} data={data} />
           ))}
