@@ -274,18 +274,6 @@ export default function Detail({ item, type, onOpenRoll }) {
   const t = useT();
   const { data: fullData } = useData();
   const lookupMap = useMemo(() => buildItemLookup(fullData), [fullData]);
-
-  if (!item) return null;
-
-  // Gate: VisualizationComponentPool has its own internal hasContent check.
-  // We pass true here and let the pool decide per-component.
-  const hasVisData = true;
-
-  const handleItemNavigate = (targetType, targetKey) => {
-    window.history.pushState(null, "", `/params/${targetType}/${targetKey}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
-  };
-
   const iconUrl = useItemIcon(item);
   const [iconLoaded, setIconLoaded] = useState(false);
   const scrollRef = useRef(null);
@@ -298,6 +286,14 @@ export default function Detail({ item, type, onOpenRoll }) {
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
+
+  const hasVisData = true;
+  if (!item) return null;
+
+  const handleItemNavigate = (targetType, targetKey) => {
+    window.history.pushState(null, "", `/params/${targetType}/${targetKey}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
 
   // fade/shrink factor: 0 = top, 1 = fully scrolled past
   const fadeT = Math.min(scrollY / 180, 1);

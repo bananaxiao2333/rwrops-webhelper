@@ -210,23 +210,22 @@ function SearchModal({ open, onClose, lang, onSelectArticle }) {
     setLoading(false);
   }, [hasIndex]);
 
+  const prevOpen = useRef(false);
   useEffect(() => {
-    if (open) {
-      initIndex();
-      setQuery("");
-      setResults([]);
-      setSelectedIdx(0);
+    if (open && !prevOpen.current) {
+      queueMicrotask(() => {
+        initIndex();
+        setQuery("");
+        setResults([]);
+        setSelectedIdx(0);
+      });
       setTimeout(() => inputRef.current?.focus(), 50);
     }
+    prevOpen.current = open;
   }, [open, initIndex]);
 
-  // 防抖搜索
   useEffect(() => {
-    if (!hasIndex) return;
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
+    if (!hasIndex || !query.trim()) return;
     const timer = setTimeout(() => {
       setResults(searchArticles(query, lang));
       setSelectedIdx(0);

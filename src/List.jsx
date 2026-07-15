@@ -43,19 +43,16 @@ function normalize(v, min, max) { const d = (max - min) || 1; return Math.max(0.
 /* ── Tile: icon as CSS background-layer, text floats above ── */
 function Tile({ item, config, norm, onClick, isMobile, index = 0 }) {
   const { translate } = useI18n();
-  const [iconLoaded, setIconLoaded] = useState(false);
-  // Use item.color (faction) if available, else config.colorBase
+  const iconUrl = useItemIcon(item);
+  const [iconLoaded, setIconLoaded] = useState(!iconUrl);
   const [r, g, b] = item.color
     ? [(item.color[0] * 255) | 0, (item.color[1] * 255) | 0, (item.color[2] * 255) | 0]
     : config.colorBase;
-  const iconUrl = useItemIcon(item);
   const solidBg = `rgba(${r},${g},${b},${0.2 + norm * 0.7})`;
-
   const isAI = item.key?.toLowerCase().includes("_ai.") || item.name?.toLowerCase().includes("_ai");
 
-  // Preload icon, flip loaded state when ready
   useEffect(() => {
-    if (!iconUrl) { setIconLoaded(true); return; }
+    if (!iconUrl) return;
     const img = new Image();
     img.onload = () => setIconLoaded(true);
     img.onerror = () => setIconLoaded(true);

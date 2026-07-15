@@ -37,28 +37,27 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
     } catch { /* ignore */ }
   }, [docsReady]);
 
+  const prevSearchOpen = useRef(false);
   useEffect(() => {
-    if (open) {
-      initDocs();
-      setQuery("");
-      setResults({ data: [], docs: [] });
-      setSelectedIdx(0);
-      setLoading(false);
+    if (open && !prevSearchOpen.current) {
+      queueMicrotask(() => {
+        initDocs();
+        setQuery("");
+        setResults({ data: [], docs: [] });
+        setSelectedIdx(0);
+        setLoading(false);
+      });
       setTimeout(() => inputRef.current?.focus(), 50);
     }
+    prevSearchOpen.current = open;
   }, [open, initDocs]);
 
   // 搜索执行
   useEffect(() => {
-    if (!open || !query.trim()) {
-      setResults({ data: [], docs: [] });
-      return;
-    }
-    if (!data && !docsReady) return;
-
-    setLoading(true);
+    if (!open || !query.trim() || (!data && !docsReady)) return;
 
     const timer = setTimeout(() => {
+      setLoading(true);
       const q = query.trim().toLowerCase();
 
       // 1. 游戏数据搜索

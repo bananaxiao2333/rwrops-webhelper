@@ -1,4 +1,5 @@
 import { useI18n } from "../i18n.jsx";
+import { useAsset } from "../assetLoader.jsx";
 
 /* ── Faction rank tree visualization ── */
 export default function FactionVisualization({ item }) {

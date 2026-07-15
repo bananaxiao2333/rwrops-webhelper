@@ -83,15 +83,47 @@ function VehicleModel({ item }) {
   );
 }
 
+/* ── Texture Entry ── */
+function TextureEntry({ visual }) {
+  const textureUrl = useAsset(visual.texture);
+  return (
+    <div>
+      <div style={{
+        fontSize: "var(--font-sm)", color: "var(--text-muted)", marginBottom: 4,
+        fontFamily: "var(--font-mono)", letterSpacing: "0.06em",
+      }}>
+        [{visual.class?.toUpperCase()}] {visual.mesh || ""}
+        {visual.key ? ` (${visual.key})` : ""}
+      </div>
+      {textureUrl ? (
+        <img src={textureUrl} alt={visual.texture}
+          style={{
+            width: "100%", maxHeight: 200, objectFit: "contain",
+            border: "1px solid var(--border-mid)",
+            imageRendering: "pixelated",
+            transition: "border-color 0.15s ease",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-mid)"; }}
+        />
+      ) : (
+        <div style={{
+          width: "100%", minHeight: 40,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "var(--text-dim)", fontSize: "var(--font-xxs)",
+          border: "1px dashed var(--border-subtle)",
+        }}>
+          NO TEXTURE
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Texture Panel ── */
 function TexturePanel({ visuals }) {
   const [open, setOpen] = useState(false);
   if (!visuals || visuals.length === 0) return null;
-
-  const entries = visuals.map((v) => ({
-    ...v,
-    textureUrl: v.texture ? useAsset(v.texture) : null,
-  }));
 
   return (
     <div style={{ borderBottom: "1px solid var(--border-subtle)" }}>
@@ -113,37 +145,7 @@ function TexturePanel({ visuals }) {
       </div>
       {open && (
         <div style={{ padding: "0 10px 10px", display: "flex", flexDirection: "column", gap: 8 }}>
-          {entries.map((entry, i) => (
-            <div key={i}>
-              <div style={{
-                fontSize: "var(--font-sm)", color: "var(--text-muted)", marginBottom: 4,
-                fontFamily: "var(--font-mono)", letterSpacing: "0.06em",
-              }}>
-                [{entry.class?.toUpperCase()}] {entry.mesh || ""}
-                {entry.key ? ` (${entry.key})` : ""}
-              </div>
-              {entry.textureUrl ? (
-                <img src={entry.textureUrl} alt={entry.texture}
-                  style={{
-                    width: "100%", maxHeight: 200, objectFit: "contain",
-                    border: "1px solid var(--border-mid)",
-                    imageRendering: "pixelated",
-                    transition: "border-color 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-mid)"; }}
-                />
-              ) : (
-                <div style={{
-                  padding: "16px", textAlign: "center",
-                  border: "1px dashed var(--border-subtle)",
-                  fontSize: "var(--font-sm)", color: "var(--text-dim)",
-                }}>
-                  TEXTURE NOT FOUND
-                </div>
-              )}
-            </div>
-          ))}
+          {visuals.map((v, i) => <TextureEntry key={i} visual={v} />)}
         </div>
       )}
     </div>

@@ -358,6 +358,7 @@ export function HomePage({ allKeywords = [], data }) {
 }
 
 /* ── Static type icons ── */
+// eslint-disable-next-line react-refresh/only-export-components
 export const typeIcons = {
   vehicle: "mdi:truck",
   weapon: "mdi:sword",
@@ -366,6 +367,7 @@ export const typeIcons = {
 };
 
 /* ── Helpers ── */
+// eslint-disable-next-line react-refresh/only-export-components
 export const extractAllKeywords = (data) => {
   if (!data) return [];
   const keywords = [];
@@ -377,6 +379,7 @@ export const extractAllKeywords = (data) => {
   return keywords;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const navConfig = [
   { label: "DASHBOARD", icon: "mdi:home", path: "/" },
 ];

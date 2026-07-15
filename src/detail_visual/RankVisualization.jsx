@@ -61,18 +61,6 @@ export default function RankVisualization({ item }) {
 
   if (xpNeeded === null) return null;
   if (xpNeeded <= 0) return null;
-    return Object.entries(data.faction)
-      .filter(([, f]) => f.ranks && Array.isArray(f.ranks) && f.ranks.length > 0)
-      .map(([key, f]) => {
-        const ranks = f.ranks;
-        const maxXp = ranks[ranks.length - 1].xp;
-        const color = f.color
-          ? `rgb(${(f.color[0] * 255).toFixed(0)}, ${(f.color[1] * 255).toFixed(0)}, ${(f.color[2] * 255).toFixed(0)})`
-          : "var(--accent)";
-        return { key, name: f.name || key, ranks, maxXp, color };
-      });
-  }, [data]);
-
   if (factions.length === 0) return null;
 
   return (
