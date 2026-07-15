@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useData } from "../DataContext.jsx";
 import { useI18n } from "../i18n.jsx";
+import { useAsset } from "../assetLoader.jsx";
 
 /* ── Extract unlock XP from item.capacities ──
    Pick the rank-sourced entry with the highest value, use its source_value. */
@@ -18,6 +19,35 @@ function fmtXp(val) {
   if (val >= 100000) return (val / 1000).toFixed(0) + "K";
   if (val >= 1000) return (val / 1000).toFixed(1) + "K";
   return String(val);
+}
+
+/* ── Small rank icon badge for the progression band ── */
+function RankBadge({ rank, isMatched, isPast, factionColor }) {
+  const url = useAsset(rank.hud_icon?.filename);
+  const label = String(rank.xp || "");
+  return (
+    <div style={{
+      width: 20, height: 20, flexShrink: 0,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      border: `1px solid ${isMatched ? factionColor : "var(--border-subtle)"}`,
+      background: isMatched ? `${factionColor}22` : isPast ? "var(--bg-surface)" : "transparent",
+      boxShadow: isMatched ? `0 0 6px ${factionColor}44` : "none",
+      overflow: "hidden",
+    }}>
+      {url ? (
+        <img src={url} alt=""
+          style={{ width: 18, height: 18, objectFit: "contain", imageRendering: "auto" }} />
+      ) : (
+        <span style={{
+          fontSize: 8, fontWeight: isMatched ? 700 : 400,
+          color: isMatched ? factionColor : isPast ? "var(--text-muted)" : "var(--text-dim)",
+          fontFamily: "var(--font-mono)",
+        }}>
+          {label.slice(0, 4)}
+        </span>
+      )}
+    </div>
+  );
 }
 
 /* ── Per-faction rank progression card ── */
@@ -71,7 +101,7 @@ function FactionRankCard({ faction, xpNeeded, factionColor, idx }) {
       <div style={{
         padding: "10px 12px",
         borderBottom: "1px solid var(--border-subtle)",
-        display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center",
+        display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center",
       }}>
         {ranks.map((r, i) => {
           const isMatched = i === matchedIdx;
@@ -79,33 +109,28 @@ function FactionRankCard({ faction, xpNeeded, factionColor, idx }) {
           const rankLabel = translate(r.name) || r.name;
           return (
             <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 0,
+              display: "flex", alignItems: "center", gap: 3,
             }}>
               {i > 0 && (
                 <div style={{
-                  width: 10, height: 1,
+                  width: 8, height: 1,
                   background: isPast ? factionColor : "var(--border-subtle)",
                   opacity: isPast ? 0.5 : 1,
-                  marginRight: 5,
+                  marginRight: 2,
                   transition: "background var(--dur-fast) var(--ease-smooth)",
                 }} />
               )}
-              <div style={{
+              <RankBadge rank={r} isMatched={isMatched} isPast={isPast} factionColor={factionColor} />
+              <span style={{
                 fontSize: "var(--font-xxs)", whiteSpace: "nowrap",
-                padding: "3px 7px",
-                border: `1px solid ${isMatched ? factionColor : "var(--border-subtle)"}`,
-                background: isMatched
-                  ? `${factionColor}22`
-                  : isPast ? "var(--bg-surface)" : "transparent",
                 color: isMatched ? factionColor : isPast ? "var(--text-muted)" : "var(--text-dim)",
                 fontWeight: isMatched ? 700 : 400,
                 fontFamily: "var(--font-mono)",
                 textTransform: "uppercase",
-                boxShadow: isMatched ? `0 0 8px ${factionColor}44` : "none",
-                transition: "all var(--dur-fast) var(--ease-smooth)",
+                transition: "color var(--dur-fast) var(--ease-smooth)",
               }}>
                 {rankLabel}
-              </div>
+              </span>
             </div>
           );
         })}
