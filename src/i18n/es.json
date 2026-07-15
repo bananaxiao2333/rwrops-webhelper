@@ -692,5 +692,16 @@
   "tools_metagen_export_cfg_label": "Conf",
   "tools_metagen_import_cfg_label": "Conf",
   "tools_showcase": "GALERÍA",
-  "tools_showcase_desc": "Galería 3D a pantalla completa. Muestra aleatoriamente armas, vehículos y objetos con renderizado 3D inmersivo, efectos de partículas y navegación por teclado."
+  "tools_showcase_desc": "Galería 3D a pantalla completa. Muestra aleatoriamente armas, vehículos y objetos con renderizado 3D inmersivo, efectos de partículas y navegación por teclado.",
+  "degradation_chain": "CADENA DE DEGRADACIÓN",
+  "states": "estados",
+  "no_protection": "SIN PROTECCIÓN",
+  "current": "ACTUAL",
+  "class_projectile": "PROYECTIL",
+  "class_blast": "EXPLOSIÓN",
+  "class_melee": "CUERPO A CUERPO",
+  "class_speed": "VELOCIDAD",
+  "class_hit_prob": "PROB. ACIERTO",
+  "class_detect": "DETECTAR",
+  "branch": "RAMA"
 }

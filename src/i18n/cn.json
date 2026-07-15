@@ -692,5 +692,16 @@
   "tools_metagen_export_cfg_label": "导出配置",
   "tools_metagen_import_cfg_label": "导入配置",
   "tools_showcase": "3D 展厅",
-  "tools_showcase_desc": "全屏 3D 画廊。随机循环展示武器、载具与物品，沉浸式 3D 渲染、粒子特效，支持键盘导航。"
+  "tools_showcase_desc": "全屏 3D 画廊。随机循环展示武器、载具与物品，沉浸式 3D 渲染、粒子特效，支持键盘导航。",
+  "degradation_chain": "降解链",
+  "states": "个状态",
+  "no_protection": "无防护",
+  "current": "当前",
+  "class_projectile": "子弹",
+  "class_blast": "爆炸",
+  "class_melee": "近战",
+  "class_speed": "速度",
+  "class_hit_prob": "命中率",
+  "class_detect": "侦测",
+  "branch": "分支"
 }
