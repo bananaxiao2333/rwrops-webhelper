@@ -7,10 +7,12 @@ import ExchangeRollModal from "./detail_visual/ExchangeRollModal";
 import DocsPage, { DocsListPage } from "./DocsPage.jsx";
 import { getArticleSlugsSync, getAllArticleMetas } from "./docsLazy.js";
 import GlobalSearch from "./GlobalSearch.jsx";
-import ToolsListPage, { TOOLS } from "./tools/ToolsListPage.jsx";
-import StallGenerator from "./tools/StallGenerator.jsx";
-import MetaGen from "./tools/MetaGen.jsx";
-import Showcase from "./tools/Showcase.jsx";
+import { lazy, Suspense } from "react";
+const ToolsListPage = lazy(() => import("./tools/ToolsListPage.jsx"));
+import { TOOLS } from "./tools/ToolsListPage.jsx";
+const StallGenerator = lazy(() => import("./tools/StallGenerator.jsx"));
+const MetaGen = lazy(() => import("./tools/MetaGen.jsx"));
+const Showcase = lazy(() => import("./tools/Showcase.jsx"));
 import ErrorBoundary from "./ErrorBoundary.jsx";
 
 /* ── Language first-time picker modal ── */
@@ -546,9 +548,8 @@ export default function App() {
     getAllArticleMetas(lang).then(setArticleMetas);
   }, [lang]);
 
-  // Showcase: fullscreen 3D immersive mode — renders outside standard layout
   if (isTools && toolsSlug === "showcase") {
-    return <Showcase />;
+    return <Suspense fallback={<div className="loading-spinner" style={{ margin: "40vh auto" }} />}><Showcase /></Suspense>;
   }
 
   return (
@@ -649,7 +650,8 @@ export default function App() {
           overflow: "auto",
           background: "var(--bg-deep)",
         }}>
-          <ErrorBoundary t={t} key={route.path}>
+           <ErrorBoundary t={t} key={route.path}>
+          <Suspense fallback={<div className="loading-spinner" style={{ margin: "20vh auto" }} />}>
           {isHome ? (
             <HomePage
               allKeywords={extractAllKeywords(data)}
@@ -676,11 +678,17 @@ export default function App() {
               onOpenRoll={(item) => setRollItem(item)}
             />
            ) : isTools && toolsSlug === "stall" ? (
-            <StallGenerator />
+            <Suspense fallback={<div className="loading-spinner" style={{ margin: "20vh auto" }} />}>
+              <StallGenerator />
+            </Suspense>
            ) : isTools && toolsSlug === "metagen" ? (
-            <MetaGen />
+            <Suspense fallback={<div className="loading-spinner" style={{ margin: "20vh auto" }} />}>
+              <MetaGen />
+            </Suspense>
            ) : isTools ? (
-            <ToolsListPage />
+            <Suspense fallback={<div className="loading-spinner" style={{ margin: "20vh auto" }} />}>
+              <ToolsListPage />
+            </Suspense>
            ) : activeType ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
               <div style={{ textAlign: "center" }}>
@@ -689,6 +697,7 @@ export default function App() {
               </div>
             </div>
            ) : null}
+          </Suspense>
           </ErrorBoundary>
         </main>
       </div>
