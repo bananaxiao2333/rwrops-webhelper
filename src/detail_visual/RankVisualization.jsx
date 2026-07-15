@@ -103,7 +103,7 @@ function FactionRankCard({ faction, xpNeeded, factionColor, idx }) {
         borderBottom: "1px solid var(--border-subtle)",
         display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center",
       }}>
-        {ranks.map((r, i) => {
+        {ranks.slice(0, matchedIdx + 1).map((r, i) => {
           const isMatched = i === matchedIdx;
           const isPast = i < matchedIdx;
           const rankLabel = translate(r.name) || r.name;
