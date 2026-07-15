@@ -2,8 +2,8 @@ import { useI18n } from "../i18n.jsx";
 
 /* ── Faction rank tree visualization ── */
 export default function FactionVisualization({ item }) {
-  if (!item || item.type !== "faction") return null;
   const { translate, t } = useI18n();
+  if (!item || item.type !== "faction") return null;
   const factionColor = item.color
     ? `rgb(${(item.color[0] * 255).toFixed(0)}, ${(item.color[1] * 255).toFixed(0)}, ${(item.color[2] * 255).toFixed(0)})`
     : "var(--accent)";

@@ -152,8 +152,6 @@ function TexturePanel({ visuals }) {
 
 /* ── Vehicle Visualization ── */
 export default function VehicleVisualization({ item }) {
-  if (!item || item.type !== "vehicle") return null;
-
   const { t, translate } = useI18n();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showHud, setShowHud] = useState(true);
@@ -198,6 +196,8 @@ export default function VehicleVisualization({ item }) {
       document.removeEventListener("msfullscreenchange", h);
     };
   }, []);
+
+  if (!item || item.type !== "vehicle") return null;
 
   const statFields = [
     ...(stats.crew.driver > 0 ? [{ label: t("crew_drivers"), value: stats.crew.driver }] : []),

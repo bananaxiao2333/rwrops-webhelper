@@ -43,13 +43,24 @@ export default function RankVisualization({ item }) {
   const { translate, t } = useI18n();
 
   const xpNeeded = useMemo(() => getUnlockXp(item), [item]);
-  if (xpNeeded === null) return null;
-
-  // No threshold = no rank requirement, skip visualization entirely
-  if (xpNeeded <= 0) return null;
-
   const factions = useMemo(() => {
     if (!data?.faction) return [];
+    return Object.entries(data.faction)
+      .filter(([, f]) => f.ranks && Array.isArray(f.ranks) && f.ranks.length > 0)
+      .map(([key, f]) => {
+        const fc = f.color
+          ? `rgb(${(f.color[0] * 255).toFixed(0)}, ${(f.color[1] * 255).toFixed(0)}, ${(f.color[2] * 255).toFixed(0)})`
+          : "var(--accent)";
+        const lastRank = f.ranks[f.ranks.length - 1];
+        const pct = Math.min((xpNeeded / (lastRank?.xp || 1)) * 100, 100);
+        const rankName = translate(f.ranks.find(r => r.xp >= xpNeeded)?.name || lastRank?.name || "");
+        return { key, color: fc, rankName, pct };
+      })
+      .filter(r => r.pct > 0);
+  }, [data, xpNeeded, translate]);
+
+  if (xpNeeded === null) return null;
+  if (xpNeeded <= 0) return null;
     return Object.entries(data.faction)
       .filter(([, f]) => f.ranks && Array.isArray(f.ranks) && f.ranks.length > 0)
       .map(([key, f]) => {

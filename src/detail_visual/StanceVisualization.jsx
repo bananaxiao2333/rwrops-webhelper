@@ -5,10 +5,11 @@ const stanceImageModules = import.meta.glob("./stance_img/*.png", { eager: false
 
 export default function StanceVisualization({ item }) {
   const t = useT();
+  const [stanceImages, setStanceImages] = useState({});
+
   if (!item?.stances || !Array.isArray(item.stances) || item.stances.length === 0) return null;
 
   const itemAccuracyFactor = item.accuracy_factor || 1.0;
-  const [stanceImages, setStanceImages] = useState({});
 
   useEffect(() => {
     let cancelled = false;

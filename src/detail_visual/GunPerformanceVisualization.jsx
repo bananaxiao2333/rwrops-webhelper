@@ -8,13 +8,13 @@ const KillChart = ({ killProbability = 0, decayStart = 0, decayEnd = 0 }) => {
   const W = 600, H = 200, pad = { t: 12, r: 16, b: 28, l: 44 };
   const iW = W - pad.l - pad.r, iH = H - pad.t - pad.b;
 
+  const [hover, setHover] = useState(null);
+  const svgRef = useRef(null);
+
   if (!killProbability) return null;
 
   const px = (d) => pad.l + (d / maxD) * iW;
   const py = (p) => pad.t + iH - p * iH;
-
-  const [hover, setHover] = useState(null);
-  const svgRef = useRef(null);
 
   const handleMove = (e) => {
     if (!svgRef.current) return;
