@@ -1,5 +1,6 @@
 import { Icon } from "@iconify/react";
 import React, { useMemo } from "react";
+import { useT } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
 
 const COMBAT_CLASSES = [
@@ -8,14 +9,27 @@ const COMBAT_CLASSES = [
   "melee_hit_result",
 ];
 
-const META = {
-  projectile_hit_result:   { icon: "mdi:target", label: "PROJECTILE" },
-  projectile_blast_result: { icon: "mdi:explosion", label: "BLAST" },
-  melee_hit_result:        { icon: "mdi:sword", label: "MELEE" },
-  speed:                   { icon: "mdi:speedometer", label: "SPEED" },
-  hit_success_probability: { icon: "mdi:crosshairs", label: "HIT PROB" },
-  detectability:           { icon: "mdi:eye-outline", label: "DETECT" },
+const CLASS_ICONS = {
+  projectile_hit_result: "mdi:target",
+  projectile_blast_result: "mdi:explosion",
+  melee_hit_result: "mdi:sword",
+  speed: "mdi:speedometer",
+  hit_success_probability: "mdi:crosshairs",
+  detectability: "mdi:eye-outline",
 };
+
+const CLASS_I18N_KEYS = {
+  projectile_hit_result: "class_projectile",
+  projectile_blast_result: "class_blast",
+  melee_hit_result: "class_melee",
+  speed: "class_speed",
+  hit_success_probability: "class_hit_prob",
+  detectability: "class_detect",
+};
+
+function classLabel(cls, t) {
+  return t(CLASS_I18N_KEYS[cls] || cls);
+}
 
 /* ── helpers ── */
 
@@ -97,7 +111,7 @@ function CommonnessBar({ value }) {
   );
 }
 
-function CombatResults({ combat }) {
+function CombatResults({ combat, t }) {
   if (!combat.length) return null;
   return (
     <div style={{ marginTop: 6 }}>
@@ -107,7 +121,7 @@ function CombatResults({ combat }) {
         marginBottom: 3,
       }}>
         <Icon icon="mdi:sword-cross" style={{ fontSize: 9, marginRight: 3, verticalAlign: "middle" }} />
-        COMBAT
+        {t("combat")}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {combat.map((c, i) => (
@@ -115,7 +129,7 @@ function CombatResults({ combat }) {
             display: "flex", alignItems: "center", gap: 5,
             fontSize: "var(--font-xs)", padding: "1px 0",
           }}>
-            <Icon icon={META[c.class]?.icon || "mdi:information"}
+            <Icon icon={CLASS_ICONS[c.class] || "mdi:information"}
               style={{ fontSize: 11, color: "var(--accent)", flexShrink: 0 }} />
             <span style={{
               fontWeight: 600, color: "var(--text-muted)",
@@ -130,6 +144,12 @@ function CombatResults({ combat }) {
             }}>
               {c.output}
             </span>
+            <span style={{
+              fontSize: 9, fontWeight: 600, color: "var(--text-muted)",
+              marginLeft: 2,
+            }}>
+              ({classLabel(c.class, t)})
+            </span>
           </div>
         ))}
       </div>
@@ -137,7 +157,7 @@ function CombatResults({ combat }) {
   );
 }
 
-function StatModifiers({ stats }) {
+function StatModifiers({ stats, t }) {
   if (!stats.length) return null;
   return (
     <div style={{ marginTop: 6 }}>
@@ -147,7 +167,7 @@ function StatModifiers({ stats }) {
         marginBottom: 3,
       }}>
         <Icon icon="mdi:chart-line" style={{ fontSize: 9, marginRight: 3, verticalAlign: "middle" }} />
-        EFFECTS
+        {t("stats")}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {stats.map((s, i) => {
@@ -159,13 +179,13 @@ function StatModifiers({ stats }) {
               display: "flex", alignItems: "center", gap: 8,
               fontSize: "var(--font-xs)",
             }}>
-              <Icon icon={META[s.class]?.icon || "mdi:information"}
+              <Icon icon={CLASS_ICONS[s.class] || "mdi:information"}
                 style={{ fontSize: 11, color: "var(--accent)", flexShrink: 0 }} />
               <span style={{
                 fontWeight: 600, color: "var(--text-muted)",
                 textTransform: "uppercase", minWidth: 64,
               }}>
-                {META[s.class]?.label || s.class}
+                {classLabel(s.class, t)}
               </span>
               <div style={{
                 flex: 1, height: 4,
@@ -193,7 +213,7 @@ function StatModifiers({ stats }) {
   );
 }
 
-function ProtectionBadges({ protects, vulnerable }) {
+function ProtectionBadges({ protects, vulnerable, t }) {
   if (!protects.length && !vulnerable.length) return null;
   return (
     <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
@@ -208,7 +228,7 @@ function ProtectionBadges({ protects, vulnerable }) {
           color: "var(--success)",
         }}>
           <Icon icon="mdi:shield-check" style={{ fontSize: 10 }} />
-          {META[c]?.label || c}
+          {classLabel(c, t)}
         </span>
       ))}
       {vulnerable.length > 0 && (
@@ -223,15 +243,15 @@ function ProtectionBadges({ protects, vulnerable }) {
         }}>
           <Icon icon="mdi:alert-circle" style={{ fontSize: 10 }} />
           {vulnerable.length === COMBAT_CLASSES.length
-            ? "NO PROTECTION"
-            : vulnerable.map(c => META[c]?.label || c).join(" ")}
+            ? t("no_protection")
+            : vulnerable.map(c => classLabel(c, t)).join(" ")}
         </span>
       )}
     </div>
   );
 }
 
-function ItemCard({ entry, isCurrent, accent }) {
+function ItemCard({ entry, isCurrent, accent, t }) {
   const { combat, stats } = useMemo(() => parseModifiers(entry.item.modifiers || entry.item.events), [entry]);
   const { protects, vulnerable } = useMemo(() => getProtected(entry.item), [entry]);
   const commonness = useMemo(() => getCommonness(entry.item), [entry]);
@@ -266,7 +286,7 @@ function ItemCard({ entry, isCurrent, accent }) {
           fontFamily: "var(--font-mono)",
         }}>
           <Icon icon="mdi:target" style={{ fontSize: 11 }} />
-          CURRENT
+          {t("current")}
         </div>
       )}
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, maxWidth: "90%" }}>
@@ -287,9 +307,9 @@ function ItemCard({ entry, isCurrent, accent }) {
         </span>
       </div>
       <CommonnessBar value={commonness} />
-      <CombatResults combat={combat} />
-      <StatModifiers stats={stats} />
-      <ProtectionBadges protects={protects} vulnerable={vulnerable} />
+      <CombatResults combat={combat} t={t} />
+      <StatModifiers stats={stats} t={t} />
+      <ProtectionBadges protects={protects} vulnerable={vulnerable} t={t} />
     </div>
   );
 }
@@ -333,6 +353,7 @@ function ChainConnector({ triggerLabel }) {
 /* ── Main component ── */
 
 export default function ClothingVisualization({ item }) {
+  const t = useT();
   const { data } = useData();
   const carryItems = data?.carry_item;
   const currentKey = item?.key;
@@ -424,14 +445,14 @@ export default function ClothingVisualization({ item }) {
           fontFamily: "var(--font-display)",
         }}>
           <Icon icon="mdi:swap-vertical-bold" style={{ fontSize: "var(--font-md)" }} />
-          DEGRADATION CHAIN
+          {t("degradation_chain")}
         </div>
         <span style={{
           fontSize: "var(--font-xs)", fontWeight: 600,
           color: "var(--text-muted)", textTransform: "uppercase",
           letterSpacing: "0.06em",
         }}>
-          {totalNodes} state{totalNodes !== 1 ? "s" : ""}
+          {totalNodes} {totalNodes === 1 ? t("state") : t("states")}
         </span>
       </div>
 
@@ -445,6 +466,7 @@ export default function ClothingVisualization({ item }) {
                   <ItemCard
                     entry={entry}
                     isCurrent={entry.key === currentKey}
+                    t={t}
                     accent={
                       chainLen === 1
                         ? "single"
@@ -474,14 +496,14 @@ export default function ClothingVisualization({ item }) {
                   letterSpacing: "0.15em",
                   fontFamily: "var(--font-mono)",
                 }}>
-                  ——— BRANCH ———
+                  ——— {t("branch")} ———
                 </div>
               )}
             </div>
           );
         })}
 
-        {standalone.map((entry) => (
+        {standalone.map(entry => (
           <div key={entry.key} style={{
             animation: "fade-in 0.3s var(--ease-smooth) 0.1s both",
             marginTop: chains.length > 0 ? 10 : 0,
@@ -489,6 +511,7 @@ export default function ClothingVisualization({ item }) {
             <ItemCard
               entry={entry}
               isCurrent={entry.key === currentKey}
+              t={t}
               accent="single"
             />
           </div>

@@ -692,5 +692,16 @@
   "tools_metagen_export_cfg_label": "Конф",
   "tools_metagen_import_cfg_label": "Конф",
   "tools_showcase": "ГАЛЕРЕЯ",
-  "tools_showcase_desc": "Полноэкранная 3D-галерея. Случайный показ оружия, техники и предметов с иммерсивным 3D-рендерингом, частицами и навигацией с клавиатуры."
+  "tools_showcase_desc": "Полноэкранная 3D-галерея. Случайный показ оружия, техники и предметов с иммерсивным 3D-рендерингом, частицами и навигацией с клавиатуры.",
+  "degradation_chain": "ЦЕПЬ ДЕГРАДАЦИИ",
+  "states": "состояний",
+  "no_protection": "НЕТ ЗАЩИТЫ",
+  "current": "ТЕКУЩИЙ",
+  "class_projectile": "ПУЛЯ",
+  "class_blast": "ВЗРЫВ",
+  "class_melee": "БЛИЖНИЙ БОЙ",
+  "class_speed": "СКОРОСТЬ",
+  "class_hit_prob": "ВЕРОЯТ. ПОПАД.",
+  "class_detect": "ОБНАРУЖ.",
+  "branch": "ВЕТВЬ"
 }

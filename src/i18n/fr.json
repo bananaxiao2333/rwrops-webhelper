@@ -692,5 +692,16 @@
   "tools_metagen_export_cfg_label": "Conf",
   "tools_metagen_import_cfg_label": "Conf",
   "tools_showcase": "GALERIE",
-  "tools_showcase_desc": "Galerie 3D plein écran. Affiche aléatoirement armes, véhicules et objets avec rendu 3D immersif, effets de particules et navigation au clavier."
+  "tools_showcase_desc": "Galerie 3D plein écran. Affiche aléatoirement armes, véhicules et objets avec rendu 3D immersif, effets de particules et navigation au clavier.",
+  "degradation_chain": "CHAÎNE DE DÉGRADATION",
+  "states": "états",
+  "no_protection": "AUCUNE PROTECTION",
+  "current": "ACTUEL",
+  "class_projectile": "PROJECTILE",
+  "class_blast": "EXPLOSION",
+  "class_melee": "MÊLÉE",
+  "class_speed": "VITESSE",
+  "class_hit_prob": "PROB. TOUCHER",
+  "class_detect": "DÉTECTION",
+  "branch": "BRANCHE"
 }

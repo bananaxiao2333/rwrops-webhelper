@@ -692,5 +692,16 @@
   "tools_metagen_export_cfg_label": "Cfg",
   "tools_metagen_import_cfg_label": "Cfg",
   "tools_showcase": "SHOWCASE",
-  "tools_showcase_desc": "Fullscreen 3D gallery. Randomly cycles through weapons, vehicles and items with immersive 3D rendering, particle effects, and keyboard navigation."
+  "tools_showcase_desc": "Fullscreen 3D gallery. Randomly cycles through weapons, vehicles and items with immersive 3D rendering, particle effects, and keyboard navigation.",
+  "degradation_chain": "DEGRADATION CHAIN",
+  "states": "states",
+  "no_protection": "NO PROTECTION",
+  "current": "CURRENT",
+  "class_projectile": "PROJECTILE",
+  "class_blast": "BLAST",
+  "class_melee": "MELEE",
+  "class_speed": "SPEED",
+  "class_hit_prob": "HIT PROB",
+  "class_detect": "DETECT",
+  "branch": "BRANCH"
 }

@@ -692,5 +692,16 @@
   "tools_metagen_export_cfg_label": "Konf",
   "tools_metagen_import_cfg_label": "Konf",
   "tools_showcase": "GALERIE",
-  "tools_showcase_desc": "Vollbild-3D-Galerie. Zeigt zufällig Waffen, Fahrzeuge und Gegenstände mit immersiver 3D-Darstellung, Partikeleffekten und Tastaturnavigation."
+  "tools_showcase_desc": "Vollbild-3D-Galerie. Zeigt zufällig Waffen, Fahrzeuge und Gegenstände mit immersiver 3D-Darstellung, Partikeleffekten und Tastaturnavigation.",
+  "degradation_chain": "ABBAUKETTE",
+  "states": "Zustände",
+  "no_protection": "KEIN SCHUTZ",
+  "current": "AKTUELL",
+  "class_projectile": "PROJEKTIL",
+  "class_blast": "EXPLOSION",
+  "class_melee": "NAHKAMPF",
+  "class_speed": "GESCHWINDIGKEIT",
+  "class_hit_prob": "TREFFWKT.",
+  "class_detect": "ERKENNUNG",
+  "branch": "ZWEIG"
 }
