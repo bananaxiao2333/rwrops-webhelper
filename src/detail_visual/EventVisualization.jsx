@@ -18,7 +18,7 @@ export default function EventVisualization({ item }) {
   const t = useT();
   const [expandedId, setExpandedId] = useState(null);
 
-  if (!item || (!item.modifiers && !item.events)) return null;
+  if (!item || item.type === "carry_item" || (!item.modifiers && !item.events)) return null;
 
   const eventsSource = item.events || item.modifiers || [];
   const events = [];
