@@ -703,5 +703,6 @@
   "class_speed": "СКОРОСТЬ",
   "class_hit_prob": "ВЕРОЯТ. ПОПАД.",
   "class_detect": "ОБНАРУЖ.",
-  "branch": "ВЕТВЬ"
+  "branch": "ВЕТВЬ",
+  "unlock": "РАЗБЛОКИРОВАТЬ"
 }

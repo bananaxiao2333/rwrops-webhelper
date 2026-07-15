@@ -703,5 +703,6 @@
   "class_speed": "VITESSE",
   "class_hit_prob": "PROB. TOUCHER",
   "class_detect": "DÉTECTION",
-  "branch": "BRANCHE"
+  "branch": "BRANCHE",
+  "unlock": "DÉVERROUILLER"
 }
