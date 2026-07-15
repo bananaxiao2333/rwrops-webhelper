@@ -25,7 +25,7 @@ function getArticleSlugs() {
   for (const file of files) {
     const match = file.match(/^(.+)\.(\w{2})\.(md|mdx)$/);
     if (!match) continue;
-    const [, slug, lang, ext] = match;
+    const [, slug] = match;
     if (SKIP.includes(slug)) continue;
     slugs.add(slug);
     // Use file mtime as lastmod fallback

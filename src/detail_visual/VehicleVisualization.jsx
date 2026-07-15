@@ -32,7 +32,7 @@ function VehicleModel({ item }) {
 
       {/* Wheels */}
       {item.tire_sets?.map((tire, i) => {
-        const [tx, ty, tz] = tire.offset || [0, 0, 0];
+        const [tx,, tz] = tire.offset || [0, 0, 0];
         const r = tire.radius || 0.6;
         return (
           <group key={`wheel-${i}`} position={[tx, r, tz]}>

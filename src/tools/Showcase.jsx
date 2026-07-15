@@ -21,20 +21,13 @@ const ICON_PRELOAD_COUNT = 5;
 
 /* ── 7 Cinematic Camera Moves ── */
 const MOVES = [
-  // 1. Push — camera pushes forward
-  (t, dur, r) => { const p = Math.min(t/dur, 1); const d = 8*(1-p)+3.5*p; return [0, 1.5+0.3*Math.sin(p*2), d]; },
-  // 2. Pull — camera pulls back
-  (t, dur, r) => { const p = Math.min(t/dur, 1); const d = 3.5*(1-p)+7*p; return [0, 1.5, d]; },
-  // 3. Orbit — circle around subject
+  (t, dur) => { const p = Math.min(t/dur, 1); const d = 8*(1-p)+3.5*p; return [0, 1.5+0.3*Math.sin(p*2), d]; },
+  (t, dur) => { const p = Math.min(t/dur, 1); const d = 3.5*(1-p)+7*p; return [0, 1.5, d]; },
   (t, dur, r) => { const p = Math.min(t/dur, 1); const a = p*Math.PI*1.5; const d = r(4,5.5); return [Math.sin(a)*d, 1+Math.cos(p*2)*0.8, Math.cos(a)*d]; },
-  // 4. Pan — horizontal slide
-  (t, dur, r) => { const p = Math.min(t/dur, 1); const x = (p-0.5)*6; return [x, 1.5+Math.sin(p*3)*0.3, 5]; },
-  // 5. Dolly — push through
-  (t, dur, r) => { const p = Math.min(t/dur, 1); const z = 9*(1-p)+3.5*p; const y = 2.5*(1-p)+1.5*p; return [0.3*Math.sin(p*5), y, z]; },
-  // 6. Follow — arc swing
-  (t, dur, r) => { const p = Math.min(t/dur, 1); const a = p*Math.PI*0.9; return [Math.sin(a)*5, 1.2+Math.cos(p*3)*0.5, Math.cos(a)*4.5]; },
-  // 7. Sweep — pan from fixed point
-  (t, dur, r) => { const p = Math.min(t/dur, 1); return [Math.sin((p-0.5)*1.6)*4, 1.5+Math.sin(p*4)*0.4, 5+Math.cos((p-0.5)*1.6)*1.5]; },
+  (t, dur) => { const p = Math.min(t/dur, 1); const x = (p-0.5)*6; return [x, 1.5+Math.sin(p*3)*0.3, 5]; },
+  (t, dur) => { const p = Math.min(t/dur, 1); const z = 9*(1-p)+3.5*p; const y = 2.5*(1-p)+1.5*p; return [0.3*Math.sin(p*5), y, z]; },
+  (t, dur) => { const p = Math.min(t/dur, 1); const a = p*Math.PI*0.9; return [Math.sin(a)*5, 1.2+Math.cos(p*3)*0.5, Math.cos(a)*4.5]; },
+  (t, dur) => { const p = Math.min(t/dur, 1); return [Math.sin((p-0.5)*1.6)*4, 1.5+Math.sin(p*4)*0.4, 5+Math.cos((p-0.5)*1.6)*1.5]; },
 ];
 
 function pickMove(prev) {
@@ -474,7 +467,7 @@ export default function Showcase() {
   const progressPct = isPaused ? 0 : (timer / DISPLAY_DURATION) * 100;
   const isLightTheme = typeof document !== "undefined" && document.documentElement.classList.contains("light-theme");
   const overlayBg = isLightTheme ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.45)";
-  const overlayBorder = isLightTheme ? "rgba(0,0,0,0.08)" : "rgba(245,158,11,0.12)";
+
 
   /* ── Navigation helpers ── */
   const goBack = () => window.history.back();

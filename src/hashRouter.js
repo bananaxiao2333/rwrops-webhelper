@@ -2,7 +2,7 @@
 // Replaces the legacy custom hash router with History API routing.
 // Exports the same API surface so consumers need minimal changes.
 
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 /**
  * Parse current URL pathname into segments.
@@ -54,9 +54,10 @@ export function useRouteParams(data) {
   const route = useHashRoute();
   const { type, itemId } = route;
 
-  const typeExists = data && data.hasOwnProperty(type);
+  const hasOwn = Object.prototype.hasOwnProperty;
+  const typeExists = data && hasOwn.call(data, type);
   const itemExists =
-    typeExists && itemId && data[type].hasOwnProperty(itemId);
+    typeExists && itemId && hasOwn.call(data[type], itemId);
 
   return {
     ...route,

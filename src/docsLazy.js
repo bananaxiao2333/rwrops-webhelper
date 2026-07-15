@@ -56,11 +56,10 @@ export function getArticleSlugsSync() {
     for (const key of Object.keys(docsModules)) {
       const base = key.replace("../docs/articles/", "");
       const dot = base.lastIndexOf(".");
-      const ext = base.slice(dot);
       const stem = base.slice(0, dot);
       const parts = stem.split(".");
       if (parts.length < 2) continue;
-      const lang = parts.pop();
+      parts.pop();
       const slug = parts.join(".");
       if (SKIP.includes(slug)) continue;
       slugs.add(slug);

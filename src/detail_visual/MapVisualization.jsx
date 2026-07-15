@@ -12,7 +12,6 @@ function resolveRef(entry, data) {
   const itemKey = raw;
 
   let itemData = null;
-  let itemName = null;
   if (type && data?.[type]) {
     // Try exact key match first
     itemData = data[type][itemKey] || null;
@@ -27,7 +26,7 @@ function resolveRef(entry, data) {
     }
   }
 
-  return { ref, type, itemKey, itemData, itemName: itemData?.name || null };
+  return { ref, type, itemKey, itemData };
 }
 
 /* ── Item list section for a map ── */
@@ -77,7 +76,7 @@ function MapItemList({ items, label, icon, data }) {
             fontFamily: "var(--font-mono)",
           }}
         >
-          {specific.map(({ entry, resolved }, i) => {
+          {specific.map(({ resolved }, i) => {
             const name = resolved.itemData
               ? translate(resolved.itemData.name || "") || resolved.itemData.key || resolved.ref
               : resolved.ref;

@@ -42,7 +42,7 @@ function normalize(v, min, max) { const d = (max - min) || 1; return Math.max(0.
 
 /* ── Tile: icon as CSS background-layer, text floats above ── */
 function Tile({ item, config, norm, onClick, isMobile, index = 0 }) {
-  const { translate, t } = useI18n();
+  const { translate } = useI18n();
   const [iconLoaded, setIconLoaded] = useState(false);
   // Use item.color (faction) if available, else config.colorBase
   const [r, g, b] = item.color

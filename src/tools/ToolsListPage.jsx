@@ -46,7 +46,6 @@ function useIsMobile(breakpoint = 768) {
 }
 
 export default function ToolsListPage() {
-  const { lang } = useI18n();
   const t = useT();
   const isMobile = useIsMobile();
 

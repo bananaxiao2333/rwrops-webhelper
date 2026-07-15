@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "lsp": {
+    "typescript": {
+      "initialization": {
+        "preferences": {
+          "importModuleSpecifierPreference": "relative",
+          "includeCompletionsForModuleExports": true,
+          "includeCompletionsWithInsertText": true,
+          "autoImportFileExcludePatterns": ["node_modules"],
+          "quotePreference": "double",
+          "includeAutomaticOptionalChainCompletions": true
+        },
+        "maxTsServerMemory": 4096,
+        "plugins": [
+          {
+            "name": "typescript-plugin-css-modules"
+          }
+        ]
+      }
+    }
+  }
+}

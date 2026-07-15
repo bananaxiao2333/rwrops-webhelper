@@ -115,7 +115,7 @@ export function displayPath(value) {
   const origins = flatToOrig[value];
   if (origins && origins.length > 0) return origins[0].replace(/\\/g, "/");
   if (_index) {
-    for (const [orig, flat] of Object.entries(_index)) {
+    for (const [orig] of Object.entries(_index)) {
       if (orig.endsWith(value) || orig.replace(/\\/g, "/").endsWith(value)) {
         return orig.replace(/\\/g, "/");
       }

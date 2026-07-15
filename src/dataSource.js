@@ -11,7 +11,7 @@ export function getDataSource() {
   const isRemote = /^https?:\/\//i.test(base);
   _cached = {
     base,
-    isRemote,
+    isRemote: isRemote,
     dataUrl: `${base}/result.json`,
     metadataUrl: `${base}/metadata.yaml`,
     assetsUrl: `${base}/assets`,
@@ -24,7 +24,7 @@ export function getDataSource() {
  * `rel` is relative to the base directory (e.g. "assets/_index.json").
  */
 export async function fetchFromSource(rel) {
-  const { base, isRemote } = getDataSource();
+  const { base } = getDataSource();
   const url = `${base}/${rel}`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Fetch failed [${resp.status}]: ${url}`);

@@ -15,7 +15,7 @@
  *  OUPUT: 数值以路径作为显示 (@path:value)，消除歧义
  * ═══════════════════════════════════════════════════════════════ */
 
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useLocalStorage } from "@reactuses/core";
 import { Icon } from "@iconify/react";
 import { useI18n } from "../i18n.jsx";
@@ -37,18 +37,6 @@ function catColorHue(name) {
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash) + name.charCodeAt(i);
   return String(Math.abs(hash) % 360);
-}
-
-function makeDefaultTemplate(categories) {
-  return {
-    id: "default",
-    name: "Default",
-    entityTypes: categories.slice(0, 4),
-    fields: [],
-    globalSep: "  ",
-    showPath: false,
-    pathPrefix: "@",
-  };
 }
 
 /* ───────────────────────────────────────────────────
@@ -296,7 +284,6 @@ function useFieldTree(data, categories) {
 function TreeExplorer({
   roots,
   selectedPaths,
-  onTogglePath,
   onAddPath,
   activeCategory,
   onSetActiveCategory,
@@ -575,7 +562,7 @@ function TemplateEditor({
   isMobile,
   entityCount,
 }) {
-  const { t: uiT, translate } = useI18n();
+  const { t: uiT } = useI18n();
 
   const toggleEntityType = useCallback((type) => {
     const types = template.entityTypes;
@@ -594,7 +581,7 @@ function TemplateEditor({
       seen.get(key).push(i);
     });
     const result = [];
-    for (const [key, indices] of seen) {
+    for (const [, indices] of seen) {
       if (indices.length > 1) result.push({ label: template.fields[indices[0]].label, count: indices.length });
     }
     return result;
@@ -1395,7 +1382,7 @@ function ExportPanel({ template, data, customEntries, isMobile, onExportConfig, 
  * ═══════════════════════════════════════════════════ */
 
 export default function MetaGen() {
-  const { t, lang, translate } = useI18n();
+  const { t, translate } = useI18n();
   const { data } = useData();
   const isMobile = useIsMobile();
 
@@ -1657,7 +1644,7 @@ export default function MetaGen() {
         if (cfg.templates && cfg.customEntries) {
           setSaved({ templates: cfg.templates, activeTemplateId: cfg.activeTemplateId || "default", customEntries: cfg.customEntries });
         }
-      } catch (_) {}
+      } catch {}
     };
     reader.readAsText(file);
     e.target.value = "";
@@ -1710,7 +1697,6 @@ export default function MetaGen() {
       <TreeExplorer
         roots={filteredRoots}
         selectedPaths={selectedPaths}
-        onTogglePath={() => {}}
         onAddPath={addField}
         activeCategory={activeCategory}
         onSetActiveCategory={setActiveCategory}

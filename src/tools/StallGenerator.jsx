@@ -79,7 +79,6 @@ export default function StallGenerator() {
 
   /* ── Drag ── */
   const [dragIdx, setDragIdx] = useState(null);
-  const [dragOverIdx, setDragOverIdx] = useState(null);
 
   /* ── Search pool ── */
   const searchPool = useMemo(() => {
@@ -127,18 +126,18 @@ export default function StallGenerator() {
 
   /* ── Drag ── */
   const hDragStart = useCallback((e, i) => { setDragIdx(i); e.dataTransfer.effectAllowed = "move"; }, []);
-  const hDragOver = useCallback((e, i) => { e.preventDefault(); setDragOverIdx(i); }, []);
-  const hDragLeave = useCallback(() => setDragOverIdx(null), []);
+  const hDragOver = useCallback((e) => { e.preventDefault(); }, []);
+  const hDragLeave = useCallback(() => {}, []);
   const hDrop = useCallback((e, to) => {
     e.preventDefault();
-    if (dragIdx == null || dragIdx === to) { setDragIdx(null); setDragOverIdx(null); return; }
+    if (dragIdx == null || dragIdx === to) { setDragIdx(null); return; }
     setItems(p => {
       const n = [...p];
       const [m] = n.splice(dragIdx, 1);
       n.splice(to, 0, m);
       return n;
     });
-    setDragIdx(null); setDragOverIdx(null);
+    setDragIdx(null);
   }, [dragIdx]);
 
   /* ── PNG ── */
@@ -350,7 +349,7 @@ export default function StallGenerator() {
           )}
           {/* Items grid — vertical cards, center aligned */}
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: M ? 10 : 14, marginTop: (pc.showTitle || pc.showSubtitle) ? (M ? 12 : 16) : 0 }}>
-            {items.map((si, idx) => {
+            {items.map((si) => {
               const realIdx = items.indexOf(si);
               const fp = Math.round(si.price * (1 - si.discount / 100));
               return (
@@ -519,16 +518,15 @@ function AlignBtn({ label, val, onChange, M }) {
 }
 
 /* ── Edit modal ── */
-function EditModal({ si, idx, onUpdate, onRemove, onRevert, onClose, t, isMobile }) {
+function EditModal({ si, onUpdate, onRemove, onRevert, onClose, t, isMobile }) {
   const M = isMobile;
   const mW = M ? "92vw" : 320;
   const mPad = M ? "20px 16px" : "20px 24px";
 
-  // save snapshot on mount, revert on ✕
   const snapRef = useRef(null);
-  if (!snapRef.current) {
+  useEffect(() => {
     snapRef.current = { quantity: si.quantity, price: si.price, discount: si.discount };
-  }
+  }, []);
   const handleClose = useCallback(() => {
     if (snapRef.current) {
       const s = snapRef.current;
