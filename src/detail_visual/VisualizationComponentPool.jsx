@@ -16,11 +16,7 @@ import VisualizationErrorBoundary from "./ErrorBoundary";
 const visualizationComponents = [
   { component: RankVisualization, shouldRender: (item) => item && Array.isArray(item.capacities) && item.capacities.some(c => c.source === "rank") },
   { component: ExchangeVisualization, shouldRender: (item) => item && (item.exchange_prizes || item.exchange_sources) },
-  { component: ClothingVisualization, shouldRender: (item) => item && item.type === "carry_item" && (
-    item.modifiers !== undefined || item.events !== undefined ||
-    item.transform_on_consume !== undefined || item.slot !== undefined ||
-    item.commonness !== undefined
-  )},
+  { component: ClothingVisualization, shouldRender: () => true },
   { component: CommandVisualization, shouldRender: (item) => item && item.type === "command_config" },
   { component: ProjectileVisualization, shouldRender: (item) => item && (
     item.projectile_speed !== undefined || item.projectiles_per_shot !== undefined ||
