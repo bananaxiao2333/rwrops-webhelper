@@ -21,6 +21,7 @@ import { Icon } from "@iconify/react";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
 import DEFAULT_CONFIG from "./MetaGenDefaults.js";
+import { visualizationExportData } from "../detail_visual/visualizationExportData.js";
 
 /* ───────────────────────────────────────────────────
  *  HELPERS — everything derived from data, no hardcoding
@@ -454,8 +455,9 @@ function TreeExplorer({
     <div style={{
       display: "flex",
       flexDirection: "column",
-      height: "100%",
+      flex: 1,
       overflow: "hidden",
+      minHeight: 0,
     }}>
       {/* Header */}
       <div style={{
@@ -1378,6 +1380,318 @@ function ExportPanel({ template, data, customEntries, isMobile, onExportConfig, 
 }
 
 /* ═══════════════════════════════════════════════════
+ *  COMPONENT: Viz Import Section
+ *  Always visible in the tree panel; shows expandable
+ *  visualization datasets with per-field + buttons.
+ * ═══════════════════════════════════════════════════ */
+
+function countLeafFields(fields) {
+  let n = 0;
+  for (const f of fields) {
+    if (f.children) n += countLeafFields(f.children);
+    else n++;
+  }
+  return n;
+}
+
+function VizImportSection({ entityTypes, selectedPaths, onAddPath, isMobile }) {
+  const { t } = useI18n();
+  const [expanded, setExpanded] = useState(true);
+  const [expandedDatasets, setExpandedDatasets] = useState(new Set());
+  const [expandedFields, setExpandedFields] = useState(new Set());
+
+  const toggleDataset = useCallback((id) => {
+    setExpandedDatasets((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleField = useCallback((path) => {
+    setExpandedFields((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  }, []);
+
+  const renderField = (f, depth) => {
+    const isContainer = f.children && f.children.length > 0;
+    const isFieldExpanded = expandedFields.has(f.path);
+    const indent = depth * (isMobile ? 10 : 14);
+    const key = f.path || f.label;
+
+    if (isContainer) {
+      return (
+        <div key={key}>
+          <div
+            onClick={() => toggleField(f.path)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 3,
+              padding: isMobile ? "2px 8px 2px 16px" : "2px 10px 2px 20px",
+              paddingLeft: isMobile ? 16 + indent : 20 + indent,
+              fontFamily: "var(--font-mono)",
+              fontSize: isMobile ? "var(--font-xxs)" : "var(--font-xxs)",
+              color: "var(--text-secondary)",
+              cursor: "pointer",
+              borderBottom: "1px solid var(--border-subtle)",
+              transition: "background var(--dur-fast) var(--ease-smooth)",
+              userSelect: "none",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-surface)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+          >
+            <span style={{
+              fontSize: isMobile ? 6 : 8,
+              transform: isFieldExpanded ? "rotate(90deg)" : "rotate(0deg)",
+              transition: "transform 0.12s ease",
+              flexShrink: 0,
+              width: 10,
+              textAlign: "center",
+              color: "var(--text-dim)",
+            }}>
+              {"\u25B6"}
+            </span>
+            <Icon icon="ph:cube" width={isMobile ? 9 : 11} style={{ flexShrink: 0, color: "var(--text-muted)", opacity: 0.6 }} />
+            <span style={{
+              flex: 1,
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {t(f.label)}
+            </span>
+            <span style={{
+              fontSize: "var(--font-xxs)",
+              color: "var(--text-dim)",
+              opacity: 0.45,
+              flexShrink: 0,
+            }}>
+              {"{"}{f.children.length}{"}"}
+            </span>
+          </div>
+          {isFieldExpanded && (
+            <div>
+              {f.children.map((child) => renderField(child, depth + 1))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const alreadyAdded = selectedPaths.has(f.path);
+    return (
+      <div
+        key={key}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 3,
+          padding: isMobile ? "2px 8px 2px 16px" : "2px 10px 2px 20px",
+          paddingLeft: isMobile ? 16 + indent : 20 + indent,
+          fontFamily: "var(--font-mono)",
+          fontSize: isMobile ? "var(--font-xxs)" : "var(--font-xxs)",
+          color: "var(--text-secondary)",
+          borderBottom: "1px solid var(--border-subtle)",
+          transition: "background var(--dur-fast) var(--ease-smooth)",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-surface)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+      >
+        <span style={{
+          fontSize: "var(--font-xxs)",
+          color: "var(--text-dim)",
+          background: "var(--bg-elevated)",
+          padding: "0 2px",
+          borderRadius: 1,
+          flexShrink: 0,
+          minWidth: 14,
+          textAlign: "center",
+        }}>
+          {f.type === "number" ? "#"
+            : f.type === "boolean" ? "01"
+            : "abc"}
+        </span>
+        <span style={{
+          flex: 1,
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}>
+          {t(f.label)}
+        </span>
+        <span style={{
+          fontSize: "var(--font-xxs)",
+          color: "var(--text-dim)",
+          maxWidth: 100,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          flexShrink: 1,
+          opacity: 0.5,
+        }}>
+          {f.path}
+        </span>
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!alreadyAdded) onAddPath(f.path, f.type, []);
+          }}
+          style={{
+            flexShrink: 0,
+            width: isMobile ? 12 : 14,
+            height: isMobile ? 12 : 14,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "var(--font-xxs)",
+            color: alreadyAdded ? "var(--success)" : "var(--text-dim)",
+            background: alreadyAdded ? "rgba(34,197,94,0.1)" : "transparent",
+            borderRadius: 2,
+            cursor: alreadyAdded ? "default" : "pointer",
+            transition: "all var(--dur-fast) var(--ease-smooth)",
+          }}
+          title={alreadyAdded
+            ? t("tools_metagen_already_added")
+            : t("tools_metagen_add_to_template")}
+        >
+          {alreadyAdded
+            ? <Icon icon="ph:check" width={isMobile ? 8 : 9} />
+            : "+"}
+        </span>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{
+      borderTop: "1px solid var(--border-subtle)",
+      borderBottom: "1px solid var(--border-subtle)",
+      background: "var(--bg-surface)",
+      flexShrink: 0,
+    }}>
+      {/* Section header */}
+      <div
+        onClick={() => setExpanded((v) => !v)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: isMobile ? "4px 8px" : "5px 10px",
+          cursor: "pointer",
+          fontFamily: "var(--font-mono)",
+          fontSize: isMobile ? "var(--font-xxs)" : "var(--font-xs)",
+          color: expanded ? "var(--accent)" : "var(--text-muted)",
+          letterSpacing: "0.08em",
+          userSelect: "none",
+          transition: "color var(--dur-fast) var(--ease-smooth)",
+        }}
+      >
+        <span style={{
+          fontSize: isMobile ? 8 : 10,
+          transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
+          transition: "transform 0.15s ease",
+          flexShrink: 0,
+        }}>
+          &#9654;
+        </span>
+        <Icon icon="ph:database" width={isMobile ? 10 : 12} style={{ flexShrink: 0 }} />
+        <span>{t("tools_metagen_viz_section")}</span>
+        <span style={{ color: "var(--text-dim)", fontSize: isMobile ? "var(--font-xxs)" : "var(--font-xxs)" }}>
+          {visualizationExportData.length}
+        </span>
+      </div>
+
+      {/* Datasets */}
+      {expanded && (
+        <div style={{
+          maxHeight: isMobile ? 240 : 300,
+          overflow: "auto",
+          borderTop: "1px solid var(--border-subtle)",
+          animation: "slide-down 0.12s var(--ease-smooth) both",
+        }}>
+          {visualizationExportData.map((v) => {
+            const matchesType = v.entityTypes.length === 0 ||
+              v.entityTypes.some((et) => entityTypes.includes(et));
+            const isDatasetExpanded = expandedDatasets.has(v.id);
+            const dsColor = matchesType ? "var(--text-primary)" : "var(--text-dim)";
+            const dsOpac = matchesType ? 1 : 0.45;
+            const leafCount = countLeafFields(v.fields);
+
+            return (
+              <div key={v.id} style={{ opacity: dsOpac }}>
+                {/* Dataset header */}
+                <div
+                  onClick={() => matchesType && toggleDataset(v.id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: isMobile ? "3px 8px" : "4px 10px",
+                    cursor: matchesType ? "pointer" : "default",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: isMobile ? "var(--font-xxs)" : "var(--font-xs)",
+                    color: dsColor,
+                    borderBottom: isDatasetExpanded ? "none" : "1px solid var(--border-subtle)",
+                    background: isDatasetExpanded ? "var(--bg-base)" : "transparent",
+                    transition: "background var(--dur-fast) var(--ease-smooth)",
+                  }}
+                >
+                  <span style={{
+                    fontSize: isMobile ? 6 : 8,
+                    transform: isDatasetExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                    transition: "transform 0.12s ease",
+                    flexShrink: 0,
+                    width: 10,
+                    textAlign: "center",
+                  }}>
+                    {matchesType ? "\u25B6" : ""}
+                  </span>
+                  <Icon icon={v.icon} width={isMobile ? 10 : 12} style={{ flexShrink: 0, color: "var(--accent)" }} />
+                  <span style={{
+                    flex: 1,
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {t("tools_metagen_viz_" + v.id)}
+                  </span>
+                  <span style={{
+                    fontSize: isMobile ? "var(--font-xxs)" : "var(--font-xxs)",
+                    color: "var(--text-dim)",
+                    flexShrink: 0,
+                    fontFamily: "var(--font-mono)",
+                  }}>
+                    {leafCount}
+                  </span>
+                </div>
+
+                {/* Field rows */}
+                {isDatasetExpanded && matchesType && (
+                  <div style={{
+                    background: "var(--bg-base)",
+                  }}>
+                    {v.fields.map((f) => renderField(f, 0))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
  *  MAIN COMPONENT: MetaGen
  * ═══════════════════════════════════════════════════ */
 
@@ -1694,14 +2008,22 @@ export default function MetaGen() {
           }}
         />
       </div>
-      <TreeExplorer
-        roots={filteredRoots}
+      <VizImportSection
+        entityTypes={activeTemplate.entityTypes}
         selectedPaths={selectedPaths}
         onAddPath={addField}
-        activeCategory={activeCategory}
-        onSetActiveCategory={setActiveCategory}
         isMobile={isMobile}
       />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <TreeExplorer
+          roots={filteredRoots}
+          selectedPaths={selectedPaths}
+          onAddPath={addField}
+          activeCategory={activeCategory}
+          onSetActiveCategory={setActiveCategory}
+          isMobile={isMobile}
+        />
+      </div>
     </div>
   );
 
