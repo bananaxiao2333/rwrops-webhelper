@@ -709,5 +709,18 @@
   "protection_wear": "导致磨损",
   "mod_input": "输入状态",
   "mod_output": "输出状态",
-  "mod_no_entry": "无修饰器条目"
+  "mod_no_entry": "无修饰器条目",
+  "rwr_intro_title": "RUNNING WITH RIFLES",
+  "rwr_intro_desc": "俯视角战术射击 · 持久开放世界战争 · 在程序生成的战场上晋升军衔",
+  "share": "分享",
+  "share_title": "分享",
+  "share_select_all": "全选",
+  "share_deselect_all": "取消全选",
+  "share_no_sections": "暂无可用内容区块",
+  "share_generate": "生成预览",
+  "share_copy": "复制",
+  "share_copied": "已复制",
+  "share_download": "下载",
+  "share_capture": "截图",
+  "share_capturing": "截图中…"
 }

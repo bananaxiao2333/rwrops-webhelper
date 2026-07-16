@@ -248,9 +248,47 @@ export function HomePage({ allKeywords = [], data }) {
             <div style={{ animation: "fade-in 0.3s ease 0.55s both" }}><span style={{ color: "var(--accent)" }}>[ &gt;&gt; ]</span>&nbsp;&nbsp;{t("awaiting")}</div>
           </div>
 
+          {/* Game intro */}
+          <div style={{
+            marginTop: isMobile ? 10 : 16, marginBottom: isMobile ? 4 : 8,
+            border: "1px solid var(--border-subtle)",
+            padding: isMobile ? "8px 10px" : "10px 14px",
+            animation: "fade-in 0.4s var(--ease-smooth) 0.6s both",
+            display: "flex", alignItems: "flex-start", gap: isMobile ? 8 : 14,
+          }}>
+            <img src="/rwr-title.png" alt="RWR"
+              style={{
+                width: isMobile ? 80 : 120,
+                height: "auto",
+                flexShrink: 0,
+                alignSelf: "center",
+                imageRendering: "pixelated",
+                opacity: 0.85,
+              }}
+            />
+            <div style={{ flex: 1 }}>
+              <div style={{
+                fontSize: isMobile ? "var(--font-xxs)" : "var(--font-xs)",
+                fontWeight: 700, letterSpacing: "0.15em",
+                color: "var(--accent)", textTransform: "uppercase",
+                marginBottom: isMobile ? 3 : 4,
+                fontFamily: "var(--font-mono)",
+              }}>
+                {t("rwr_intro_title")}
+              </div>
+              <div style={{
+                fontSize: isMobile ? "clamp(6px, 1.5vw, 8px)" : "clamp(8px, 0.7vw, 10px)",
+                color: "var(--text-muted)", lineHeight: 1.5,
+                fontFamily: "var(--font-mono)",
+              }}>
+                {t("rwr_intro_desc")}
+              </div>
+            </div>
+          </div>
+
           {/* Blinking prompt */}
           <div style={{
-            marginTop: isMobile ? 10 : 20, display: "flex", alignItems: "center", gap: 6,
+            marginTop: isMobile ? 6 : 8, display: "flex", alignItems: "center", gap: 6,
             fontSize: "var(--font-sm)", color: "var(--accent)", fontFamily: "var(--font-mono)",
             animation: "fade-in 0.3s ease 0.65s both",
           }}>

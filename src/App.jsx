@@ -8,12 +8,15 @@ import DocsPage, { DocsListPage } from "./DocsPage.jsx";
 import { getArticleSlugsSync, getAllArticleMetas } from "./docsLazy.js";
 import GlobalSearch from "./GlobalSearch.jsx";
 import { lazy, Suspense } from "react";
+import { Icon } from "@iconify/react";
 const ToolsListPage = lazy(() => import("./tools/ToolsListPage.jsx"));
 import { TOOLS } from "./tools/ToolsListPage.jsx";
 const StallGenerator = lazy(() => import("./tools/StallGenerator.jsx"));
 const MetaGen = lazy(() => import("./tools/MetaGen.jsx"));
 const Showcase = lazy(() => import("./tools/Showcase.jsx"));
 import ErrorBoundary from "./ErrorBoundary.jsx";
+import { ShareProvider } from "./ShareContext.jsx";
+import ShareModal from "./ShareModal.jsx";
 
 /* ── Language first-time picker modal ── */
 import List from "./List.jsx";
@@ -122,7 +125,7 @@ function useTheme() {
 }
 
 /* ── Persistent Status Bar ── */
-function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen }) {
+function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, onShareOpen, showShare }) {
   const { t } = useI18n();
   return (
     <div style={{
@@ -198,6 +201,32 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen })
         )}
       </div>
 
+      {/* Share button (params only) */}
+      {showShare && (
+        <div
+          onClick={onShareOpen}
+          style={{
+            border: "1px solid var(--border-subtle)",
+            padding: isMobile ? "2px 8px" : "3px 8px",
+            background: "var(--bg-deep)",
+            display: "flex", alignItems: "center", gap: 6,
+            cursor: "pointer",
+            transition: "border-color var(--dur-fast) var(--ease-smooth)",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
+        >
+          <Icon icon="mdi:share-variant" style={{ fontSize: 11, color: "var(--accent)" }} />
+          {!isMobile && (
+            <span style={{
+              color: "var(--text-muted)", fontSize: "var(--font-xs)",
+              fontFamily: "var(--font-mono)",
+            }}>
+              {t("share")}
+            </span>
+          )}
+        </div>
+      )}
       {/* Language switch */}
       <LanguageSelector />
     </div>
@@ -217,7 +246,7 @@ function LanguageSelector() {
       <span
         onClick={() => setOpen(!open)}
         style={{
-          cursor: "pointer", padding: "2px 8px",
+          cursor: "pointer", padding: "3px 8px",
           border: "1px solid var(--border-subtle)",
           fontSize: "var(--font-xs)",
           color: "var(--accent)",
@@ -478,6 +507,7 @@ export default function App() {
   const [showLangModal, setShowLangModal] = useState(!localStorage.getItem("rwrops_lang"));
 
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [priceFilter, setPriceFilter] = useState(false);
   const [exchangeSourceFilter, setExchangeSourceFilter] = useState(false);
   const [exchangePrizeFilter, setExchangePrizeFilter] = useState(false);
@@ -553,6 +583,7 @@ export default function App() {
   }
 
   return (
+    <ShareProvider>
     <div style={{
       display: "flex", flexDirection: "column",
       height: "100vh",
@@ -603,6 +634,8 @@ export default function App() {
         isMobile={isMobile}
         onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
         onSearchOpen={() => setGlobalSearchOpen(true)}
+        showShare={isParams && itemKey !== null}
+        onShareOpen={() => setShareOpen(true)}
       />
 
       {/* Content */}
@@ -725,6 +758,10 @@ export default function App() {
           onClose={() => setRollItem(null)}
         />
       )}
+
+      {/* ── Share Modal ── */}
+      {shareOpen && <ShareModal onClose={() => setShareOpen(false)} />}
+
       {(() => {
         const year = new Date().getFullYear();
         return (
@@ -744,5 +781,6 @@ export default function App() {
         );
       })()}
     </div>
+    </ShareProvider>
   );
 }

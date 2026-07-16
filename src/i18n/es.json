@@ -709,5 +709,18 @@
   "protection_wear": "CAUSA DESGASTE",
   "mod_input": "entrada",
   "mod_output": "salida",
-  "mod_no_entry": "sin entrada de mod."
+  "mod_no_entry": "sin entrada de mod.",
+  "rwr_intro_title": "RUNNING WITH RIFLES",
+  "rwr_intro_desc": "Shooter táctico cenital · guerra persistente de mundo abierto · asciende en campos de batalla generados proceduralmente",
+  "share": "COMPARTIR",
+  "share_title": "COMPARTIR",
+  "share_select_all": "SELECCIONAR TODO",
+  "share_deselect_all": "DESELECCIONAR TODO",
+  "share_no_sections": "No hay secciones disponibles",
+  "share_generate": "GENERAR VISTA PREVIA",
+  "share_copy": "COPIAR",
+  "share_copied": "COPIADO",
+  "share_download": "DESCARGAR",
+  "share_capture": "CAPTURAR",
+  "share_capturing": "CAPTURANDO…"
 }
