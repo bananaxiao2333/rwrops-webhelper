@@ -709,5 +709,18 @@
   "protection_wear": "CAUSES WEAR",
   "mod_input": "input",
   "mod_output": "output",
-  "mod_no_entry": "no modifier entry"
+  "mod_no_entry": "no modifier entry",
+  "rwr_intro_title": "RUNNING WITH RIFLES",
+  "rwr_intro_desc": "Top-down tactical shooter · persistent open-world warfare · rank up across procedurally generated battlefields",
+  "share": "SHARE",
+  "share_title": "SHARE",
+  "share_select_all": "SELECT ALL",
+  "share_deselect_all": "DESELECT ALL",
+  "share_no_sections": "No content sections available",
+  "share_generate": "GENERATE PREVIEW",
+  "share_copy": "COPY",
+  "share_copied": "COPIED",
+  "share_download": "DOWNLOAD",
+  "share_capture": "CAPTURE",
+  "share_capturing": "CAPTURING…"
 }

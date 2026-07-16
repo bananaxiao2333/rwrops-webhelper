@@ -709,5 +709,18 @@
   "protection_wear": "CAUSE USURE",
   "mod_input": "entrée",
   "mod_output": "sortie",
-  "mod_no_entry": "aucun mod."
+  "mod_no_entry": "aucun mod.",
+  "rwr_intro_title": "RUNNING WITH RIFLES",
+  "rwr_intro_desc": "Tireur tactique vue du dessus · guerre persistante en monde ouvert · gravir les échelons sur des champs de bataille procéduraux",
+  "share": "PARTAGER",
+  "share_title": "PARTAGER",
+  "share_select_all": "TOUT SÉLECTIONNER",
+  "share_deselect_all": "TOUT DÉSÉLECTIONNER",
+  "share_no_sections": "Aucune section disponible",
+  "share_generate": "GÉNÉRER L'APERÇU",
+  "share_copy": "COPIER",
+  "share_copied": "COPIÉ",
+  "share_download": "TÉLÉCHARGER",
+  "share_capture": "CAPTURER",
+  "share_capturing": "CAPTURE…"
 }

@@ -709,5 +709,18 @@
   "protection_wear": "ВЫЗЫВАЕТ ИЗНОС",
   "mod_input": "вход",
   "mod_output": "выход",
-  "mod_no_entry": "нет модификатора"
+  "mod_no_entry": "нет модификатора",
+  "rwr_intro_title": "RUNNING WITH RIFLES",
+  "rwr_intro_desc": "Тактический шутер от третьего лица · постоянная война в открытом мире · повышение на процедурно генерируемых полях сражений",
+  "share": "ПОДЕЛИТЬСЯ",
+  "share_title": "ПОДЕЛИТЬСЯ",
+  "share_select_all": "ВЫБРАТЬ ВСЁ",
+  "share_deselect_all": "ОТМЕНИТЬ ВСЁ",
+  "share_no_sections": "Нет доступных разделов",
+  "share_generate": "СОЗДАТЬ ПРЕДПРОСМОТР",
+  "share_copy": "КОПИРОВАТЬ",
+  "share_copied": "СКОПИРОВАНО",
+  "share_download": "СКАЧАТЬ",
+  "share_capture": "СДЕЛАТЬ СКРИНШОТ",
+  "share_capturing": "СКРИНШОТ…"
 }

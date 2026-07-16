@@ -56,42 +56,28 @@
       overflow: hidden;
       transition: opacity 0.45s var(--ease-smooth),
                   visibility 0.45s var(--ease-smooth);
-      animation: crt-flicker 4s ease-in-out 0.5s infinite;
     }
 
     #loading-screen.fade-out {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
-      animation: none;
     }
 
-    /* ── CRT vignette ── */
-    #loading-screen::before {
-      content: '';
-      position: absolute; inset: 0; z-index: 0; pointer-events: none;
-      background: radial-gradient(ellipse at center,
-        transparent 50%,
-        rgba(8, 12, 18, 0.55) 80%,
-        rgba(8, 12, 18, 0.85) 100%
-      );
-    }
-
-    /* ── Scanline overlay (animated downward drift) ── */
+    /* ── CRT scanlines ── */
     #loading-screen::after {
       content: '';
       position: absolute; inset: 0; z-index: 1; pointer-events: none;
       background: repeating-linear-gradient(
         0deg,
         transparent,
-        transparent 3px,
-        rgba(245, 158, 11, 0.012) 3px,
-        rgba(245, 158, 11, 0.012) 6px
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
       );
-      animation: scanline-drift 8s linear infinite;
     }
 
-    /* ── Noise grain overlay ── */
+    /* ── Noise grain ── */
     .terminal-grain {
       position: absolute; inset: -50%; z-index: 1; pointer-events: none;
       opacity: 0.025;
@@ -109,115 +95,139 @@
       opacity: 0;
     }
 
+    /* ── Vignette overlay ── */
+    .terminal-vignette {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse at center,
+        transparent 50%,
+        rgba(8, 12, 18, 0.55) 80%,
+        rgba(8, 12, 18, 0.85) 100%
+      );
+    }
+
     /* ════════════ TERMINAL CONTAINER ════════════ */
     .terminal {
       position: relative; z-index: 2;
-      width: 100%; max-width: 600px;
-      padding: 3rem 2.5rem;
+      width: 100%; max-width: 580px;
+      padding: 2.5rem 2.5rem 2rem;
       display: flex; flex-direction: column;
-      gap: 2rem;
+      gap: 1.5rem;
+      border: 1px solid rgba(245,158,11,0.08);
+      background: rgba(8,12,18,0.6);
+      backdrop-filter: blur(2px);
     }
 
     /* ── HUD Corner Brackets ── */
-    .terminal::before,
-    .terminal::after {
-      content: ''; position: absolute; pointer-events: none;
-      width: 24px; height: 24px; z-index: 3;
+    .terminal-corners {
+      position: absolute; inset: 0; pointer-events: none; z-index: 3;
+    }
+    .terminal-corners::before,
+    .terminal-corners::after {
+      content: ''; position: absolute;
+      width: 32px; height: 32px;
       opacity: 0;
       animation: bracket-appear 0.5s var(--ease-spring) 0.15s forwards;
     }
-    .terminal::before {
-      top: 0; left: 0;
-      border-top: 1px solid rgba(245,158,11,0.2);
-      border-left: 1px solid rgba(245,158,11,0.2);
+    .terminal-corners::before {
+      top: -1px; left: -1px;
+      border-top: 2px solid rgba(245,158,11,0.3);
+      border-left: 2px solid rgba(245,158,11,0.3);
     }
-    .terminal::after {
-      top: 0; right: 0;
-      border-top: 1px solid rgba(245,158,11,0.2);
-      border-right: 1px solid rgba(245,158,11,0.2);
+    .terminal-corners::after {
+      top: -1px; right: -1px;
+      border-top: 2px solid rgba(245,158,11,0.3);
+      border-right: 2px solid rgba(245,158,11,0.3);
     }
-
-    .terminal-brackets-bottom {
+    .terminal-corners-bottom {
       position: absolute; inset: 0; pointer-events: none; z-index: 3;
     }
-    .terminal-brackets-bottom::before,
-    .terminal-brackets-bottom::after {
+    .terminal-corners-bottom::before,
+    .terminal-corners-bottom::after {
       content: ''; position: absolute;
-      width: 24px; height: 24px;
+      width: 32px; height: 32px;
       opacity: 0;
       animation: bracket-appear 0.5s var(--ease-spring) 0.2s forwards;
     }
-    .terminal-brackets-bottom::before {
-      bottom: 0; left: 0;
-      border-bottom: 1px solid rgba(245,158,11,0.2);
-      border-left: 1px solid rgba(245,158,11,0.2);
+    .terminal-corners-bottom::before {
+      bottom: -1px; left: -1px;
+      border-bottom: 2px solid rgba(245,158,11,0.3);
+      border-left: 2px solid rgba(245,158,11,0.3);
     }
-    .terminal-brackets-bottom::after {
-      bottom: 0; right: 0;
-      border-bottom: 1px solid rgba(245,158,11,0.2);
-      border-right: 1px solid rgba(245,158,11,0.2);
+    .terminal-corners-bottom::after {
+      bottom: -1px; right: -1px;
+      border-bottom: 2px solid rgba(245,158,11,0.3);
+      border-right: 2px solid rgba(245,158,11,0.3);
     }
 
     /* ── Header ── */
     .terminal-header {
       display: flex; flex-direction: column;
-      align-items: flex-start;
+      align-items: center; gap: 0.3rem;
+    }
+
+    .terminal-symbol {
+      font-family: var(--font-display);
+      font-size: 0.55rem;
+      letter-spacing: 0.3em;
+      color: var(--accent-dim);
+      text-transform: uppercase;
+      opacity: 0;
+      animation: term-fade-up 0.45s var(--ease-smooth) 0.05s forwards;
     }
 
     .terminal-title {
       font-family: var(--font-display);
       font-weight: 700;
-      font-size: clamp(44px, 7vw, 80px);
+      font-size: clamp(48px, 8vw, 88px);
       letter-spacing: 0.14em;
       line-height: 0.9;
       color: var(--text-primary);
       text-transform: uppercase;
+      text-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(245,158,11,0.08);
       display: flex;
-      text-shadow: 0 0 40px var(--accent-glow);
       animation: title-glow-pulse 3s ease-in-out 1s infinite;
     }
 
-    /* ── Title character stagger ── */
     .title-char {
       display: inline-block;
       opacity: 0;
       animation: char-drop-in 0.45s var(--ease-spring) forwards;
     }
-    .title-char:nth-child(1) { animation-delay: 0.05s; }
-    .title-char:nth-child(2) { animation-delay: 0.10s; }
-    .title-char:nth-child(3) { animation-delay: 0.15s; }
-    .title-char:nth-child(4) { animation-delay: 0.20s; }
-    .title-char:nth-child(5) { animation-delay: 0.25s; }
-    .title-char:nth-child(6) { animation-delay: 0.30s; }
+    .title-char:nth-child(1) { animation-delay: 0.08s; }
+    .title-char:nth-child(2) { animation-delay: 0.13s; }
+    .title-char:nth-child(3) { animation-delay: 0.18s; }
+    .title-char:nth-child(4) { animation-delay: 0.23s; }
+    .title-char:nth-child(5) { animation-delay: 0.28s; }
+    .title-char:nth-child(6) { animation-delay: 0.33s; }
 
     .terminal-rule {
-      width: 180px; height: 2px;
-      margin: 0.85rem 0 0.6rem;
-      background: linear-gradient(to right, var(--accent), rgba(245,158,11,0.15), transparent);
+      width: 160px; height: 1px;
+      margin: 0.2rem 0 0.3rem;
+      background: linear-gradient(to right, transparent, var(--accent), transparent);
       opacity: 0;
-      animation: term-rule-expand 0.55s var(--ease-out) 0.35s forwards,
-                 rule-breathe 2.5s ease-in-out 1s infinite;
-      transform-origin: left center;
+      animation: term-rule-expand 0.55s var(--ease-out) 0.4s forwards,
+                 rule-breathe 2.5s ease-in-out 1.2s infinite;
+      transform-origin: center;
     }
 
     .terminal-subtitle {
       font-family: var(--font-mono);
-      font-size: 0.6rem;
-      letter-spacing: 0.22em;
+      font-size: 0.55rem;
+      letter-spacing: 0.25em;
       color: var(--text-muted);
       text-transform: uppercase;
       opacity: 0;
-      animation: term-fade-up 0.45s var(--ease-smooth) 0.45s forwards;
+      animation: term-fade-up 0.45s var(--ease-smooth) 0.5s forwards;
       overflow: hidden;
       white-space: nowrap;
+      text-align: center;
     }
 
-    /* ── Subtitle typewriter reveal ── */
     .subtitle-text {
       display: inline-block;
       overflow: hidden;
       white-space: nowrap;
-      animation: typewriter-reveal 1.2s steps(42, end) 0.5s forwards;
+      animation: typewriter-reveal 1.2s steps(42, end) 0.55s forwards;
       max-width: 0;
       vertical-align: bottom;
     }
@@ -225,18 +235,20 @@
     /* ── Boot Log ── */
     .terminal-log {
       display: flex; flex-direction: column;
-      gap: 0.55rem;
-      font-size: 0.6rem;
-      line-height: 1.7;
+      gap: 0.35rem;
+      font-size: 0.55rem;
+      line-height: 1.6;
       color: var(--text-dim);
       letter-spacing: 0.06em;
+      padding: 0.75rem 1rem;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(245,158,11,0.06);
     }
 
     .log-row {
-      display: flex; align-items: baseline; gap: 8px;
+      display: flex; align-items: baseline; gap: 6px;
       opacity: 0;
       animation: log-entry-in 0.4s var(--ease-out) forwards;
-      position: relative;
     }
     .log-row:nth-child(1) { animation-delay: 0.55s; }
     .log-row:nth-child(2) { animation-delay: 0.65s; }
@@ -244,25 +256,23 @@
     .log-row:nth-child(4) { animation-delay: 0.85s; }
     .log-row:nth-child(5) { animation-delay: 0.95s; }
 
-    /* log caret */
-    .log-row::before {
-      content: '⟩';
-      position: absolute; left: -14px; top: 0;
-      font-size: 0.55rem; color: var(--accent-dim);
-      opacity: 0;
-      animation: caret-blink-in 0.5s var(--ease-smooth) forwards;
-      animation-delay: inherit;
+    .log-status {
+      color: var(--success);
+      white-space: nowrap;
+      font-weight: 500;
+      min-width: 3.2em;
     }
-
-    .log-status { color: var(--success); white-space: nowrap; font-weight: 500; }
-    .log-entry  { color: var(--text-dim);  white-space: nowrap; }
+    .log-entry {
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
 
     /* ── Progress Section ── */
     .terminal-progress {
       display: flex; flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.4rem;
       opacity: 0;
-      animation: term-fade-up 0.45s var(--ease-smooth) 0.55s forwards;
+      animation: term-fade-up 0.45s var(--ease-smooth) 0.6s forwards;
     }
 
     .progress-header {
@@ -270,7 +280,7 @@
     }
 
     .progress-stage {
-      font-size: 0.58rem;
+      font-size: 0.52rem;
       letter-spacing: 0.2em;
       color: var(--accent);
       text-transform: uppercase;
@@ -279,7 +289,7 @@
 
     .progress-pct {
       font-family: var(--font-mono);
-      font-size: 0.58rem;
+      font-size: 0.52rem;
       color: var(--text-muted);
       letter-spacing: 0.08em;
     }
@@ -287,27 +297,26 @@
     .progress-pct-value {
       display: inline-block;
       transition: transform 0.15s var(--ease-spring);
+      min-width: 2ch;
+      text-align: right;
     }
 
     .progress-track {
-      width: 100%; height: 3px;
+      width: 100%; height: 4px;
       background: var(--border-subtle);
       position: relative;
       overflow: hidden;
-      border-radius: 1px;
     }
 
     .progress-fill {
       height: 100%; width: 0%;
       background: linear-gradient(90deg, var(--accent-dim), var(--accent));
       box-shadow: 0 0 14px var(--accent-glow);
-      border-radius: 1px;
       transition: width 0.5s var(--ease-out);
       position: relative;
       animation: progress-glow-pulse 2s ease-in-out 0.8s infinite;
     }
 
-    /* scan shimmer on progress bar */
     .progress-fill::after {
       content: '';
       position: absolute; inset: 0;
@@ -321,19 +330,31 @@
     }
 
     .progress-detail {
-      font-size: 0.5rem;
+      font-size: 0.48rem;
       color: var(--text-dim);
       letter-spacing: 0.1em;
       min-height: 1.4em;
+      font-family: var(--font-mono);
     }
 
     /* ── Prompt ── */
     .terminal-prompt {
       display: flex; align-items: center; gap: 8px;
-      font-size: 0.6rem; color: var(--accent);
+      font-size: 0.55rem; color: var(--accent);
       letter-spacing: 0.08em;
       opacity: 0;
-      animation: term-fade-up 0.35s var(--ease-smooth) 0.9s forwards;
+      animation: term-fade-up 0.35s var(--ease-smooth) 0.95s forwards;
+      padding: 0.5rem 1rem;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(245,158,11,0.06);
+    }
+
+    /* ── Module Icons (game + tools) ── */
+    .terminal-modules {
+      display: flex; gap: 8px;
+      justify-content: center; align-items: center;
+      opacity: 0;
+      animation: term-fade-up 0.35s var(--ease-smooth) 1s forwards;
     }
 
     .cursor-blink {
@@ -352,19 +373,18 @@
     /* ── Footer ── */
     .terminal-footer {
       display: flex; justify-content: space-between;
-      font-size: 0.48rem;
+      font-size: 0.45rem;
       color: var(--text-dim);
       letter-spacing: 0.14em;
       text-transform: uppercase;
       opacity: 0;
-      animation: term-fade-up 0.35s var(--ease-smooth) 0.95s forwards;
+      animation: term-fade-up 0.35s var(--ease-smooth) 1s forwards;
     }
 
     .footer-left, .footer-right {
       display: flex; align-items: center; gap: 14px;
     }
 
-    /* ── Status indicator dots ── */
     .status-dot {
       display: inline-block;
       width: 4px; height: 4px;
@@ -388,7 +408,6 @@
 
     /* ════════════ KEYFRAMES ════════════ */
 
-    /* Character drop-in with bounce */
     @keyframes char-drop-in {
       0%   { opacity: 0; transform: translateY(-18px) scale(0.9); filter: blur(2px); }
       60%  { opacity: 1; transform: translateY(3px) scale(1.02); filter: blur(0); }
@@ -396,63 +415,32 @@
       100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
 
-    /* Title glow breathing */
     @keyframes title-glow-pulse {
       0%, 100% { text-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(245,158,11,0.08); }
       50%      { text-shadow: 0 0 55px rgba(245,158,11,0.45), 0 0 100px rgba(245,158,11,0.12); }
     }
 
-    /* Accent rule breathing */
     @keyframes rule-breathe {
-      0%, 100% { opacity: 0.7; }
-      50%      { opacity: 1;   }
+      0%, 100% { opacity: 0.6; }
+      50%      { opacity: 1; }
     }
 
-    /* Typewriter reveal */
     @keyframes typewriter-reveal {
       from { max-width: 0; }
       to   { max-width: 100%; }
     }
 
-    /* Log entry slide-in with accent flash */
     @keyframes log-entry-in {
       0%   { opacity: 0; transform: translateX(-8px); }
       60%  { opacity: 1; transform: translateX(1px); }
       100% { opacity: 1; transform: translateX(0); }
     }
 
-    /* Caret blink-in for log entries */
-    @keyframes caret-blink-in {
-      0%, 40% { opacity: 0; }
-      50%, 80% { opacity: 1; }
-      90%, 100% { opacity: 0.15; }
-    }
-
-    /* HUD bracket appear */
     @keyframes bracket-appear {
       from { opacity: 0; transform: scale(0.7); }
-      to   { opacity: 1; transform: scale(1);   }
+      to   { opacity: 1; transform: scale(1); }
     }
 
-
-    /* CRT flicker — subtle brightness oscillation */
-    @keyframes crt-flicker {
-      0%, 100%  { opacity: 1; }
-      5%        { opacity: 0.985; }
-      10%       { opacity: 1; }
-      50%       { opacity: 0.995; }
-      51%       { opacity: 1; }
-      80%       { opacity: 0.99; }
-      80.5%     { opacity: 1; }
-    }
-
-    /* Scanline drift */
-    @keyframes scanline-drift {
-      from { background-position: 0 0; }
-      to   { background-position: 0 12px; }
-    }
-
-    /* Grain noise shift */
     @keyframes grain-shift {
       0%   { transform: translate(0, 0); }
       33%  { transform: translate(-1px, 1px); }
@@ -460,25 +448,21 @@
       100% { transform: translate(0, 0); }
     }
 
-    /* Dotgrid fade-in */
     @keyframes dotgrid-fade {
       from { opacity: 0; }
       to   { opacity: 1; }
     }
 
-    /* Progress bar glow pulse */
     @keyframes progress-glow-pulse {
       0%, 100% { box-shadow: 0 0 14px var(--accent-glow); }
       50%      { box-shadow: 0 0 20px rgba(245,158,11,0.45), 0 0 40px rgba(245,158,11,0.08); }
     }
 
-    /* Status dot pulse */
     @keyframes status-dot-pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50%      { opacity: 0.5; transform: scale(1.3); }
     }
 
-    /* Standard animations */
     @keyframes term-fade-up {
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -496,70 +480,62 @@
 
     @keyframes term-shimmer {
       0%   { transform: translateX(-100%); }
-      100% { transform: translateX(200%);  }
+      100% { transform: translateX(200%); }
     }
 
     /* ════════════ RESPONSIVE ════════════ */
     @media (max-width: 768px) {
       .terminal {
-        padding: 2rem 1.5rem;
-        gap: 1.5rem;
+        padding: 1.75rem 1.25rem 1.5rem;
+        gap: 1.25rem;
         max-width: 100%;
+        margin: 1rem;
       }
       .terminal-title {
         font-size: clamp(32px, 10vw, 48px);
         letter-spacing: 0.1em;
       }
-      .terminal-rule {
-        width: 120px;
-        margin: 0.6rem 0 0.45rem;
-      }
-      .terminal-subtitle { font-size: 0.52rem; letter-spacing: 0.16em; }
-      .terminal-log { gap: 0.4rem; font-size: 0.55rem; }
+      .terminal-rule { width: 120px; }
+      .terminal-subtitle { font-size: 0.5rem; letter-spacing: 0.18em; }
+      .terminal-log { gap: 0.3rem; font-size: 0.5rem; padding: 0.5rem 0.75rem; }
+      .terminal-prompt { padding: 0.4rem 0.75rem; font-size: 0.5rem; }
       .terminal-footer { flex-direction: column; gap: 4px; }
       .footer-left { gap: 10px; }
 
-      /* Adjust corner brackets for tighter padding */
-      .terminal::before, .terminal::after,
-      .terminal-brackets-bottom::before,
-      .terminal-brackets-bottom::after {
-        width: 16px; height: 16px;
+      .terminal-corners::before, .terminal-corners::after,
+      .terminal-corners-bottom::before, .terminal-corners-bottom::after {
+        width: 20px; height: 20px;
       }
-      .log-row::before { left: -10px; font-size: 0.48rem; }
     }
 
     @media (max-width: 380px) {
       .terminal {
-        padding: 1.5rem 1.25rem;
-        gap: 1.25rem;
+        padding: 1.25rem 1rem 1rem;
+        gap: 1rem;
+        margin: 0.5rem;
       }
-      .terminal-title {
-        font-size: clamp(28px, 11vw, 36px);
+      .terminal-title { font-size: clamp(24px, 11vw, 32px); }
+      .log-row { gap: 4px; }
+      .log-entry, .log-status { font-size: 0.45rem; }
+      .terminal-corners::before, .terminal-corners::after,
+      .terminal-corners-bottom::before, .terminal-corners-bottom::after {
+        width: 14px; height: 14px;
       }
-      .log-row { gap: 5px; }
-      .log-entry { font-size: 0.5rem; }
-      .terminal::before, .terminal::after,
-      .terminal-brackets-bottom::before,
-      .terminal-brackets-bottom::after {
-        width: 12px; height: 12px;
-      }
-      .log-row::before { display: none; }
     }
 
     /* ════════════ REDUCED MOTION ════════════ */
     @media (prefers-reduced-motion: reduce) {
       #loading-screen {
         transition: opacity 0.2s linear;
-        animation: none;
       }
       #loading-screen::after {
-        animation: none;
+        background: none;
       }
       .terminal-grain { display: none; }
       .terminal-dotgrid { animation: none; opacity: 1; }
 
-      /* Disable all entrance animations */
       .terminal-title,
+      .terminal-symbol,
       .terminal-rule,
       .terminal-subtitle,
       .log-row,
@@ -571,27 +547,22 @@
       }
       .terminal-rule { transform: scaleX(1); }
 
-      /* Character stagger → instant visible */
       .title-char {
         animation: none;
         opacity: 1;
         filter: none;
       }
 
-      /* HUD brackets → instant */
-      .terminal::before, .terminal::after,
-      .terminal-brackets-bottom::before,
-      .terminal-brackets-bottom::after {
+      .terminal-corners::before, .terminal-corners::after,
+      .terminal-corners-bottom::before, .terminal-corners-bottom::after {
         animation: none;
         opacity: 1;
       }
 
-      /* Disable continuous animations */
       .cursor-blink { animation: none; opacity: 1; }
       .progress-fill { transition: width 0.1s linear; animation: none; }
       .progress-fill::after { animation: none; display: none; }
       .status-dot { animation: none; }
-      .log-row::before { animation: none; opacity: 0.15; }
       .subtitle-text {
         animation: none;
         max-width: 100%;
@@ -604,12 +575,18 @@
   <div id="loading-screen" role="status" aria-label="Loading application">
     <div class="terminal-grain" aria-hidden="true"></div>
     <div class="terminal-dotgrid" aria-hidden="true"></div>
+    <div class="terminal-vignette" aria-hidden="true"></div>
 
     <div class="terminal">
-      <div class="terminal-brackets-bottom" aria-hidden="true"></div>
+      <div class="terminal-corners" aria-hidden="true"></div>
+      <div class="terminal-corners-bottom" aria-hidden="true"></div>
 
       <!-- Header -->
       <header class="terminal-header">
+        <div class="terminal-symbol">◆ TACTICAL DATA TERMINAL ◆</div>
+        <img src="/icon.svg" alt="RWR OPS"
+          style="width:36px;height:36px;opacity:0;animation:term-fade-up 0.45s var(--ease-smooth) 0.05s forwards;margin-bottom:4px;"
+        />
         <h1 class="terminal-title">
           <span class="title-char">R</span><!--
        --><span class="title-char">W</span><!--
@@ -627,23 +604,23 @@
       <!-- Boot Log -->
       <div class="terminal-log" role="log" aria-label="System boot log">
         <div class="log-row">
-          <span class="log-status">[&nbsp;OK&nbsp;]</span>
+          <span class="log-status">[ OK ]</span>
           <span class="log-entry" id="log-1">Initializing system…</span>
         </div>
         <div class="log-row">
-          <span class="log-status">[&nbsp;OK&nbsp;]</span>
+          <span class="log-status">[ OK ]</span>
           <span class="log-entry" id="log-2">Loading metadata…</span>
         </div>
         <div class="log-row">
-          <span class="log-status">[&nbsp;OK&nbsp;]</span>
+          <span class="log-status">[ OK ]</span>
           <span class="log-entry" id="log-3">Loading data package…</span>
         </div>
         <div class="log-row" id="log-4-row" style="display:none">
-          <span class="log-status">[&nbsp;OK&nbsp;]</span>
+          <span class="log-status">[ OK ]</span>
           <span class="log-entry" id="log-4">Processing manifest…</span>
         </div>
         <div class="log-row" id="log-5-row" style="display:none">
-          <span class="log-status">[&nbsp;OK&nbsp;]</span>
+          <span class="log-status">[ OK ]</span>
           <span class="log-entry" id="log-5">Manifest loaded</span>
         </div>
       </div>
@@ -669,11 +646,18 @@
         <span class="prompt-label" id="prompt-label">Awaiting initialization</span>
       </div>
 
+      <!-- Game + Tool Icons -->
+      <div class="terminal-modules" aria-label="Game tools">
+        <img src="/rwr-title.png" alt="RWR"
+          style="height:22px;width:auto;opacity:0.8;image-rendering:pixelated;"
+        />
+      </div>
+
       <!-- Footer -->
       <div class="terminal-footer" aria-hidden="true">
         <span class="footer-left">
-          <span><span class="status-dot"></span>TERM v3.7</span>
-          <span><span class="status-dot amber"></span>SECURE CHANNEL</span>
+          <span><span class="status-dot"></span>TERM v4.0</span>
+          <span><span class="status-dot amber"></span>ENCRYPTED LINK</span>
         </span>
         <span class="footer-right">
           <span><span class="status-dot standby"></span>STANDBY</span>

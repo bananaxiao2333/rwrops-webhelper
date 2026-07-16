@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useI18n } from "./i18n.jsx";
 import { useItemIcon, displayPath } from "./assetLoader.jsx";
-import VisualizationComponentPool from "./detail_visual/VisualizationComponentPool";
+import VisualizationComponentPool, { visualizationComponents } from "./detail_visual/VisualizationComponentPool";
 import { useData } from "./DataContext.jsx";
 import { useT } from "./i18n.jsx";
+import { useShare } from "./ShareContext.jsx";
 
 
 /* ── Type-specific detail config ── */
@@ -287,6 +288,59 @@ export default function Detail({ item, type, onOpenRoll }) {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
+  const { register, clear } = useShare();
+
+  // Register sections for share modal (must be before early returns)
+  useEffect(() => {
+    if (!item) return;
+    const tree = [];
+
+    // Hero card — always visible
+    tree.push({
+      id: "hero",
+      label: translate(item.name || item.key || ""),
+      type: "hero",
+      icon: "mdi:card-text-outline",
+    });
+
+    // Visualizations — only those that actually render
+    const visChildren = [];
+    visualizationComponents.forEach(entry => {
+      if (entry.shouldRender(item)) {
+        visChildren.push({
+          id: `vis_${entry.name}`,
+          label: entry.name,
+          type: "visualization",
+          icon: "mdi:eye-outline",
+        });
+      }
+    });
+    if (visChildren.length > 0) {
+      tree.push({
+        id: "visualizations",
+        label: "VISUALIZATIONS",
+        type: "section",
+        icon: "mdi:chart-box-outline",
+        children: visChildren,
+      });
+    }
+
+    // Property sections — only those with visible keys
+    config.sections.forEach(s => {
+      const hasVisibleKeys = s.keys.some(k => item[k] !== undefined);
+      if (!hasVisibleKeys) return;
+      tree.push({
+        id: `section_${s.label}`,
+        label: t(s.label.toLowerCase()) || s.label,
+        type: "section",
+        icon: "mdi:code-braces",
+      });
+    });
+
+    register(item, type, tree);
+    return () => clear();
+  }, [item, type, config, t, translate, register, clear]);
+
   const hasVisData = true;
   if (!item) return null;
 
@@ -319,7 +373,7 @@ export default function Detail({ item, type, onOpenRoll }) {
         padding: "clamp(12px, 2vw, 24px)",
       }}>
         {/* ── Floating identity card (sticky top-left, scroll fade) ── */}
-        <div
+        <div data-share-id="hero"
           style={{
             position: "sticky",
             top: "clamp(12px, 2vw, 24px)",
@@ -484,7 +538,7 @@ export default function Detail({ item, type, onOpenRoll }) {
           const isExpanded = expandedSections[section.label] !== false;
 
           return (
-            <div key={section.label} style={{ marginBottom: 12 }}>
+            <div key={section.label} data-share-id={`section_${section.label}`} style={{ marginBottom: 12 }}>
               <div
                 onClick={() => toggleSection(section.label)}
                 style={{

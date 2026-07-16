@@ -709,5 +709,18 @@
   "protection_wear": "VERURSACHT VERSCHLEISS",
   "mod_input": "Eingang",
   "mod_output": "Ausgang",
-  "mod_no_entry": "kein Modifikator"
+  "mod_no_entry": "kein Modifikator",
+  "rwr_intro_title": "RUNNING WITH RIFLES",
+  "rwr_intro_desc": "Top-Down Taktik-Shooter · beständige Open-World-Kriegsführung · Aufstieg auf prozedural generierten Schlachtfeldern",
+  "share": "TEILEN",
+  "share_title": "TEILEN",
+  "share_select_all": "ALLE AUSWÄHLEN",
+  "share_deselect_all": "ALLE ABWÄHLEN",
+  "share_no_sections": "Keine Inhaltsbereiche verfügbar",
+  "share_generate": "VORSCHAU ERSTELLEN",
+  "share_copy": "KOPIEREN",
+  "share_copied": "KOPIERT",
+  "share_download": "HERUNTERLADEN",
+  "share_capture": "AUFNEHMEN",
+  "share_capturing": "AUFNAHME…"
 }
