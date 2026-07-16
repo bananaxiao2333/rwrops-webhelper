@@ -704,5 +704,10 @@
   "class_hit_prob": "PROB. ACIERTO",
   "class_detect": "DETECTAR",
   "branch": "RAMA",
-  "unlock": "DESBLOQUEAR"
+  "unlock": "DESBLOQUEAR",
+  "protection_full": "PROTECCIÓN TOTAL",
+  "protection_wear": "CAUSA DESGASTE",
+  "mod_input": "entrada",
+  "mod_output": "salida",
+  "mod_no_entry": "sin entrada de mod."
 }

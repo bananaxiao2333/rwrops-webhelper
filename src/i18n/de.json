@@ -704,5 +704,10 @@
   "class_hit_prob": "TREFFWKT.",
   "class_detect": "ERKENNUNG",
   "branch": "ZWEIG",
-  "unlock": "FREISCHALTEN"
+  "unlock": "FREISCHALTEN",
+  "protection_full": "VOLLER SCHUTZ",
+  "protection_wear": "VERURSACHT VERSCHLEISS",
+  "mod_input": "Eingang",
+  "mod_output": "Ausgang",
+  "mod_no_entry": "kein Modifikator"
 }

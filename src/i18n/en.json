@@ -704,5 +704,10 @@
   "class_hit_prob": "HIT PROB",
   "class_detect": "DETECT",
   "branch": "BRANCH",
-  "unlock": "UNLOCK"
+  "unlock": "UNLOCK",
+  "protection_full": "FULL PROTECTION",
+  "protection_wear": "CAUSES WEAR",
+  "mod_input": "input",
+  "mod_output": "output",
+  "mod_no_entry": "no modifier entry"
 }

@@ -4,7 +4,7 @@
  * Usage:  node scripts/check-i18n.js
  *         node scripts/check-i18n.js --fix   (not yet implemented)
  */
-import { readFileSync, readdirSync, statSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import { join, extname } from "path";
 import { fileURLToPath } from "url";
 
