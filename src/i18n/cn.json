@@ -704,5 +704,10 @@
   "class_hit_prob": "命中率",
   "class_detect": "侦测",
   "branch": "分支",
-  "unlock": "解锁"
+  "unlock": "解锁",
+  "protection_full": "完全防护",
+  "protection_wear": "导致磨损",
+  "mod_input": "输入状态",
+  "mod_output": "输出状态",
+  "mod_no_entry": "无修饰器条目"
 }

@@ -704,5 +704,10 @@
   "class_hit_prob": "PROB. TOUCHER",
   "class_detect": "DÉTECTION",
   "branch": "BRANCHE",
-  "unlock": "DÉVERROUILLER"
+  "unlock": "DÉVERROUILLER",
+  "protection_full": "PROTECTION TOTALE",
+  "protection_wear": "CAUSE USURE",
+  "mod_input": "entrée",
+  "mod_output": "sortie",
+  "mod_no_entry": "aucun mod."
 }

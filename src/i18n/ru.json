@@ -704,5 +704,10 @@
   "class_hit_prob": "ВЕРОЯТ. ПОПАД.",
   "class_detect": "ОБНАРУЖ.",
   "branch": "ВЕТВЬ",
-  "unlock": "РАЗБЛОКИРОВАТЬ"
+  "unlock": "РАЗБЛОКИРОВАТЬ",
+  "protection_full": "ПОЛНАЯ ЗАЩИТА",
+  "protection_wear": "ВЫЗЫВАЕТ ИЗНОС",
+  "mod_input": "вход",
+  "mod_output": "выход",
+  "mod_no_entry": "нет модификатора"
 }

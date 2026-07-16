@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 import React, { useMemo } from "react";
-import { useT } from "../i18n.jsx";
+import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
 
 const COMBAT_CLASSES = [
@@ -59,7 +59,6 @@ function getCommonness(item) {
 function parseModifiers(source) {
   const arr = source || [];
   const combat = [];
-  const stats = [];
   for (const m of arr) {
     if (!m.class) continue;
     if (COMBAT_CLASSES.includes(m.class)) {
@@ -68,20 +67,30 @@ function parseModifiers(source) {
         input: m.input_character_state || "any",
         output: m.output_character_state || "none",
       });
-    } else if (["speed", "hit_success_probability", "detectability"].includes(m.class)) {
-      stats.push({ class: m.class, value: m.value || 0 });
     }
   }
-  return { combat, stats };
+  return combat;
 }
 
-function getProtected(item) {
-  const { combat } = parseModifiers(item?.modifiers || item?.events);
-  const has = new Set(combat.map(c => c.class));
-  return {
-    protects: COMBAT_CLASSES.filter(c => has.has(c)),
-    vulnerable: COMBAT_CLASSES.filter(c => !has.has(c)),
-  };
+function getProtectionCategories(item) {
+  const combat = parseModifiers(item?.modifiers || item?.events);
+  const full = [];
+  const wear = [];
+  const none = [];
+
+  for (const cls of COMBAT_CLASSES) {
+    const mod = combat.find(c => c.class === cls);
+    if (mod) {
+      if (mod.output === "none") {
+        full.push(mod);
+      } else {
+        wear.push(mod);
+      }
+    } else {
+      none.push(cls);
+    }
+  }
+  return { full, wear, none };
 }
 
 /* ── sub-components ── */
@@ -111,150 +120,126 @@ function CommonnessBar({ value }) {
   );
 }
 
-function CombatResults({ combat, t }) {
-  if (!combat.length) return null;
+/* ── Protection badge bar ── */
+
+function ProtectionBar({ full, wear, none, t }) {
+  if (!full.length && !wear.length && !none.length) return null;
+
   return (
-    <div style={{ marginTop: 6 }}>
-      <div style={{
-        fontSize: 9, fontWeight: 700, color: "var(--text-dim)",
-        textTransform: "uppercase", letterSpacing: "0.1em",
-        marginBottom: 3,
-      }}>
-        <Icon icon="mdi:sword-cross" style={{ fontSize: 9, marginRight: 3, verticalAlign: "middle" }} />
-        {t("combat")}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {combat.map((c, i) => (
-          <div key={i} style={{
-            display: "flex", alignItems: "center", gap: 5,
-            fontSize: "var(--font-xs)", padding: "1px 0",
+    <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+      {/* Full protection — green */}
+      {full.length > 0 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          padding: "3px 8px",
+          background: "color-mix(in srgb, var(--success) 12%, transparent)",
+          border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
+        }}>
+          <Icon icon="mdi:shield-check" style={{ fontSize: 13, color: "var(--success)", flexShrink: 0 }} />
+          <span style={{
+            fontSize: "var(--font-xxs)", fontWeight: 800,
+            color: "var(--success)", textTransform: "uppercase",
+            letterSpacing: "0.06em", flexShrink: 0,
           }}>
-            <Icon icon={CLASS_ICONS[c.class] || "mdi:information"}
-              style={{ fontSize: 11, color: "var(--accent)", flexShrink: 0 }} />
-            <span style={{
-              fontWeight: 600, color: "var(--text-muted)",
-              textTransform: "uppercase", minWidth: 40,
-            }}>
-              {c.input}
-            </span>
-            <span style={{ color: "var(--text-dim)", fontSize: 10 }}>→</span>
-            <span style={{
-              fontWeight: 700, textTransform: "uppercase",
-              color: c.output === "none" ? "var(--danger)" : "var(--text-primary)",
-            }}>
-              {c.output}
-            </span>
-            <span style={{
-              fontSize: 9, fontWeight: 600, color: "var(--text-muted)",
-              marginLeft: 2,
-            }}>
-              ({classLabel(c.class, t)})
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function StatModifiers({ stats, t }) {
-  if (!stats.length) return null;
-  return (
-    <div style={{ marginTop: 6 }}>
-      <div style={{
-        fontSize: 9, fontWeight: 700, color: "var(--text-dim)",
-        textTransform: "uppercase", letterSpacing: "0.1em",
-        marginBottom: 3,
-      }}>
-        <Icon icon="mdi:chart-line" style={{ fontSize: 9, marginRight: 3, verticalAlign: "middle" }} />
-        {t("stats")}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {stats.map((s, i) => {
-          const pct = (s.value * 100).toFixed(1);
-          const pos = s.value >= 0;
-          const barPct = Math.min(Math.abs(s.value) * 100, 100);
-          return (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 8,
-              fontSize: "var(--font-xs)",
-            }}>
-              <Icon icon={CLASS_ICONS[s.class] || "mdi:information"}
-                style={{ fontSize: 11, color: "var(--accent)", flexShrink: 0 }} />
-              <span style={{
-                fontWeight: 600, color: "var(--text-muted)",
-                textTransform: "uppercase", minWidth: 64,
-              }}>
-                {classLabel(s.class, t)}
+            {t("protection_full")}
+          </span>
+          <span style={{ color: "color-mix(in srgb, var(--success) 60%, transparent)", fontSize: 10 }}>·</span>
+          <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {full.map(m => (
+              <span key={m.class} style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                fontSize: "var(--font-xxs)", fontWeight: 700,
+                textTransform: "uppercase", color: "var(--success)",
+                cursor: "default",
+              }}
+                title={`${classLabel(m.class, t)}\n${t("mod_input")}: ${m.input}  ${t("mod_output")}: ${m.output}`}
+              >
+                <Icon icon={CLASS_ICONS[m.class] || "mdi:shield"} style={{ fontSize: 9 }} />
+                {classLabel(m.class, t)}
               </span>
-              <div style={{
-                flex: 1, height: 4,
-                background: "var(--bg-deep)", borderRadius: 2,
-                overflow: "hidden", maxWidth: 80,
-              }}>
-                <div style={{
-                  width: `${barPct}%`, height: "100%",
-                  background: pos ? "var(--success)" : "var(--danger)",
-                  borderRadius: 2,
-                }} />
-              </div>
-              <span style={{
-                fontWeight: 700, fontFamily: "var(--font-mono)",
-                color: pos ? "var(--success)" : "var(--danger)",
-                minWidth: 50, textAlign: "right",
-              }}>
-                {pos ? "+" : ""}{pct}%
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+            ))}
+          </span>
+        </div>
+      )}
 
-function ProtectionBadges({ protects, vulnerable, t }) {
-  if (!protects.length && !vulnerable.length) return null;
-  return (
-    <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
-      {protects.map(c => (
-        <span key={c} style={{
-          display: "inline-flex", alignItems: "center", gap: 3,
-          fontSize: "var(--font-xxs)", fontWeight: 700,
-          textTransform: "uppercase", letterSpacing: "0.04em",
-          padding: "2px 7px",
-          background: "color-mix(in srgb, var(--success) 15%, transparent)",
-          border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)",
-          color: "var(--success)",
+      {/* Causes wear — yellow/amber */}
+      {wear.length > 0 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          padding: "3px 8px",
+          background: "color-mix(in srgb, var(--amber) 12%, transparent)",
+          border: "1px solid color-mix(in srgb, var(--amber) 35%, transparent)",
         }}>
-          <Icon icon="mdi:shield-check" style={{ fontSize: 10 }} />
-          {classLabel(c, t)}
-        </span>
-      ))}
-      {vulnerable.length > 0 && (
-        <span style={{
-          display: "inline-flex", alignItems: "center", gap: 3,
-          fontSize: "var(--font-xxs)", fontWeight: 700,
-          textTransform: "uppercase", letterSpacing: "0.04em",
-          padding: "2px 7px",
-          background: "color-mix(in srgb, var(--danger) 15%, transparent)",
-          border: "1px solid color-mix(in srgb, var(--danger) 40%, transparent)",
-          color: "var(--danger)",
+          <Icon icon="mdi:shield-half" style={{ fontSize: 13, color: "var(--amber)", flexShrink: 0 }} />
+          <span style={{
+            fontSize: "var(--font-xxs)", fontWeight: 800,
+            color: "var(--amber)", textTransform: "uppercase",
+            letterSpacing: "0.06em", flexShrink: 0,
+          }}>
+            {t("protection_wear")}
+          </span>
+          <span style={{ color: "color-mix(in srgb, var(--amber) 60%, transparent)", fontSize: 10 }}>·</span>
+          <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {wear.map(m => (
+              <span key={m.class} style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                fontSize: "var(--font-xxs)", fontWeight: 700,
+                textTransform: "uppercase", color: "var(--amber)",
+                cursor: "default",
+              }}
+                title={`${classLabel(m.class, t)}\n${t("mod_input")}: ${m.input}  ${t("mod_output")}: ${m.output}`}
+              >
+                <Icon icon={CLASS_ICONS[m.class] || "mdi:shield"} style={{ fontSize: 9 }} />
+                {classLabel(m.class, t)}
+              </span>
+            ))}
+          </span>
+        </div>
+      )}
+
+      {/* No protection — red */}
+      {none.length > 0 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          padding: "3px 8px",
+          background: "color-mix(in srgb, var(--danger) 12%, transparent)",
+          border: "1px solid color-mix(in srgb, var(--danger) 35%, transparent)",
         }}>
-          <Icon icon="mdi:alert-circle" style={{ fontSize: 10 }} />
-          {vulnerable.length === COMBAT_CLASSES.length
-            ? t("no_protection")
-            : vulnerable.map(c => classLabel(c, t)).join(" ")}
-        </span>
+          <Icon icon="mdi:shield-off" style={{ fontSize: 13, color: "var(--danger)", flexShrink: 0 }} />
+          <span style={{
+            fontSize: "var(--font-xxs)", fontWeight: 800,
+            color: "var(--danger)", textTransform: "uppercase",
+            letterSpacing: "0.06em", flexShrink: 0,
+          }}>
+            {t("no_protection")}
+          </span>
+          <span style={{ color: "color-mix(in srgb, var(--danger) 60%, transparent)", fontSize: 10 }}>·</span>
+          <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {none.map(cls => (
+              <span key={cls} style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                fontSize: "var(--font-xxs)", fontWeight: 700,
+                textTransform: "uppercase", color: "var(--danger)",
+                cursor: "default",
+              }}
+                title={`${classLabel(cls, t)}\n${t("mod_no_entry")}`}
+              >
+                <Icon icon={CLASS_ICONS[cls] || "mdi:shield-off"} style={{ fontSize: 9 }} />
+                {classLabel(cls, t)}
+              </span>
+            ))}
+          </span>
+        </div>
       )}
     </div>
   );
 }
 
-function ItemCard({ entry, isCurrent, accent, t }) {
-  const { combat, stats } = useMemo(() => parseModifiers(entry.item.modifiers || entry.item.events), [entry]);
-  const { protects, vulnerable } = useMemo(() => getProtected(entry.item), [entry]);
+/* ── Item card ── */
+
+function ItemCard({ entry, isCurrent, accent, t, translate }) {
   const commonness = useMemo(() => getCommonness(entry.item), [entry]);
+  const { full, wear, none } = useMemo(() => getProtectionCategories(entry.item), [entry]);
 
   const accentColor = isCurrent
     ? "var(--accent)"
@@ -263,6 +248,12 @@ function ItemCard({ entry, isCurrent, accent, t }) {
       : accent === "last"
         ? "var(--danger)"
         : "var(--border-mid)";
+
+  const displayName = (() => {
+    const n = resolveName(entry.item);
+    const tn = translate(n);
+    return tn || n;
+  })();
 
   return (
     <div style={{
@@ -296,7 +287,7 @@ function ItemCard({ entry, isCurrent, accent, t }) {
           fontFamily: "var(--font-display)", textTransform: "uppercase",
           lineHeight: 1.2,
         }}>
-          {isCurrent && "★ "}{entry.name}
+          {isCurrent && "★ "}{displayName}
         </span>
         <span style={{
           fontSize: "var(--font-xxs)", color: "var(--text-dim)",
@@ -307,12 +298,12 @@ function ItemCard({ entry, isCurrent, accent, t }) {
         </span>
       </div>
       <CommonnessBar value={commonness} />
-      <CombatResults combat={combat} t={t} />
-      <StatModifiers stats={stats} t={t} />
-      <ProtectionBadges protects={protects} vulnerable={vulnerable} t={t} />
+      <ProtectionBar full={full} wear={wear} none={none} t={t} />
     </div>
   );
 }
+
+/* ── Chain connector ── */
 
 function ChainConnector({ triggerLabel, t }) {
   return (
@@ -353,7 +344,7 @@ function ChainConnector({ triggerLabel, t }) {
 /* ── Main component ── */
 
 export default function ClothingVisualization({ item }) {
-  const t = useT();
+  const { t, translate } = useI18n();
   const { data } = useData();
   const carryItems = data?.carry_item;
   const currentKey = item?.key;
@@ -467,6 +458,7 @@ export default function ClothingVisualization({ item }) {
                     entry={entry}
                     isCurrent={entry.key === currentKey}
                     t={t}
+                    translate={translate}
                     accent={
                       chainLen === 1
                         ? "single"
@@ -512,6 +504,7 @@ export default function ClothingVisualization({ item }) {
               entry={entry}
               isCurrent={entry.key === currentKey}
               t={t}
+              translate={translate}
               accent="single"
             />
           </div>
