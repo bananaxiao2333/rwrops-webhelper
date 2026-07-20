@@ -64,7 +64,7 @@ function Tile({ item, config, norm, onClick, isMobile, index = 0 }) {
     : solidBg;
 
   return (
-    <div onClick={onClick} style={{
+    <button onClick={onClick} style={{
       background: compositeBg,
       padding: isMobile ? "6px 8px" : "10px 14px",
       cursor: "pointer",
@@ -74,6 +74,7 @@ function Tile({ item, config, norm, onClick, isMobile, index = 0 }) {
       position: "relative",
       display: "flex", alignItems: "center", justifyContent: "flex-end",
       animation: `scale-in 0.25s var(--ease-smooth) ${(index % 30) * 0.025}s both`,
+      fontFamily: "inherit", fontSize: "inherit", textAlign: "inherit",
     }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.transform = "scale(1.02)"; e.currentTarget.style.zIndex = "2"; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "1"; }}
@@ -84,13 +85,7 @@ function Tile({ item, config, norm, onClick, isMobile, index = 0 }) {
           position: "absolute", left: 0, top: 0, bottom: 0, width: 56,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-          <div style={{
-            width: 16, height: 16,
-            border: "2px solid var(--border-mid)",
-            borderTopColor: "var(--accent)",
-            borderRadius: "50%",
-            animation: "boot-spin 0.8s linear infinite",
-          }} />
+          <div className="loading-spinner" style={{ width: 16, height: 16 }} />
         </div>
       )}
       {/* AI badge */}
@@ -100,7 +95,7 @@ function Tile({ item, config, norm, onClick, isMobile, index = 0 }) {
           fontSize: "var(--font-base)", fontWeight: 800,
           fontFamily: "var(--font-mono)",
           color: "#fff", background: "var(--danger)",
-          padding: "1px 4px", letterSpacing: "0.1em",
+          padding: "1px 4px",
         }}>
           AI
         </div>
@@ -110,7 +105,7 @@ function Tile({ item, config, norm, onClick, isMobile, index = 0 }) {
         <div style={{
           fontSize: "var(--font-md)",
           fontWeight: 700, fontFamily: "var(--font-display)",
-          color: "#ffffff", letterSpacing: "0.03em",
+          color: "#ffffff", letterSpacing: "-0.01em",
           textShadow: "0 1px 4px rgba(0,0,0,0.8)",
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
         }}>
@@ -127,7 +122,7 @@ function Tile({ item, config, norm, onClick, isMobile, index = 0 }) {
       </div>
 
 
-    </div>
+    </button>
   );
 }
 
@@ -212,24 +207,29 @@ export default function List({ data, type, searchText, isMobile, priceFilter, ex
         {SORT_OPTIONS.map((opt, i) => {
           const isActive = sort === opt.key;
           return (
-            <span key={opt.key} onClick={() => setSort(opt.key)} style={{
-              cursor: "pointer",
-              padding: isMobile ? "1px 4px" : "2px 6px",
-              fontSize: "var(--font-sm)",
-              fontFamily: "var(--font-mono)",
-              color: isActive ? "var(--accent)" : "#3a4a5a",
-              borderBottom: isActive ? "1px solid var(--accent)" : "1px solid transparent",
-              transform: `rotate(${i % 2 === 0 ? -1.5 : 2}deg)`,
-              transition: "all 0.15s ease",
-              letterSpacing: isMobile ? "0.06em" : "0.1em",
-              marginLeft: i > 0 ? (isMobile ? 2 : i * 4) : 0,
-            }}
+            <button
+              key={opt.key}
+              onClick={() => setSort(opt.key)}
+              aria-pressed={isActive}
+              style={{
+                cursor: "pointer",
+                padding: isMobile ? "1px 4px" : "2px 6px",
+                fontSize: "var(--font-sm)",
+                fontFamily: "var(--font-mono)",
+                color: isActive ? "var(--accent)" : "#3a4a5a",
+                background: "none",
+                border: "none",
+                borderBottom: isActive ? "1px solid var(--accent)" : "1px solid transparent",
+                transition: "all 0.15s ease",
+                letterSpacing: isMobile ? "0.06em" : "0.1em",
+                marginLeft: i > 0 ? (isMobile ? 2 : i * 4) : 0,
+              }}
               onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = "var(--text-muted)"; }}
               onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = "#3a4a5a"; }}
             >
               <span style={{ marginRight: isMobile ? 2 : 3 }}>{opt.sign}</span>
               {isMobile ? "" : opt.label}
-            </span>
+            </button>
           );
         })}
       </div>

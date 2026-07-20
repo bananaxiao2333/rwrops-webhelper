@@ -35,16 +35,22 @@ function LanguageModal({ languages, onSelect }) {
   if (!show) return null;
 
   return (
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 9999,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      background: "rgba(0,0,0,0.7)",
-      fontFamily: "var(--font-mono)",
-      animation: "fade-in 0.3s ease both",
-    }}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Select language"
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(0,0,0,0.7)",
+        fontFamily: "var(--font-body)",
+        animation: "fade-in 0.3s ease both",
+      }}
+    >
       <div style={{
         background: "var(--bg-surface)",
         border: "1px solid var(--border-subtle)",
+        borderRadius: "var(--radius-md)",
         padding: "28px 32px",
         minWidth: 260,
         textAlign: "center",
@@ -53,10 +59,10 @@ function LanguageModal({ languages, onSelect }) {
       }}>
         <div style={{
           fontSize: "var(--font-md)", fontWeight: 700, color: "var(--accent)",
-          textTransform: "uppercase", letterSpacing: "0.12em",
+          letterSpacing: "-0.01em",
           fontFamily: "var(--font-display)", marginBottom: 6,
         }}>
-          SELECT LANGUAGE
+          Select Language
         </div>
         <div style={{
           height: 1, width: 60,
@@ -65,23 +71,29 @@ function LanguageModal({ languages, onSelect }) {
         }} />
         {languages.length === 0 && (
           <div style={{ fontSize: "var(--font-sm)", color: "var(--text-muted)", padding: "12px 0" }}>
-            LOADING...
+            Loading...
           </div>
         )}
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+        <div role="listbox" aria-label="Available languages" style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {languages.map((l, i) => (
-            <div key={l.locale}
+            <button
+              key={l.locale}
               onClick={() => handlePick(l.locale)}
+              role="option"
+              aria-selected={false}
               style={{
                 padding: "8px 16px", cursor: "pointer", fontSize: "var(--font-base)",
                 color: "var(--text-primary)",
+                border: "none",
                 borderBottom: i < languages.length - 1 ? "1px solid var(--border-subtle)" : "none",
                 background: "transparent",
-                textTransform: "uppercase",
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.06em",
+                fontFamily: "var(--font-body)",
+                letterSpacing: "0.01em",
                 animation: `fade-in 0.2s ease ${0.1 + i * 0.04}s both`,
                 transition: "background var(--dur-fast) ease",
+                textAlign: "left",
+                width: "100%",
+                borderRadius: 0,
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-elevated)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
@@ -90,7 +102,7 @@ function LanguageModal({ languages, onSelect }) {
                 <span>{l.code.toUpperCase()}</span>
                 <span style={{ fontSize: "var(--font-sm)", color: "var(--text-muted)", fontWeight: 400 }}>{l.name}</span>
               </span>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -142,21 +154,25 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
     }}>
       {/* Hamburger (mobile only) */}
       {isMobile && (
-        <span onClick={onSidebarToggle} style={{
-          cursor: "pointer", fontSize: "var(--font-base)", lineHeight: 1,
-          color: "var(--text-muted)", padding: "2px 4px", marginRight: 2,
-          userSelect: "none",
-        }}>
+        <button
+          onClick={onSidebarToggle}
+          aria-label="Toggle navigation menu"
+          aria-expanded={false}
+          style={{
+            cursor: "pointer", fontSize: "var(--font-base)", lineHeight: 1,
+            color: "var(--text-muted)", padding: "2px 4px", marginRight: 2,
+            background: "none", border: "none", fontFamily: "inherit",
+          }}
+        >
           &#9776;
-        </span>
+        </button>
       )}
       <span style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 6 }}>
-        <img src="/icon.svg" alt=""
+        <img src="/icon.svg" alt="RWROPS"
           style={{
             width: isMobile ? 11 : 14,
             height: isMobile ? 11 : 14,
             flexShrink: 0,
-            filter: "brightness(0) saturate(100%) invert(61%) sepia(91%) saturate(2442%) hue-rotate(80deg) brightness(94%) contrast(84%)",
           }}
         />
         {!isMobile && "RWROPS"}
@@ -169,14 +185,17 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
       <span style={{ flex: 1 }} />
 
       {/* Global search trigger — always visible */}
-      <div
+      <button
         onClick={onSearchOpen}
+        aria-label="Open search"
         style={{
           border: "1px solid var(--border-subtle)",
           padding: isMobile ? "2px 8px" : "3px 12px",
           background: "var(--bg-deep)",
           display: "flex", alignItems: "center", gap: 6,
           cursor: "pointer",
+          fontFamily: "inherit", fontSize: "inherit",
+          borderRadius: "var(--radius-sm)",
           transition: "border-color var(--dur-fast) var(--ease-smooth)",
         }}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
@@ -199,18 +218,21 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
             Ctrl+K
           </span>
         )}
-      </div>
+      </button>
 
       {/* Share button (params only) */}
       {showShare && (
-        <div
+        <button
           onClick={onShareOpen}
+          aria-label="Open share menu"
           style={{
             border: "1px solid var(--border-subtle)",
             padding: isMobile ? "2px 8px" : "3px 8px",
             background: "var(--bg-deep)",
             display: "flex", alignItems: "center", gap: 6,
             cursor: "pointer",
+            fontFamily: "inherit", fontSize: "inherit",
+            borderRadius: "var(--radius-sm)",
             transition: "border-color var(--dur-fast) var(--ease-smooth)",
           }}
           onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
@@ -225,7 +247,7 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
               {t("share")}
             </span>
           )}
-        </div>
+        </button>
       )}
       {/* Language switch */}
       <LanguageSelector />
@@ -243,42 +265,56 @@ function LanguageSelector() {
 
   return (
     <div style={{ position: "relative" }}>
-      <span
+      <button
         onClick={() => setOpen(!open)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Select language"
         style={{
           cursor: "pointer", padding: "3px 8px",
           border: "1px solid var(--border-subtle)",
           fontSize: "var(--font-xs)",
           color: "var(--accent)",
           fontFamily: "var(--font-mono)",
-          userSelect: "none",
+          background: "none",
+          borderRadius: "var(--radius-sm)",
         }}
       >
         {label}
-      </span>
+      </button>
       {open && (
         <div
+          role="listbox"
+          aria-label="Select language"
           style={{
             position: "absolute", top: "100%", right: 0, zIndex: 30,
             background: "var(--bg-surface)", border: "1px solid var(--border-subtle)",
+            borderRadius: "var(--radius-sm)",
             minWidth: 80, maxHeight: 200, overflowY: "auto",
           }}
           onMouseLeave={() => setOpen(false)}
         >
           {languages.map(l => (
-            <div
+            <button
               key={l.locale}
+              role="option"
+              aria-selected={l.locale === lang}
               onClick={() => { setLang(l.locale); setOpen(false); }}
               style={{
+                display: "block",
+                width: "100%",
                 padding: "4px 10px", cursor: "pointer", fontSize: "var(--font-sm)",
                 color: l.locale === lang ? "var(--accent)" : "var(--text-primary)",
                 background: l.locale === lang ? "var(--bg-elevated)" : "transparent",
+                border: "none",
                 borderBottom: "1px solid var(--border-subtle)",
-                fontFamily: "var(--font-mono)", textTransform: "uppercase",
+                fontFamily: "var(--font-mono)",
+                textAlign: "left",
+                borderRadius: 0,
               }}
             >
               {l.code} · {l.name}
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -381,25 +417,29 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, tool
       {/* Filter — only for params section */}
       {activeSection === "params" && (
         <div style={{ position: "relative", borderTop: "1px solid var(--border-subtle)", flexShrink: 0 }}>
-          <div
+          <button
             onClick={() => setFilterOpen(!filterOpen)}
+            aria-expanded={filterOpen}
             style={{
               padding: isMobile ? "6px 8px" : "8px 10px",
-              cursor: "pointer", userSelect: "none",
+              cursor: "pointer",
               display: "flex", alignItems: "center", gap: 4,
               color: priceFilter ? "var(--accent)" : "var(--text-muted)",
-              letterSpacing: "0.08em",
+              background: "none", border: "none",
+              fontFamily: "inherit", fontSize: "inherit",
+              width: "100%", textAlign: "left",
             }}
           >
             <span>&#9776;</span>
             <span style={{ flex: 1 }}>{t("filter")}</span>
-            {(priceFilter || exchangeSourceFilter || exchangePrizeFilter) && <span style={{ color: "var(--success)", fontSize: 8 }}>&#9679;</span>}
-          </div>
+            {(priceFilter || exchangeSourceFilter || exchangePrizeFilter) && <span style={{ color: "var(--success)", fontSize: 8 }} aria-label="Filter active">&#9679;</span>}
+          </button>
           {filterOpen && (
             <div style={{
               position: "absolute", bottom: "100%", left: 0, right: 0,
               background: "var(--bg-surface)",
               border: "1px solid var(--border-subtle)", borderBottom: "none",
+              borderRadius: "var(--radius-sm) var(--radius-sm) 0 0",
               zIndex: 20,
             }}>
               {[
@@ -408,7 +448,6 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, tool
                 { label: t("filter_exchange_prize"), value: exchangePrizeFilter, onChange: onExchangePrizeFilterChange },
               ].map((opt, i) => (
                 <label key={i}
-                  onClick={() => { opt.onChange(!opt.value); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 6,
                     padding: isMobile ? "6px 8px" : "8px 10px",
@@ -416,14 +455,12 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, tool
                     borderTop: i > 0 ? "1px solid var(--border-subtle)" : "none",
                   }}
                 >
-                  <span style={{
-                    width: 10, height: 10, flexShrink: 0,
-                    border: "1px solid var(--border-mid)",
-                    background: opt.value ? "var(--accent)" : "transparent",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    {opt.value && <span style={{ color: "var(--bg-deep)", fontSize: 8 }}>&#10003;</span>}
-                  </span>
+                  <input
+                    type="checkbox"
+                    checked={opt.value}
+                    onChange={() => { opt.onChange(!opt.value); }}
+                    style={{ accentColor: "var(--accent)" }}
+                  />
                   <span>{opt.label}</span>
                 </label>
               ))}
@@ -471,10 +508,11 @@ function CategoryTree({ sections, activeSection, activeType, activeDocSlug, tool
             <span style={{ fontSize: "var(--font-xs)", color: "var(--text-muted)", letterSpacing: "0.12em" }}>
               {t("omni")}
             </span>
-            <span onClick={onClose} style={{
+            <button onClick={onClose} aria-label="Close navigation menu" style={{
               cursor: "pointer", padding: "2px 6px", color: "var(--text-muted)",
-              fontSize: "var(--font-base)",
-            }}>&#10005;</span>
+              fontSize: "var(--font-base)", background: "none", border: "none",
+              fontFamily: "inherit",
+            }}>&#10005;</button>
           </div>
           <div style={{ flex: 1, overflow: "hidden" }}>
             {nav}
@@ -678,7 +716,7 @@ export default function App() {
         ) : null}
 
         {/* Main Area */}
-        <main style={{
+        <main id="main-content" aria-label="Main content" style={{
           flex: 1,
           overflow: "auto",
           background: "var(--bg-deep)",
