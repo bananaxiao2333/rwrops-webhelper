@@ -526,10 +526,9 @@ function CategoryTree({ sections, activeSection, activeType, activeDocSlug, tool
           background: "rgba(0,0,0,0.55)",
           animation: "fade-in 0.2s ease both",
         }} />
-        <div style={{
+        <div className="site-sidebar" style={{
           position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 101,
           width: panelWidth,
-          background: "var(--bg-base)",
           borderRight: "1px solid var(--border-subtle)",
           display: "flex", flexDirection: "column",
           animation: "slide-in-left 0.25s var(--ease-out) both",
@@ -558,10 +557,9 @@ function CategoryTree({ sections, activeSection, activeType, activeDocSlug, tool
   }
 
   return (
-    <div style={{
+    <div className="site-sidebar" style={{
       flexShrink: 0, overflow: "hidden",
       borderRight: "1px solid var(--border-subtle)",
-      background: "var(--bg-base)",
       maxWidth: 260,
     }}>
       {nav}
