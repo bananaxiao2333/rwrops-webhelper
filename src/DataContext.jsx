@@ -157,21 +157,22 @@ export const DataProvider = ({ children }) => {
       <div style={{
         position: "fixed", inset: 0, background: "var(--bg-deep)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "var(--font-mono)",
+        fontFamily: "var(--font-body)",
       }}>
-        <div style={{ textAlign: "center", border: "1px solid var(--danger)", padding: "2rem 3rem", background: "var(--bg-surface)" }}>
-          <div style={{ fontSize: "1.25rem", color: "var(--danger)", letterSpacing: "0.2em", marginBottom: "1rem" }}>&#9608; SYSTEM FAULT</div>
+        <div role="alert" style={{ textAlign: "center", borderRadius: "var(--radius-md)", border: "1px solid var(--danger)", padding: "2rem 3rem", background: "var(--bg-surface)" }}>
+          <div style={{ fontSize: "1.25rem", color: "var(--danger)", fontWeight: 600, marginBottom: "1rem", letterSpacing: "-0.01em" }}>Connection Error</div>
           <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem", fontSize: "0.85rem" }}>{error}</p>
           <button
             onClick={() => window.location.reload()}
             style={{
               padding: "0.5rem 1.5rem", background: "transparent", color: "var(--accent)",
-              border: "1px solid var(--accent)", fontFamily: "var(--font-mono)",
-              fontSize: "0.8rem", letterSpacing: "0.15em", cursor: "pointer",
+              border: "1px solid var(--accent)", fontFamily: "var(--font-body)",
+              fontSize: "0.8rem", fontWeight: 500, cursor: "pointer",
+              borderRadius: "var(--radius-sm)",
             }}
             onMouseEnter={(e) => { e.target.style.background = "var(--accent)"; e.target.style.color = "var(--text-inverse)"; }}
             onMouseLeave={(e) => { e.target.style.background = "transparent"; e.target.style.color = "var(--accent)"; }}
-          >REINITIALIZE
+          >Retry
           </button>
         </div>
       </div>

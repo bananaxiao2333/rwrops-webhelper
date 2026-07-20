@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#080c12" />
+  <meta name="theme-color" content="#07080b" />
   <meta name="msvalidate.01" content="54BA2325E5CB082B8B1C1AC394CEC838" />
   <link rel="icon" type="image/svg+xml" href="/icon.svg" />
   <title>RWROPS — RWRWIKI</title>
@@ -12,50 +12,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
     rel="stylesheet"
   />
 
   <style>
-    /* ════════════════════════════════════════════════
-       RWROPS · Tactical Terminal Boot Sequence
-       ════════════════════════════════════════════════ */
-
-    :root {
-      --bg-deep:       #080c12;
-      --bg-surface:    #131a24;
-      --bg-elevated:   #182233;
-      --accent:        #f59e0b;
-      --accent-glow:   rgba(245, 158, 11, 0.35);
-      --accent-dim:    #b45309;
-      --accent-faint:  rgba(245, 158, 11, 0.08);
-      --success:       #22c55e;
-      --text-primary:  #e8edf3;
-      --text-muted:    #8899aa;
-      --text-dim:      #3a4a5a;
-      --border-subtle: #1e2d3d;
-      --border-mid:    #2a3a4e;
-      --font-display:  'Rajdhani', sans-serif;
-      --font-mono:     'Share Tech Mono', monospace;
-      --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
-      --ease-smooth:   cubic-bezier(0.4, 0, 0.2, 1);
-      --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* ════════════ LOADING SCREEN ════════════ */
     #loading-screen {
       position: fixed; inset: 0; z-index: 99999;
-      background: var(--bg-deep);
-      color: var(--text-primary);
-      font-family: var(--font-mono);
+      background: #07080b;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      transition: opacity 0.45s var(--ease-smooth),
-                  visibility 0.45s var(--ease-smooth);
+      transition: opacity 0.4s ease, visibility 0.4s ease;
     }
 
     #loading-screen.fade-out {
@@ -64,604 +35,159 @@
       pointer-events: none;
     }
 
-    /* ── CRT scanlines ── */
-    #loading-screen::after {
-      content: '';
-      position: absolute; inset: 0; z-index: 1; pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.08) 2px,
-        rgba(0,0,0,0.08) 4px
-      );
-    }
-
-    /* ── Noise grain ── */
-    .terminal-grain {
-      position: absolute; inset: -50%; z-index: 1; pointer-events: none;
-      opacity: 0.025;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 128px 128px;
-      animation: grain-shift 0.5s steps(3) infinite;
-    }
-
-    /* ── Dot grid ── */
-    .terminal-dotgrid {
-      position: absolute; inset: 0; z-index: 0; pointer-events: none;
-      background-image: radial-gradient(circle, rgba(245, 158, 11, 0.04) 1px, transparent 1px);
-      background-size: 24px 24px;
-      animation: dotgrid-fade 0.8s var(--ease-smooth) 0.3s both;
-      opacity: 0;
-    }
-
-    /* ── Vignette overlay ── */
-    .terminal-vignette {
-      position: absolute; inset: 0; z-index: 0; pointer-events: none;
-      background: radial-gradient(ellipse at center,
-        transparent 50%,
-        rgba(8, 12, 18, 0.55) 80%,
-        rgba(8, 12, 18, 0.85) 100%
-      );
-    }
-
-    /* ════════════ TERMINAL CONTAINER ════════════ */
-    .terminal {
-      position: relative; z-index: 2;
-      width: 100%; max-width: 580px;
-      padding: 2.5rem 2.5rem 2rem;
-      display: flex; flex-direction: column;
-      gap: 1.5rem;
-      border: 1px solid rgba(245,158,11,0.08);
-      background: rgba(8,12,18,0.6);
-      backdrop-filter: blur(2px);
-    }
-
-    /* ── HUD Corner Brackets ── */
-    .terminal-corners {
-      position: absolute; inset: 0; pointer-events: none; z-index: 3;
-    }
-    .terminal-corners::before,
-    .terminal-corners::after {
-      content: ''; position: absolute;
-      width: 32px; height: 32px;
-      opacity: 0;
-      animation: bracket-appear 0.5s var(--ease-spring) 0.15s forwards;
-    }
-    .terminal-corners::before {
-      top: -1px; left: -1px;
-      border-top: 2px solid rgba(245,158,11,0.3);
-      border-left: 2px solid rgba(245,158,11,0.3);
-    }
-    .terminal-corners::after {
-      top: -1px; right: -1px;
-      border-top: 2px solid rgba(245,158,11,0.3);
-      border-right: 2px solid rgba(245,158,11,0.3);
-    }
-    .terminal-corners-bottom {
-      position: absolute; inset: 0; pointer-events: none; z-index: 3;
-    }
-    .terminal-corners-bottom::before,
-    .terminal-corners-bottom::after {
-      content: ''; position: absolute;
-      width: 32px; height: 32px;
-      opacity: 0;
-      animation: bracket-appear 0.5s var(--ease-spring) 0.2s forwards;
-    }
-    .terminal-corners-bottom::before {
-      bottom: -1px; left: -1px;
-      border-bottom: 2px solid rgba(245,158,11,0.3);
-      border-left: 2px solid rgba(245,158,11,0.3);
-    }
-    .terminal-corners-bottom::after {
-      bottom: -1px; right: -1px;
-      border-bottom: 2px solid rgba(245,158,11,0.3);
-      border-right: 2px solid rgba(245,158,11,0.3);
-    }
-
-    /* ── Header ── */
-    .terminal-header {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 0.3rem;
-    }
-
-    .terminal-symbol {
-      font-family: var(--font-display);
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      color: var(--accent-dim);
-      text-transform: uppercase;
-      opacity: 0;
-      animation: term-fade-up 0.45s var(--ease-smooth) 0.05s forwards;
-    }
-
-    .terminal-title {
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: clamp(48px, 8vw, 88px);
-      letter-spacing: 0.14em;
-      line-height: 0.9;
-      color: var(--text-primary);
-      text-transform: uppercase;
-      text-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(245,158,11,0.08);
-      display: flex;
-      animation: title-glow-pulse 3s ease-in-out 1s infinite;
-    }
-
-    .title-char {
-      display: inline-block;
-      opacity: 0;
-      animation: char-drop-in 0.45s var(--ease-spring) forwards;
-    }
-    .title-char:nth-child(1) { animation-delay: 0.08s; }
-    .title-char:nth-child(2) { animation-delay: 0.13s; }
-    .title-char:nth-child(3) { animation-delay: 0.18s; }
-    .title-char:nth-child(4) { animation-delay: 0.23s; }
-    .title-char:nth-child(5) { animation-delay: 0.28s; }
-    .title-char:nth-child(6) { animation-delay: 0.33s; }
-
-    .terminal-rule {
-      width: 160px; height: 1px;
-      margin: 0.2rem 0 0.3rem;
-      background: linear-gradient(to right, transparent, var(--accent), transparent);
-      opacity: 0;
-      animation: term-rule-expand 0.55s var(--ease-out) 0.4s forwards,
-                 rule-breathe 2.5s ease-in-out 1.2s infinite;
-      transform-origin: center;
-    }
-
-    .terminal-subtitle {
-      font-family: var(--font-mono);
-      font-size: 0.55rem;
-      letter-spacing: 0.25em;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      opacity: 0;
-      animation: term-fade-up 0.45s var(--ease-smooth) 0.5s forwards;
-      overflow: hidden;
-      white-space: nowrap;
+    .loader {
+      max-width: 380px;
+      width: 100%;
+      padding: 0 24px;
       text-align: center;
     }
 
-    .subtitle-text {
-      display: inline-block;
-      overflow: hidden;
-      white-space: nowrap;
-      animation: typewriter-reveal 1.2s steps(42, end) 0.55s forwards;
-      max-width: 0;
-      vertical-align: bottom;
-    }
-
-    /* ── Boot Log ── */
-    .terminal-log {
-      display: flex; flex-direction: column;
-      gap: 0.35rem;
-      font-size: 0.55rem;
-      line-height: 1.6;
-      color: var(--text-dim);
-      letter-spacing: 0.06em;
-      padding: 0.75rem 1rem;
-      background: rgba(0,0,0,0.25);
-      border: 1px solid rgba(245,158,11,0.06);
-    }
-
-    .log-row {
-      display: flex; align-items: baseline; gap: 6px;
+    .loader-logo {
+      width: 48px; height: 48px;
+      margin-bottom: 20px;
       opacity: 0;
-      animation: log-entry-in 0.4s var(--ease-out) forwards;
-    }
-    .log-row:nth-child(1) { animation-delay: 0.55s; }
-    .log-row:nth-child(2) { animation-delay: 0.65s; }
-    .log-row:nth-child(3) { animation-delay: 0.75s; }
-    .log-row:nth-child(4) { animation-delay: 0.85s; }
-    .log-row:nth-child(5) { animation-delay: 0.95s; }
-
-    .log-status {
-      color: var(--success);
-      white-space: nowrap;
-      font-weight: 500;
-      min-width: 3.2em;
-    }
-    .log-entry {
-      color: var(--text-dim);
-      white-space: nowrap;
+      animation: loader-fade-in 0.5s ease 0.1s forwards;
     }
 
-    /* ── Progress Section ── */
-    .terminal-progress {
-      display: flex; flex-direction: column;
-      gap: 0.4rem;
+    .loader-title {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: clamp(24px, 5vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #f0f2f6;
+      margin-bottom: 4px;
       opacity: 0;
-      animation: term-fade-up 0.45s var(--ease-smooth) 0.6s forwards;
+      animation: loader-fade-in 0.5s ease 0.2s forwards;
     }
 
-    .progress-header {
-      display: flex; align-items: baseline; justify-content: space-between;
+    .loader-subtitle {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: clamp(11px, 2vw, 13px);
+      font-weight: 400;
+      color: #555b6b;
+      margin-bottom: 36px;
+      opacity: 0;
+      animation: loader-fade-in 0.5s ease 0.3s forwards;
     }
 
-    .progress-stage {
-      font-size: 0.52rem;
-      letter-spacing: 0.2em;
-      color: var(--accent);
-      text-transform: uppercase;
-      font-weight: 500;
+    .loader-progress {
+      opacity: 0;
+      animation: loader-fade-in 0.5s ease 0.4s forwards;
     }
 
-    .progress-pct {
-      font-family: var(--font-mono);
-      font-size: 0.52rem;
-      color: var(--text-muted);
-      letter-spacing: 0.08em;
+    .loader-progress-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 8px;
     }
 
-    .progress-pct-value {
+    .loader-stage {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: clamp(10px, 1.8vw, 12px);
+      font-weight: 600;
+      color: #f5a623;
+      letter-spacing: 0.02em;
+    }
+
+    .loader-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(10px, 1.8vw, 12px);
+      color: #555b6b;
+    }
+
+    .loader-pct-value {
       display: inline-block;
-      transition: transform 0.15s var(--ease-spring);
       min-width: 2ch;
       text-align: right;
     }
 
-    .progress-track {
-      width: 100%; height: 4px;
-      background: var(--border-subtle);
-      position: relative;
+    .loader-track {
+      width: 100%; height: 3px;
+      background: #1b1e27;
+      border-radius: 2px;
       overflow: hidden;
     }
 
-    .progress-fill {
+    .loader-fill {
       height: 100%; width: 0%;
-      background: linear-gradient(90deg, var(--accent-dim), var(--accent));
-      box-shadow: 0 0 14px var(--accent-glow);
-      transition: width 0.5s var(--ease-out);
-      position: relative;
-      animation: progress-glow-pulse 2s ease-in-out 0.8s infinite;
+      background: linear-gradient(90deg, #c2851a, #f5a623);
+      border-radius: 2px;
+      transition: width 0.4s ease;
     }
 
-    .progress-fill::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255,255,255,0.12) 30%,
-        transparent 60%
-      );
-      animation: term-shimmer 2.2s ease-in-out infinite;
-    }
-
-    .progress-detail {
-      font-size: 0.48rem;
-      color: var(--text-dim);
-      letter-spacing: 0.1em;
+    .loader-detail {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: clamp(9px, 1.6vw, 11px);
+      color: #333845;
+      margin-top: 12px;
       min-height: 1.4em;
-      font-family: var(--font-mono);
+      letter-spacing: 0.01em;
     }
 
-    /* ── Prompt ── */
-    .terminal-prompt {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 0.55rem; color: var(--accent);
-      letter-spacing: 0.08em;
-      opacity: 0;
-      animation: term-fade-up 0.35s var(--ease-smooth) 0.95s forwards;
-      padding: 0.5rem 1rem;
-      background: rgba(0,0,0,0.2);
-      border: 1px solid rgba(245,158,11,0.06);
+    .loader-prompt {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: clamp(10px, 1.8vw, 12px);
+      color: #555b6b;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #1b1e27;
     }
 
-    /* ── Module Icons (game + tools) ── */
-    .terminal-modules {
-      display: flex; gap: 8px;
-      justify-content: center; align-items: center;
-      opacity: 0;
-      animation: term-fade-up 0.35s var(--ease-smooth) 1s forwards;
+    .loader-prompt-label {
+      color: #555b6b;
     }
 
-    .cursor-blink {
-      display: inline-block;
-      width: 7px; height: 14px;
-      background: var(--accent);
-      animation: term-cursor 0.85s step-end infinite;
-      box-shadow: 0 0 8px var(--accent-glow);
+    .loader-log {
+      display: none;
     }
 
-    .prompt-label {
-      color: var(--text-dim);
-      letter-spacing: 0.06em;
-    }
-
-    /* ── Footer ── */
-    .terminal-footer {
-      display: flex; justify-content: space-between;
-      font-size: 0.45rem;
-      color: var(--text-dim);
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      opacity: 0;
-      animation: term-fade-up 0.35s var(--ease-smooth) 1s forwards;
-    }
-
-    .footer-left, .footer-right {
-      display: flex; align-items: center; gap: 14px;
-    }
-
-    .status-dot {
-      display: inline-block;
-      width: 4px; height: 4px;
-      border-radius: 50%;
-      background: var(--success);
-      margin-right: 4px;
-      vertical-align: middle;
-      box-shadow: 0 0 4px rgba(34,197,94,0.5);
-      animation: status-dot-pulse 2s ease-in-out infinite;
-    }
-    .status-dot.amber {
-      background: var(--accent);
-      box-shadow: 0 0 4px var(--accent-glow);
-      animation-delay: 0.3s;
-    }
-    .status-dot.standby {
-      background: var(--accent-dim);
-      box-shadow: 0 0 4px rgba(180,83,9,0.3);
-      animation-delay: 0.7s;
-    }
-
-    /* ════════════ KEYFRAMES ════════════ */
-
-    @keyframes char-drop-in {
-      0%   { opacity: 0; transform: translateY(-18px) scale(0.9); filter: blur(2px); }
-      60%  { opacity: 1; transform: translateY(3px) scale(1.02); filter: blur(0); }
-      80%  { transform: translateY(-1px) scale(0.99); }
-      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-    }
-
-    @keyframes title-glow-pulse {
-      0%, 100% { text-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(245,158,11,0.08); }
-      50%      { text-shadow: 0 0 55px rgba(245,158,11,0.45), 0 0 100px rgba(245,158,11,0.12); }
-    }
-
-    @keyframes rule-breathe {
-      0%, 100% { opacity: 0.6; }
-      50%      { opacity: 1; }
-    }
-
-    @keyframes typewriter-reveal {
-      from { max-width: 0; }
-      to   { max-width: 100%; }
-    }
-
-    @keyframes log-entry-in {
-      0%   { opacity: 0; transform: translateX(-8px); }
-      60%  { opacity: 1; transform: translateX(1px); }
-      100% { opacity: 1; transform: translateX(0); }
-    }
-
-    @keyframes bracket-appear {
-      from { opacity: 0; transform: scale(0.7); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes grain-shift {
-      0%   { transform: translate(0, 0); }
-      33%  { transform: translate(-1px, 1px); }
-      66%  { transform: translate(1px, -1px); }
-      100% { transform: translate(0, 0); }
-    }
-
-    @keyframes dotgrid-fade {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-
-    @keyframes progress-glow-pulse {
-      0%, 100% { box-shadow: 0 0 14px var(--accent-glow); }
-      50%      { box-shadow: 0 0 20px rgba(245,158,11,0.45), 0 0 40px rgba(245,158,11,0.08); }
-    }
-
-    @keyframes status-dot-pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: 0.5; transform: scale(1.3); }
-    }
-
-    @keyframes term-fade-up {
+    @keyframes loader-fade-in {
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes term-rule-expand {
-      from { opacity: 0; transform: scaleX(0); }
-      to   { opacity: 1; transform: scaleX(1); }
-    }
-
-    @keyframes term-cursor {
-      0%, 100% { opacity: 1; }
-      50%      { opacity: 0; }
-    }
-
-    @keyframes term-shimmer {
-      0%   { transform: translateX(-100%); }
-      100% { transform: translateX(200%); }
-    }
-
-    /* ════════════ RESPONSIVE ════════════ */
-    @media (max-width: 768px) {
-      .terminal {
-        padding: 1.75rem 1.25rem 1.5rem;
-        gap: 1.25rem;
-        max-width: 100%;
-        margin: 1rem;
-      }
-      .terminal-title {
-        font-size: clamp(32px, 10vw, 48px);
-        letter-spacing: 0.1em;
-      }
-      .terminal-rule { width: 120px; }
-      .terminal-subtitle { font-size: 0.5rem; letter-spacing: 0.18em; }
-      .terminal-log { gap: 0.3rem; font-size: 0.5rem; padding: 0.5rem 0.75rem; }
-      .terminal-prompt { padding: 0.4rem 0.75rem; font-size: 0.5rem; }
-      .terminal-footer { flex-direction: column; gap: 4px; }
-      .footer-left { gap: 10px; }
-
-      .terminal-corners::before, .terminal-corners::after,
-      .terminal-corners-bottom::before, .terminal-corners-bottom::after {
-        width: 20px; height: 20px;
-      }
-    }
-
-    @media (max-width: 380px) {
-      .terminal {
-        padding: 1.25rem 1rem 1rem;
-        gap: 1rem;
-        margin: 0.5rem;
-      }
-      .terminal-title { font-size: clamp(24px, 11vw, 32px); }
-      .log-row { gap: 4px; }
-      .log-entry, .log-status { font-size: 0.45rem; }
-      .terminal-corners::before, .terminal-corners::after,
-      .terminal-corners-bottom::before, .terminal-corners-bottom::after {
-        width: 14px; height: 14px;
-      }
-    }
-
-    /* ════════════ REDUCED MOTION ════════════ */
     @media (prefers-reduced-motion: reduce) {
-      #loading-screen {
-        transition: opacity 0.2s linear;
+      #loading-screen { transition: opacity 0.2s linear; }
+      .loader-logo, .loader-title, .loader-subtitle, .loader-progress {
+        animation: none; opacity: 1;
       }
-      #loading-screen::after {
-        background: none;
-      }
-      .terminal-grain { display: none; }
-      .terminal-dotgrid { animation: none; opacity: 1; }
-
-      .terminal-title,
-      .terminal-symbol,
-      .terminal-rule,
-      .terminal-subtitle,
-      .log-row,
-      .terminal-progress,
-      .terminal-prompt,
-      .terminal-footer {
-        animation: none;
-        opacity: 1;
-      }
-      .terminal-rule { transform: scaleX(1); }
-
-      .title-char {
-        animation: none;
-        opacity: 1;
-        filter: none;
-      }
-
-      .terminal-corners::before, .terminal-corners::after,
-      .terminal-corners-bottom::before, .terminal-corners-bottom::after {
-        animation: none;
-        opacity: 1;
-      }
-
-      .cursor-blink { animation: none; opacity: 1; }
-      .progress-fill { transition: width 0.1s linear; animation: none; }
-      .progress-fill::after { animation: none; display: none; }
-      .status-dot { animation: none; }
-      .subtitle-text {
-        animation: none;
-        max-width: 100%;
-      }
+      .loader-fill { transition: width 0.1s linear; }
     }
   </style>
 </head>
 <body>
-  <!-- ═══════════════════════════ TERMINAL BOOT SCREEN ═══════════════════════════ -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <style>.skip-link{position:absolute;top:-100px;left:8px;z-index:100000;padding:8px 16px;background:#f5a623;color:#07080b;font-family:Inter,sans-serif;font-size:14px;font-weight:600;border-radius:0 0 6px 6px;text-decoration:none;transition:top 0.2s ease}.skip-link:focus{top:0}</style>
   <div id="loading-screen" role="status" aria-label="Loading application">
-    <div class="terminal-grain" aria-hidden="true"></div>
-    <div class="terminal-dotgrid" aria-hidden="true"></div>
-    <div class="terminal-vignette" aria-hidden="true"></div>
+    <div class="loader">
+      <img class="loader-logo" src="/icon.svg" alt="RWROPS" />
+      <div class="loader-title">RWROPS</div>
+      <div class="loader-subtitle">Running With Rifles · Web Helper</div>
 
-    <div class="terminal">
-      <div class="terminal-corners" aria-hidden="true"></div>
-      <div class="terminal-corners-bottom" aria-hidden="true"></div>
-
-      <!-- Header -->
-      <header class="terminal-header">
-        <div class="terminal-symbol">◆ TACTICAL DATA TERMINAL ◆</div>
-        <img src="/icon.svg" alt="RWR OPS"
-          style="width:36px;height:36px;opacity:0;animation:term-fade-up 0.45s var(--ease-smooth) 0.05s forwards;margin-bottom:4px;"
-        />
-        <h1 class="terminal-title">
-          <span class="title-char">R</span><!--
-       --><span class="title-char">W</span><!--
-       --><span class="title-char">R</span><!--
-       --><span class="title-char">O</span><!--
-       --><span class="title-char">P</span><!--
-       --><span class="title-char">S</span>
-        </h1>
-        <div class="terminal-rule" aria-hidden="true"></div>
-        <p class="terminal-subtitle">
-          <span class="subtitle-text">Running With Rifles · Tactical Data Terminal</span>
-        </p>
-      </header>
-
-      <!-- Boot Log -->
-      <div class="terminal-log" role="log" aria-label="System boot log">
-        <div class="log-row">
-          <span class="log-status">[ OK ]</span>
-          <span class="log-entry" id="log-1">Initializing system…</span>
-        </div>
-        <div class="log-row">
-          <span class="log-status">[ OK ]</span>
-          <span class="log-entry" id="log-2">Loading metadata…</span>
-        </div>
-        <div class="log-row">
-          <span class="log-status">[ OK ]</span>
-          <span class="log-entry" id="log-3">Loading data package…</span>
-        </div>
-        <div class="log-row" id="log-4-row" style="display:none">
-          <span class="log-status">[ OK ]</span>
-          <span class="log-entry" id="log-4">Processing manifest…</span>
-        </div>
-        <div class="log-row" id="log-5-row" style="display:none">
-          <span class="log-status">[ OK ]</span>
-          <span class="log-entry" id="log-5">Manifest loaded</span>
-        </div>
-      </div>
-
-      <!-- Progress -->
-      <div class="terminal-progress">
-        <div class="progress-header">
-          <span class="progress-stage" id="stage-text">INITIALIZING</span>
-          <span class="progress-pct">
-            <span class="progress-pct-value" id="ring-pct">0</span><span>%</span>
+      <div class="loader-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div class="loader-progress-header">
+          <span class="loader-stage" id="stage-text">INITIALIZING</span>
+          <span class="loader-pct">
+            <span class="loader-pct-value" id="ring-pct">0</span>%
           </span>
         </div>
-        <div class="progress-track" aria-hidden="true">
-          <div class="progress-fill" id="progress-bar" role="progressbar"
-               aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        <div class="loader-track">
+          <div class="loader-fill" id="progress-bar"></div>
         </div>
-        <div class="progress-detail" id="detail-text"></div>
+        <div class="loader-detail" id="detail-text"></div>
       </div>
 
-      <!-- Prompt -->
-      <div class="terminal-prompt">
-        <span class="cursor-blink" aria-hidden="true"></span>
-        <span class="prompt-label" id="prompt-label">Awaiting initialization</span>
+      <div class="loader-prompt">
+        <span class="loader-prompt-label" id="prompt-label">Awaiting initialization</span>
       </div>
 
-      <!-- Game + Tool Icons -->
-      <div class="terminal-modules" aria-label="Game tools">
-        <img src="/rwr-title.png" alt="RWR"
-          style="height:22px;width:auto;opacity:0.8;image-rendering:pixelated;"
-        />
-      </div>
-
-      <!-- Footer -->
-      <div class="terminal-footer" aria-hidden="true">
-        <span class="footer-left">
-          <span><span class="status-dot"></span>TERM v4.0</span>
-          <span><span class="status-dot amber"></span>ENCRYPTED LINK</span>
-        </span>
-        <span class="footer-right">
-          <span><span class="status-dot standby"></span>STANDBY</span>
-        </span>
+      <div class="loader-log" aria-hidden="true">
+        <span id="log-1"></span>
+        <span id="log-2"></span>
+        <span id="log-3"></span>
+        <span id="log-4"></span>
+        <span id="log-5"></span>
       </div>
     </div>
   </div>

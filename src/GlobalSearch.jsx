@@ -124,20 +124,25 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
   if (!open) return null;
 
   return (
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 200,
-      background: "rgba(0,0,0,0.8)",
-      display: "flex", justifyContent: "center", paddingTop: "10vh",
-      animation: "fade-in 0.12s var(--ease-smooth) both",
-    }}
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search"
+      aria-describedby="search-footer"
+      style={{
+        position: "fixed", inset: 0, zIndex: 200,
+        background: "rgba(0,0,0,0.8)",
+        display: "flex", justifyContent: "center", paddingTop: "10vh",
+        animation: "fade-in 0.12s var(--ease-smooth) both",
+      }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div onKeyDown={handleKey} style={{
         width: "min(600px, 92vw)", maxHeight: "75vh",
         background: "var(--bg-deep)", border: "1px solid var(--border-subtle)",
-        borderRadius: 6, boxShadow: "var(--shadow-lg)",
+        borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)",
         display: "flex", flexDirection: "column",
-        fontFamily: "var(--font-mono)",
+        fontFamily: "var(--font-body)",
         animation: "fade-in 0.18s var(--ease-smooth) 0.05s both",
       }}>
         {/* Header + Input */}
@@ -145,33 +150,46 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
           display: "flex", alignItems: "center", gap: 10,
           padding: "14px 16px", borderBottom: "1px solid var(--border-subtle)",
         }}>
-          <span style={{ color: "var(--accent)", fontSize: "var(--font-lg)" }}>&#8981;</span>
+          <span style={{ color: "var(--accent)", fontSize: "var(--font-lg)" }} aria-hidden="true">&#8981;</span>
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("search") + "..."}
+            aria-label={t("search")}
             style={{
               flex: 1, background: "transparent", border: "none",
               color: "var(--text-primary)", fontSize: "var(--font-base)",
-              fontFamily: "inherit", outline: "none",
+              fontFamily: "inherit",
             }}
           />
           {query && (
-            <span onClick={() => setQuery("")}
-              style={{ cursor: "pointer", color: "var(--text-muted)", fontSize: "var(--font-sm)" }}>
+            <button onClick={() => { setQuery(""); inputRef.current?.focus(); }}
+              aria-label="Clear search"
+              style={{
+                cursor: "pointer", color: "var(--text-muted)", fontSize: "var(--font-sm)",
+                background: "none", border: "none", padding: 0, fontFamily: "inherit",
+              }}>
               &#10005;
-            </span>
+            </button>
           )}
-          <span onClick={onClose}
-            style={{ cursor: "pointer", color: "var(--text-muted)", fontSize: "var(--font-base)" }}>
+          <button onClick={onClose}
+            aria-label="Close search"
+            style={{
+              cursor: "pointer", color: "var(--text-muted)", fontSize: "var(--font-base)",
+              background: "none", border: "none", padding: 0, fontFamily: "inherit",
+            }}>
             &#10005;
-          </span>
+          </button>
         </div>
 
         {/* Results */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "4px 0" }}>
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          style={{ flex: 1, overflowY: "auto", padding: "4px 0" }}>
           {loading && (
             <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--text-muted)", fontSize: "var(--font-sm)" }}>
               <div style={{ width: 20, height: 20, border: "2px solid var(--border-mid)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "boot-spin 0.8s linear infinite", margin: "0 auto 12px" }} />
@@ -206,14 +224,20 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
                 const idx = ri;
                 const isSel = selectedIdx === idx;
                 return (
-                  <div key={`data-${r.section}-${r.key}`}
+                  <button
+                    key={`data-${r.section}-${r.key}`}
                     onClick={() => { onNavigate(r.path); onClose(); }}
                     style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      width: "100%",
                       padding: "8px 16px", cursor: "pointer",
                       background: isSel ? "var(--bg-elevated)" : "transparent",
+                      border: "none",
                       borderLeft: isSel ? "3px solid var(--accent)" : "3px solid transparent",
+                      borderBottom: "1px solid var(--border-subtle)",
                       transition: "background var(--dur-fast) var(--ease-smooth)",
-                      display: "flex", alignItems: "center", gap: 8,
+                      fontFamily: "inherit", fontSize: "inherit",
+                      textAlign: "left",
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-elevated)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = isSel ? "var(--bg-elevated)" : "transparent"; }}
@@ -221,23 +245,23 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
                     <span style={{
                       flexShrink: 0, fontSize: "var(--font-xxs)", fontWeight: 700,
                       color: "var(--accent)", background: "var(--bg-surface)",
-                      padding: "1px 5px", borderRadius: 2,
+                      padding: "1px 5px", borderRadius: "var(--radius-sm)",
                       border: "1px solid var(--border-subtle)",
                     }}>
                       {TYPE_LABELS[r.section] || r.section.slice(0, 4).toUpperCase()}
                     </span>
                     <span style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "var(--text-primary)" }}>
+                      <span style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--text-primary)" }}>
                         {r.label}
                       </span>
                       <span style={{
                         marginLeft: 8, fontSize: "var(--font-xxs)",
-                        color: "var(--text-dim)", textTransform: "uppercase",
+                        color: "var(--text-dim)",
                       }}>
                         {r.section}
                       </span>
                     </span>
-                  </div>
+                  </button>
                 );
               })}
             </>
@@ -259,23 +283,30 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
                 const idx = results.data.length + di;
                 const isSel = selectedIdx === idx;
                 return (
-                  <div key={`docs-${r.key}-${r.section}`}
+                  <button
+                    key={`docs-${r.key}-${r.section}`}
                     onClick={() => { onNavigate(r.path); onClose(); }}
                     style={{
+                      display: "block",
+                      width: "100%",
                       padding: "8px 16px", cursor: "pointer",
                       background: isSel ? "var(--bg-elevated)" : "transparent",
+                      border: "none",
                       borderLeft: isSel ? "3px solid var(--accent)" : "3px solid transparent",
+                      borderBottom: "1px solid var(--border-subtle)",
                       transition: "background var(--dur-fast) var(--ease-smooth)",
+                      fontFamily: "inherit", fontSize: "inherit",
+                      textAlign: "left",
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-elevated)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = isSel ? "var(--bg-elevated)" : "transparent"; }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                      <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "var(--text-primary)" }}>
+                      <span style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--text-primary)" }}>
                         {r.label}
                       </span>
                       <span style={{
-                        fontSize: "var(--font-xxs)", padding: "1px 6px", borderRadius: 2,
+                        fontSize: "var(--font-xxs)", padding: "1px 6px", borderRadius: "var(--radius-sm)",
                         background: "var(--bg-surface)", color: "var(--text-muted)",
                         border: "1px solid var(--border-subtle)",
                       }}>
@@ -286,7 +317,7 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
                       <div style={{ fontSize: "var(--font-xs)", color: "var(--text-muted)", lineHeight: 1.5 }}
                         dangerouslySetInnerHTML={{ __html: r.snippet }} />
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </>
@@ -294,7 +325,7 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
         </div>
 
         {/* Footer */}
-        <div style={{
+        <div id="search-footer" style={{
           padding: "6px 16px", borderTop: "1px solid var(--border-subtle)",
           fontSize: "var(--font-xxs)", color: "var(--text-dim)",
           display: "flex", justifyContent: "space-between",
