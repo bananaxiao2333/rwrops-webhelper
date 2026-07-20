@@ -136,84 +136,119 @@ function useTheme() {
   }, []);
 }
 
-/* ── Persistent Status Bar ── */
-function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, onShareOpen, showShare }) {
+/* ── Persistent Status Bar (RXSEND-inspired header) ── */
+function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, onShareOpen, showShare, onNav, activeSection }) {
   const { t } = useI18n();
+  const gap = isMobile ? 4 : 8;
   return (
-    <div style={{
-      height: isMobile ? 32 : 36,
+    <header role="banner" style={{
+      height: isMobile ? 38 : 44,
       background: "var(--bg-base)",
       borderBottom: "1px solid var(--border-subtle)",
-      display: "flex", alignItems: "center",
-      padding: isMobile ? "0 10px" : "0 20px",
-      gap: isMobile ? 10 : 20,
-      fontSize: "var(--font-md)",
-      color: "var(--text-muted)",
-      fontFamily: "var(--font-mono)",
+      display: "flex", alignItems: "stretch",
+      padding: isMobile ? "0 6px" : "0 8px",
       flexShrink: 0,
+      zIndex: 10,
     }}>
-      {/* Hamburger (mobile only) */}
-      {isMobile && (
-        <button
-          onClick={onSidebarToggle}
-          aria-label="Toggle navigation menu"
-          aria-expanded={false}
-          style={{
-            cursor: "pointer", fontSize: "var(--font-base)", lineHeight: 1,
-            color: "var(--text-muted)", padding: "2px 4px", marginRight: 2,
-            background: "none", border: "none", fontFamily: "inherit",
-          }}
-        >
-          &#9776;
-        </button>
-      )}
-      <span style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 6 }}>
+      {/* Hamburger + Logo + Brand */}
+      <div style={{ display: "flex", alignItems: "center", gap, flexShrink: 0 }}>
+        {isMobile && (
+          <button
+            onClick={onSidebarToggle}
+            aria-label="Toggle navigation menu"
+            aria-expanded={false}
+            style={{
+              cursor: "pointer", fontSize: "var(--font-base)", lineHeight: 1,
+              color: "var(--text-muted)", padding: "2px 4px",
+              background: "none", border: "none", fontFamily: "inherit",
+            }}
+          >
+            &#9776;
+          </button>
+        )}
         <img src="/icon.svg" alt="RWROPS"
           style={{
-            width: isMobile ? 11 : 14,
-            height: isMobile ? 11 : 14,
+            width: isMobile ? 14 : 16,
+            height: isMobile ? 14 : 16,
             flexShrink: 0,
           }}
         />
-        {!isMobile && "RWROPS"}
-      </span>
-      <span style={{ color: "var(--border-mid)" }}>│</span>
-      <span style={{ color: "var(--accent)" }}>{viewName}</span>
-      {count !== undefined && (
-        <><span style={{ color: "var(--border-mid)" }}>│</span><span>{count} {t("units")}</span></>
-      )}
-      <span style={{ flex: 1 }} />
+        {!isMobile && (
+          <span style={{
+            fontSize: "var(--font-sm)", fontWeight: 700,
+            color: "var(--text-primary)",
+            fontFamily: "var(--font-display)",
+            letterSpacing: "-0.02em",
+          }}>
+            RWROPS
+          </span>
+        )}
+      </div>
 
-      {/* Global search trigger — always visible */}
+      {/* Nav items (desktop only) */}
+      {!isMobile && (
+        <nav aria-label="Main sections" style={{
+          display: "flex", alignItems: "stretch", height: "100%",
+          marginLeft: 4,
+        }}>
+          {NAV_SECTIONS.map(section => (
+            <button
+              key={section.id}
+              onClick={() => onNav(section.path)}
+              className={`header-nav-btn${section.id === activeSection ? ' active' : ''}`}
+              aria-current={section.id === activeSection ? 'page' : undefined}
+            >
+              {t(section.labelKey)}
+            </button>
+          ))}
+        </nav>
+      )}
+
+      {/* Current view indicator */}
+      <div style={{
+        display: "flex", alignItems: "center",
+        marginLeft: isMobile ? 4 : 10, gap: 4,
+        fontSize: "var(--font-xs)", color: "var(--text-muted)",
+        fontFamily: "var(--font-mono)", flexShrink: 0,
+        minWidth: 0, overflow: "hidden",
+      }}>
+        {!isMobile && <span style={{ color: "var(--border-mid)", flexShrink: 0 }}>/</span>}
+        <span style={{ color: "var(--accent)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{viewName}</span>
+        {count !== undefined && (
+          <><span style={{ color: "var(--border-mid)", flexShrink: 0 }}>/</span><span style={{ flexShrink: 0 }}>{count}</span></>
+        )}
+      </div>
+
+      <span style={{ flex: 1, minWidth: gap }} />
+
+      {/* Search trigger */}
       <button
         onClick={onSearchOpen}
         aria-label="Open search"
         style={{
           border: "1px solid var(--border-subtle)",
-          padding: isMobile ? "2px 8px" : "3px 12px",
+          padding: isMobile ? "2px 6px" : "3px 10px",
           background: "var(--bg-deep)",
-          display: "flex", alignItems: "center", gap: 6,
-          cursor: "pointer",
-          fontFamily: "inherit", fontSize: "inherit",
+          display: "flex", alignItems: "center", gap: 4,
+          cursor: "pointer", fontFamily: "inherit", fontSize: "inherit",
           borderRadius: "var(--radius-sm)",
           transition: "border-color var(--dur-fast) var(--ease-smooth)",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
       >
-        <span style={{ color: "var(--accent)", fontSize: "var(--font-sm)" }}>&#8981;</span>
-        <span style={{
-          color: "var(--text-muted)", fontSize: "var(--font-sm)",
-          fontFamily: "var(--font-mono)",
-          display: isMobile ? "none" : "inline",
-        }}>
-          {t("search")}
-        </span>
+        <span style={{ color: "var(--accent)", fontSize: "var(--font-xs)" }}>&#8981;</span>
         {!isMobile && (
           <span style={{
-            fontSize: "var(--font-xxs)", color: "var(--text-dim)",
-            border: "1px solid var(--border-subtle)", padding: "0 4px",
-            borderRadius: 2, lineHeight: "16px",
+            color: "var(--text-muted)", fontSize: "var(--font-xs)",
+            fontFamily: "var(--font-mono)",
+          }}>
+            {t("search")}
+          </span>
+        )}
+        {!isMobile && (
+          <span style={{
+            fontSize: 9, color: "var(--text-dim)",
+            border: "1px solid var(--border-subtle)", padding: "0 3px",
+            borderRadius: 2, lineHeight: "14px",
           }}>
             Ctrl+K
           </span>
@@ -227,31 +262,20 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
           aria-label="Open share menu"
           style={{
             border: "1px solid var(--border-subtle)",
-            padding: isMobile ? "2px 8px" : "3px 8px",
+            padding: isMobile ? "2px 6px" : "3px 6px",
             background: "var(--bg-deep)",
-            display: "flex", alignItems: "center", gap: 6,
-            cursor: "pointer",
-            fontFamily: "inherit", fontSize: "inherit",
+            display: "flex", alignItems: "center",
+            cursor: "pointer", fontFamily: "inherit", fontSize: "inherit",
             borderRadius: "var(--radius-sm)",
-            transition: "border-color var(--dur-fast) var(--ease-smooth)",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
         >
           <Icon icon="mdi:share-variant" style={{ fontSize: 11, color: "var(--accent)" }} />
-          {!isMobile && (
-            <span style={{
-              color: "var(--text-muted)", fontSize: "var(--font-xs)",
-              fontFamily: "var(--font-mono)",
-            }}>
-              {t("share")}
-            </span>
-          )}
         </button>
       )}
+
       {/* Language switch */}
       <LanguageSelector />
-    </div>
+    </header>
   );
 }
 
@@ -264,20 +288,21 @@ function LanguageSelector() {
   const label = current ? current.code.toUpperCase() : lang.toUpperCase();
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", display: "flex", alignItems: "stretch" }}>
       <button
         onClick={() => setOpen(!open)}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label="Select language"
         style={{
-          cursor: "pointer", padding: "3px 8px",
+          cursor: "pointer", padding: "3px 6px",
           border: "1px solid var(--border-subtle)",
           fontSize: "var(--font-xs)",
           color: "var(--accent)",
           fontFamily: "var(--font-mono)",
           background: "none",
           borderRadius: "var(--radius-sm)",
+          marginLeft: 4,
         }}
       >
         {label}
@@ -674,6 +699,8 @@ export default function App() {
         onSearchOpen={() => setGlobalSearchOpen(true)}
         showShare={isParams && itemKey !== null}
         onShareOpen={() => setShareOpen(true)}
+        onNav={(path) => navigate(path)}
+        activeSection={activeSection}
       />
 
       {/* Content */}
