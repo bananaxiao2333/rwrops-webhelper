@@ -210,6 +210,26 @@ button:active, select:active, summary:active {
   html { font-size: 13px; }
 }
 
+/* ── Site header (RXSEND-inspired) ── */
+.site-header {
+  position: relative;
+  background-color: var(--bg-base);
+  background-image:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.012) 0px,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      -30deg,
+      rgba(245, 166, 35, 0.03) 0%,
+      transparent 60%
+    );
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
+
 /* ── Header navigation (RXSEND-inspired fill effect) ── */
 .header-nav-btn {
   position: relative;

@@ -141,17 +141,15 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
   const { t } = useI18n();
   const gap = isMobile ? 4 : 8;
   return (
-    <header role="banner" style={{
-      height: isMobile ? 38 : 44,
-      background: "var(--bg-base)",
-      borderBottom: "1px solid var(--border-subtle)",
+    <header role="banner" className="site-header" style={{
+      height: isMobile ? 38 : 46,
       display: "flex", alignItems: "stretch",
       padding: isMobile ? "0 6px" : "0 8px",
       flexShrink: 0,
       zIndex: 10,
     }}>
       {/* Hamburger + Logo + Brand */}
-      <div style={{ display: "flex", alignItems: "center", gap, flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10, flexShrink: 0 }}>
         {isMobile && (
           <button
             onClick={onSidebarToggle}
@@ -166,23 +164,35 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
             &#9776;
           </button>
         )}
-        <img src="/icon.svg" alt="RWROPS"
-          style={{
-            width: isMobile ? 14 : 16,
-            height: isMobile ? 14 : 16,
-            flexShrink: 0,
-          }}
-        />
-        {!isMobile && (
-          <span style={{
-            fontSize: "var(--font-sm)", fontWeight: 700,
-            color: "var(--text-primary)",
-            fontFamily: "var(--font-display)",
-            letterSpacing: "-0.02em",
-          }}>
-            RWROPS
-          </span>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <img src="/icon.svg" alt="RWROPS"
+            style={{
+              width: isMobile ? 16 : 20,
+              height: isMobile ? 16 : 20,
+              flexShrink: 0,
+            }}
+          />
+          {!isMobile && (
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+              <span style={{
+                fontSize: "var(--font-sm)", fontWeight: 700,
+                color: "var(--text-primary)",
+                fontFamily: "var(--font-display)",
+                letterSpacing: "-0.02em",
+              }}>
+                RWROPS
+              </span>
+              <span style={{
+                fontSize: 9, fontWeight: 400,
+                color: "var(--text-dim)",
+                fontFamily: "var(--font-body)",
+                letterSpacing: "0.04em",
+              }}>
+                Web Helper
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Nav items (desktop only) */}
