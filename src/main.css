@@ -209,3 +209,82 @@ button:active, select:active, summary:active {
 @media (max-width: 480px) {
   html { font-size: 13px; }
 }
+
+/* ── Header navigation (RXSEND-inspired fill effect) ── */
+.header-nav-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 14px;
+  font-family: var(--font-body);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 0;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+  text-decoration: none;
+  isolation: isolate;
+}
+
+.header-nav-btn::before,
+.header-nav-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.header-nav-btn::before {
+  background: var(--accent-subtle);
+  transition: height 0.15s ease;
+}
+
+.header-nav-btn::after {
+  background: var(--bg-elevated);
+  transition: height 0.205s ease-out;
+}
+
+.header-nav-btn:hover,
+.header-nav-btn:focus-visible {
+  color: var(--accent);
+}
+
+.header-nav-btn:hover::before,
+.header-nav-btn:focus-visible::before {
+  height: 100%;
+  transition: height 0.15s ease;
+}
+
+.header-nav-btn:hover::after,
+.header-nav-btn:focus-visible::after {
+  height: 100%;
+  transition: height 0.205s ease-out;
+}
+
+.header-nav-btn.active {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.header-nav-btn.active::before {
+  height: 100%;
+  background: var(--accent-subtle);
+}
+
+@media (max-width: 768px) {
+  .header-nav-btn {
+    padding: 0 8px;
+    font-size: 10px;
+  }
+}
