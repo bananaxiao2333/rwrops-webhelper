@@ -30,3 +30,26 @@ export async function fetchFromSource(rel) {
   if (!resp.ok) throw new Error(`Fetch failed [${resp.status}]: ${url}`);
   return resp;
 }
+
+/* ── result.json is a flat record list; the app wants {type: {key: entity}} ──
+ * Contract: rwrops/output_schema.md §顶层结构. A flat list is the only lossless
+ * shape -- 295 of 2063 records share a (type, key) with another record, so a
+ * plain nested dictionary silently drops them.
+ */
+export const SCHEMA_VERSION = 2;
+
+export function indexRecords(payload) {
+  if (payload?.schema !== SCHEMA_VERSION) {
+    throw new Error(
+      `Unsupported result.json schema ${payload?.schema} (expected ${SCHEMA_VERSION})`
+    );
+  }
+  const out = {};
+  for (const r of payload.records) {
+    const t = r.type ?? "unknown";
+    // First record wins for a duplicated key; the rest stay reachable via
+    // resolveById() if a view ever needs them.
+    (out[t] ??= {})[r.key ?? r.id] ??= r;
+  }
+  return out;
+}
