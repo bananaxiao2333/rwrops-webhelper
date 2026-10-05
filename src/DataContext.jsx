@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
-import { getDataSource } from "./dataSource.js";
+import { getDataSource, indexRecords } from "./dataSource.js";
 
 /* ── Minimal YAML parser for metadata.yaml ── */
 function parseMetadata(text) {
@@ -120,7 +120,8 @@ export const DataProvider = ({ children }) => {
 
         loadSet(55, "PROCESSING MANIFEST", "Parsing entity registries…");
         loadAppendLog("log-4", "Processing manifest…");
-        const raw = await dataResp.json();
+        const payload = await dataResp.json();
+        const raw = indexRecords(payload);   // flat records -> {type: {key: entity}}
 
         // Gather category stats
         const cats = Object.keys(raw).filter((k) => k !== "language");
