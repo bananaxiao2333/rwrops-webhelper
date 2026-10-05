@@ -39,17 +39,24 @@ export async function fetchFromSource(rel) {
 export const SCHEMA_VERSION = 2;
 
 export function indexRecords(payload) {
-  if (payload?.schema !== SCHEMA_VERSION) {
-    throw new Error(
-      `Unsupported result.json schema ${payload?.schema} (expected ${SCHEMA_VERSION})`
-    );
+  if (payload?.schema === SCHEMA_VERSION) {
+    const out = {};
+    for (const r of payload.records) {
+      const t = r.type ?? "unknown";
+      // First record wins for a duplicated key; the rest stay reachable in
+      // payload.records if a view ever needs them.
+      (out[t] ??= {})[r.key ?? r.id] ??= r;
+    }
+    return out;
   }
-  const out = {};
-  for (const r of payload.records) {
-    const t = r.type ?? "unknown";
-    // First record wins for a duplicated key; the rest stay reachable via
-    // resolveById() if a view ever needs them.
-    (out[t] ??= {})[r.key ?? r.id] ??= r;
+  // Transition shim: the previously deployed result.json had no envelope at
+  // all. Lets the frontend ship before the data does, and lets either one be
+  // rolled back on its own. Remove once schema 2 has been live a while.
+  if (!Array.isArray(payload) && payload && !("schema" in payload)) {
+    console.warn("[rwrops] legacy result.json shape (no schema field) — data source is stale");
+    return payload;
   }
-  return out;
+  throw new Error(
+    `Unsupported result.json schema ${payload?.schema} (expected ${SCHEMA_VERSION})`
+  );
 }
