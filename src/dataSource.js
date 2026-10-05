@@ -45,7 +45,7 @@ export function indexRecords(payload) {
       const t = r.type ?? "unknown";
       // First record wins for a duplicated key; the rest stay reachable in
       // payload.records if a view ever needs them.
-      (out[t] ??= {})[r.key ?? r.id] ??= r;
+      (out[t] ??= {})[r.key ?? r._id] ??= r;
     }
     return out;
   }
