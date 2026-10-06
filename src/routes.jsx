@@ -3,6 +3,7 @@ import { useT } from "./i18n.jsx";
 import { useData } from "./DataContext.jsx";
 import { ArticleList } from "./DocsPage.jsx";
 import { TOOLS } from "./tools/ToolsListPage.jsx";
+import { sectionEnabled } from "./sections.js";
 
 /* ── mobile detection hook ── */
 function useIsMobile(breakpoint = 768) {
@@ -46,7 +47,7 @@ function CategoryCard({ cat, meta, index, style, isMobile }) {
       }}>
         <div style={{
           width: isMobile ? 4 : 5, height: isMobile ? 20 : 28,
-          background: `linear-gradient(180deg, ${meta.color}, ${meta.color}88)`,
+          background: meta.color,
           flexShrink: 0,
           borderRadius: 3,
         }} />
@@ -108,7 +109,7 @@ function MetadataFooter({ metadata, isMobile }) {
       <span aria-hidden="true" style={{ color: "var(--border-subtle)" }}>·</span>
       <span>{ts}</span>
       <span aria-hidden="true" style={{ color: "var(--border-subtle)" }}>·</span>
-      <span>{totalEntities} {t("entities")}</span>
+      <span>{totalEntities} {t("records")}</span>
       {metadata.assets && (
         <>
           <span aria-hidden="true" style={{ color: "var(--border-subtle)" }}>·</span>
@@ -120,15 +121,25 @@ function MetadataFooter({ metadata, isMobile }) {
 }
 
 /* ── HomePage ── */
-export function HomePage({ allKeywords = [], data }) {
+export function HomePage({ data }) {
   const isMobile = useIsMobile();
   const t = useT();
   const { metadata } = useData();
-  const totalCount = allKeywords.length;
   const categories = data ? Object.keys(data).map(type => ({
     type,
     count: Object.keys(data[type]).length,
   })) : [];
+  /* Count the index, not the keyword list: a title with no `name` still has a
+   * page, and `allKeywords` only holds the ones that do have one. */
+  const totalCount = categories.reduce((sum, c) => sum + c.count, 0);
+
+  const sectionHead = {
+    fontSize: "var(--font-base)",
+    fontWeight: 600,
+    color: "var(--text-secondary)",
+    marginBottom: 12,
+    fontFamily: "var(--font-body)",
+  };
 
   const palette = [
     "#6b8ca4", "#f59e0b", "#8899aa", "#ef4444",
@@ -204,11 +215,29 @@ export function HomePage({ allKeywords = [], data }) {
           </div>
         </div>
 
-        {/* Category grid */}
-        <div style={{
-          display: "flex", flexWrap: "wrap", gap: 10,
-          animation: "fade-in 0.5s var(--ease-smooth) 0.15s both",
+        {/* A wiki front page says what it is before it lists anything */}
+        <p style={{
+          maxWidth: "72ch",
+          fontSize: "var(--font-base)",
+          lineHeight: 1.75,
+          color: "var(--text-secondary)",
+          animation: "fade-in 0.5s var(--ease-smooth) 0.1s both",
         }}>
+          {t("home_intro")}
+        </p>
+
+        {/* Guides before the data index: a wiki leads with its writing. */}
+        {sectionEnabled("docs") && (
+          <section style={{ animation: "fade-in 0.5s var(--ease-smooth) 0.15s both" }}>
+            <h2 style={sectionHead}>{t("nav_docs")}</h2>
+            <ArticleList isMobile={isMobile} />
+          </section>
+        )}
+
+        {/* Data index */}
+        <section style={{ animation: "fade-in 0.5s var(--ease-smooth) 0.2s both" }}>
+          <h2 style={sectionHead}>{t("home_index")}</h2>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {categories.map((cat, i) => {
             const meta = categoryMeta[cat.type] || { label: cat.type.toUpperCase(), color: "#556677", num: String(i + 1).padStart(2, "0") };
             return (
@@ -221,42 +250,14 @@ export function HomePage({ allKeywords = [], data }) {
               />
             );
           })}
-        </div>
-
-        {/* Bottom sections: Docs + Tools */}
-        <div style={{
-          display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          gap: isMobile ? 20 : 40,
-          borderTop: "1px solid var(--border-subtle)",
-          paddingTop: isMobile ? 20 : 24,
-          animation: "fade-in 0.5s var(--ease-smooth) 0.3s both",
-        }}>
-          {/* Articles */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 style={{
-              fontSize: "var(--font-base)",
-              fontWeight: 600,
-              color: "var(--text-secondary)",
-              marginBottom: 12,
-              fontFamily: "var(--font-body)",
-            }}>
-              {t("nav_docs")}
-            </h2>
-            <ArticleList isMobile={isMobile} />
           </div>
+        </section>
 
-          {/* Tools */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 style={{
-              fontSize: "var(--font-base)",
-              fontWeight: 600,
-              color: "var(--text-secondary)",
-              marginBottom: 12,
-              fontFamily: "var(--font-body)",
-            }}>
-              {t("nav_tools")}
-            </h2>
+        {/* Tools */}
+        {sectionEnabled("tools") && (
+        <section style={{ animation: "fade-in 0.5s var(--ease-smooth) 0.3s both" }}>
+          <h2 style={sectionHead}>{t("nav_tools")}</h2>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {TOOLS.map((tool) => (
                 <a key={tool.id} href={tool.path}
@@ -286,7 +287,8 @@ export function HomePage({ allKeywords = [], data }) {
               ))}
             </div>
           </div>
-        </div>
+        </section>
+        )}
 
         {/* Metadata footer */}
         <MetadataFooter metadata={metadata} isMobile={isMobile} />

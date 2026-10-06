@@ -2,6 +2,7 @@ import { useHashRoute, useRouteParams, navigateTo } from "./hashRouter.js";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "./i18n.jsx";
 import { HomePage, extractAllKeywords } from "./routes.jsx";
+import { sectionEnabled } from "./sections.js";
 import SEO from "./SEO.jsx";
 import ExchangeRollModal from "./detail_visual/ExchangeRollModal";
 import DocsPage, { DocsListPage } from "./DocsPage.jsx";
@@ -42,7 +43,7 @@ function LanguageModal({ languages, onSelect }) {
       style={{
         position: "fixed", inset: 0, zIndex: 9999,
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(0,0,0,0.7)",
+        background: "var(--bg-deep)",
         fontFamily: "var(--font-body)",
         animation: "fade-in 0.3s ease both",
       }}
@@ -54,7 +55,7 @@ function LanguageModal({ languages, onSelect }) {
         padding: "28px 32px",
         minWidth: 260,
         textAlign: "center",
-        boxShadow: "var(--shadow-md)",
+        boxShadow: "none",
         animation: "scale-in 0.3s var(--ease-out) both",
       }}>
         <div style={{
@@ -66,7 +67,7 @@ function LanguageModal({ languages, onSelect }) {
         </div>
         <div style={{
           height: 1, width: 60,
-          background: "linear-gradient(to right, transparent, var(--accent), transparent)",
+          background: "var(--accent)",
           margin: "0 auto 16px",
         }} />
         {languages.length === 0 && (
@@ -201,7 +202,7 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
           display: "flex", alignItems: "stretch", height: "100%",
           marginLeft: 4,
         }}>
-          {NAV_SECTIONS.map(section => (
+          {NAV_SECTIONS.filter(sec => sectionEnabled(sec.id)).map(section => (
             <button
               key={section.id}
               onClick={() => onNav(section.path)}
@@ -523,7 +524,7 @@ function CategoryTree({ sections, activeSection, activeType, activeDocSlug, tool
       <>
         <div onClick={onClose} style={{
           position: "fixed", inset: 0, zIndex: 100,
-          background: "rgba(0,0,0,0.55)",
+          background: "var(--bg-deep)",
           animation: "fade-in 0.2s ease both",
         }} />
         <div className="site-sidebar" style={{
@@ -618,7 +619,7 @@ export default function App() {
   // Build nav sections: config + dynamic children
   // Use sync fallback initially — slugs derived from file glob, no docs.js needed
   const articleSlugs = useMemo(() => getArticleSlugsSync(), []);
-  const navSections = useMemo(() => NAV_SECTIONS.map((sec) => {
+  const navSections = useMemo(() => NAV_SECTIONS.filter((sec) => sectionEnabled(sec.id)).map((sec) => {
     if (sec.dynamic === "categories") {
       return { ...sec, children: typeList.map((t) => ({
         id: t.type, labelKey: t.type, path: `/params/${t.type}`, count: t.count,
@@ -644,12 +645,18 @@ export default function App() {
     }
   }, [typeList, segmentsList, navigate]);
 
+  // A parked section has no navigation entry, so a bookmarked or shared link
+  // to it would otherwise render an orphaned page.
+  useEffect(() => {
+    if (activeSection && !sectionEnabled(activeSection)) navigate("/", { replace: true });
+  }, [activeSection, navigate]);
+
   // Load article metadata for sidebar titles
   useEffect(() => {
     getAllArticleMetas(lang).then(setArticleMetas);
   }, [lang]);
 
-  if (isTools && toolsSlug === "showcase") {
+  if (sectionEnabled("tools") && isTools && toolsSlug === "showcase") {
     return <Suspense fallback={<div className="loading-spinner" style={{ margin: "40vh auto" }} />}><Showcase /></Suspense>;
   }
 

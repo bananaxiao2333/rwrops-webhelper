@@ -1,317 +1,234 @@
-import { useMemo, useState, useEffect } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useI18n } from "./i18n.jsx";
 import { useItemIcon } from "./assetLoader.jsx";
+import { STATS, entityCategory, entityTitle, sortByStat, statCells } from "./entityStats.js";
 import InboxOutlined from "@mui/icons-material/InboxOutlined";
 
-const TYPE_CONFIG = {
-  vehicle:     { label: "VEHICLE", colorBase: [107, 140, 164], sizeChain: [{key:"mass",weight:2},{key:"max_speed",weight:1},{key:"max_health",weight:1},{key:null,default:5}] },
-  weapon:      { label: "WEAPON", colorBase: [245, 158, 11], sizeChain: [{key:"projectile_result_kill_probability",weight:3},{key:"projectiles_per_shot",weight:2},{key:"retrigger_time",weight:1},{key:"magazine_size",weight:1},{key:null,default:0.5}] },
-  carry_item:  { label: "CARRY ITEM", colorBase: [136, 153, 170], sizeChain: [{key:"inventory_price",weight:2},{key:"commonness_value",weight:1},{key:"inventory_encumbrance",weight:1},{key:null,default:3}] },
-  projectile:  { label: "PROJECTILE", colorBase: [239, 68, 68], sizeChain: [{key:"pulldown_in_air",weight:1},{key:"projectile_speed",weight:1},{key:null,default:0.5}] },
-  call:        { label: "CALL", colorBase: [139, 92, 246], sizeChain: [{key:"rounds",weight:2},{key:"inventory",weight:1},{key:null,default:1}] },
-  achievement: { label: "ACHIEVEMENT", colorBase: [34, 197, 94], sizeChain: [{key:"levels",weight:2},{key:"criteria_list",weight:1},{key:null,default:1}] },
-  faction:     { label: "FACTION", colorBase: [249, 115, 22], sizeChain: [{key:"soldiers",weight:3},{key:"ranks",weight:2},{key:null,default:1}] },
+const TYPE_COLOR = {
+  vehicle: "#6b8ca4",
+  weapon: "#f59e0b",
+  carry_item: "#8899aa",
+  projectile: "#ef4444",
+  call: "#8b5cf6",
+  achievement: "#22c55e",
+  faction: "#f97316",
+  map_config: "#06b6d4",
+  command_config: "#ec4899",
+  language: "#14b8a6",
 };
 
-function resolveSizeValue(item, chain) {
-  let total = 0, count = 0;
-  for (const step of chain) {
-    if (step.key === null) continue; // skip fallback in loop
-    const raw = item[step.key];
-    if (raw === undefined || raw === null) continue;
-    let v;
-    if (Array.isArray(raw)) {
-      v = raw.length;                     // array → length
-    } else if (typeof raw === "number") {
-      v = raw;
-    } else if (typeof raw === "boolean") {
-      v = raw ? 1 : 0;
-    } else {
-      v = Number(raw);
-      if (isNaN(v)) continue;
-    }
-    total += v * (step.weight || 1);
-    count++;
-  }
-  return count > 0
-    ? total / count
-    : (chain.find(s => s.key === null)?.default || 50);
-}
-
-function normalize(v, min, max) { const d = (max - min) || 1; return Math.max(0.03, Math.min(1, (v - min) / d)); }
-
-/* ── Tile: icon as CSS background-layer, text floats above ── */
-function Tile({ item, config, norm, onClick, isMobile, index = 0 }) {
-  const { translate } = useI18n();
+/* ── Tile: icon, readable title, and this type's real stats ──
+ * It used to show the entity's internal key (`bunny_mgl.weapon`) and a fake
+ * "heat" tint derived from averaged raw fields, so nothing on screen told a
+ * reader what the thing was or let them compare two of them. */
+function Tile({ item, type, color, onClick, isMobile, ambiguous }) {
+  const { value: uiValue } = useI18n();
   const iconUrl = useItemIcon(item);
-  const [iconLoaded, setIconLoaded] = useState(!iconUrl);
-  const [r, g, b] = item.color
-    ? [(item.color[0] * 255) | 0, (item.color[1] * 255) | 0, (item.color[2] * 255) | 0]
-    : config.colorBase;
-  const solidBg = `rgba(${r},${g},${b},${0.2 + norm * 0.7})`;
+  const [broken, setBroken] = useState(false);
+  const stats = statCells(type, item, isMobile ? 2 : 4);
   const isAI = item.key?.toLowerCase().includes("_ai.") || item.name?.toLowerCase().includes("_ai");
 
-  useEffect(() => {
-    if (!iconUrl) return;
-    const img = new Image();
-    img.onload = () => setIconLoaded(true);
-    img.onerror = () => setIconLoaded(true);
-    img.src = iconUrl;
-  }, [iconUrl]);
-
-  const compositeBg = iconUrl && iconLoaded
-    ? `url(${iconUrl}) left center / contain no-repeat, ${solidBg}`
-    : solidBg;
-
   return (
-    <button onClick={onClick} style={{
-      background: compositeBg,
-      padding: isMobile ? "6px 8px" : "10px 14px",
-      cursor: "pointer",
-      border: "1px solid transparent",
-      transition: "all 0.15s ease",
-      width: "100%", height: "100%",
-      position: "relative",
-      display: "flex", alignItems: "center", justifyContent: "flex-end",
-      animation: `scale-in 0.25s var(--ease-smooth) ${(index % 30) * 0.025}s both`,
-      fontFamily: "inherit", fontSize: "inherit", textAlign: "inherit",
-    }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.transform = "scale(1.02)"; e.currentTarget.style.zIndex = "2"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "1"; }}
+    <button
+      type="button"
+      onClick={onClick}
+      title={item.key}
+      className="wiki-tile"
+      style={{
+        "--tile-accent": color,
+        gridTemplateColumns: `${isMobile ? 28 : 40}px minmax(0, 1fr)`,
+        padding: isMobile ? "6px 8px" : "8px 10px",
+        gap: isMobile ? 6 : 10,
+      }}
     >
-      {/* Loading spinner overlay */}
-      {iconUrl && !iconLoaded && (
-        <div style={{
-          position: "absolute", left: 0, top: 0, bottom: 0, width: 56,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <div className="loading-spinner" style={{ width: 16, height: 16 }} />
-        </div>
-      )}
-      {/* AI badge */}
-      {isAI && (
-        <div style={{
-          position: "absolute", top: 2, left: 4,
-          fontSize: "var(--font-base)", fontWeight: 800,
-          fontFamily: "var(--font-mono)",
-          color: "#fff", background: "var(--danger)",
-          padding: "1px 4px",
-        }}>
-          AI
-        </div>
-      )}
-      {/* Text (right-aligned, above background) */}
-      <div style={{ textAlign: "right", maxWidth: "65%" }}>
-        <div style={{
-          fontSize: "var(--font-md)",
-          fontWeight: 700, fontFamily: "var(--font-display)",
-          color: "#ffffff", letterSpacing: "-0.01em",
-          textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-        }}>
-          {translate(item.name || item.key || "—")}
-        </div>
-        <div style={{
-          fontSize: "var(--font-sm)",
-          color: "rgba(255,255,255,0.6)",
-          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1,
-          textShadow: "0 1px 3px rgba(0,0,0,0.7)",
-        }}>
-          {String(item.key || "")}
-        </div>
-      </div>
+      <span className="wiki-tile-icon">
+        {iconUrl && !broken
+          ? <img src={iconUrl} alt="" loading="lazy" onError={() => setBroken(true)} />
+          : <span className="wiki-tile-icon-blank" />}
+      </span>
 
-
+      <span className="wiki-tile-body">
+        <span className="wiki-tile-title" style={{ fontSize: isMobile ? "var(--font-sm)" : "var(--font-md)" }}>
+          {isAI && <span className="wiki-tile-ai">AI</span>}
+          {uiValue(entityTitle(item))}
+          {ambiguous && <span className="wiki-tile-key">{item.key}</span>}
+        </span>
+        {stats.length > 0 && (
+          <span className="wiki-tile-stats">
+            {stats.map((s) => (
+              <span key={s.field} className="wiki-tile-stat">
+                <b>{s.label}</b>
+                {s.value}
+              </span>
+            ))}
+          </span>
+        )}
+      </span>
     </button>
   );
 }
 
 /* ── List ── */
 export default function List({ data, type, searchText, isMobile, priceFilter, exchangeSourceFilter, exchangePrizeFilter }) {
-  const { translate, t } = useI18n();
+  const { value: uiValue, tag: uiTag, t } = useI18n();
   const items = useMemo(() => Object.values(data), [data]);
-  const config = TYPE_CONFIG[type] || TYPE_CONFIG.carry_item;
+  const color = TYPE_COLOR[type] || "#556677";
+  const statFields = useMemo(() => (STATS[type] || []).map(([field]) => field), [type]);
 
-  const norms = useMemo(() => {
-    const vals = items.map(item => resolveSizeValue(item, config.sizeChain));
-    const min = Math.min(...vals); const max = Math.max(...vals);
-    return vals.map(v => normalize(v, min, max));
-  }, [items, config]);
+  const [sortState, setSortState] = useState(null);
+  /* Default to the alphabetical index: leading with "highest kill chance"
+   * puts joke weapons and modded outliers at the top of every list, which is
+   * a bad first screen. Every stat column is one click away. */
+  const sort = useMemo(() => {
+    if (sortState && (sortState === "name" || sortState === "key" || statFields.includes(sortState))) {
+      return sortState;
+    }
+    return "name";
+  }, [sortState, statFields]);
+
+  const sortOptions = useMemo(() => {
+    const cols = STATS[type] || [];
+    const opts = [{ key: "name", label: t("name_label") }, { key: "key", label: t("key_label") }];
+    for (const [field, label] of cols) opts.push({ key: field, label });
+    return opts;
+  }, [type, t]);
 
   const filtered = useMemo(() => {
     let result = items;
-    // Price filter
     if (priceFilter) {
       result = result.filter(i => i.inventory_price !== undefined || i.inventory?.price !== undefined);
     }
-    // Exchange source filter
     if (exchangeSourceFilter) {
       result = result.filter(i => i.exchange_sources && i.exchange_sources.length > 0);
     }
-    // Exchange prize filter
     if (exchangePrizeFilter) {
       result = result.filter(i => i.exchange_prizes && i.exchange_prizes.length > 0);
     }
-    // Search filter
     if (searchText) {
       const q = searchText.toLowerCase();
       result = result.filter(i => {
         const rawName = String(i.name || "").toLowerCase();
-        const transName = String(translate(i.name || "")).toLowerCase();
+        const transName = String(uiValue(entityTitle(i))).toLowerCase();
         const rawKey = String(i.key || "").toLowerCase();
         return rawName.includes(q) || transName.includes(q) || rawKey.includes(q);
       });
     }
     return result;
-  }, [items, searchText, translate, priceFilter, exchangeSourceFilter, exchangePrizeFilter]);
+  }, [items, searchText, uiValue, priceFilter, exchangeSourceFilter, exchangePrizeFilter]);
 
-  // Sort state
-  const [sort, setSort] = useState("heat"); // heat | name | key
   const sorted = useMemo(() => {
-    const arr = [...filtered];
-    const idxMap = new Map(items.map((item, i) => [item.key, norms[i] || 0]));
-    if (sort === "name") arr.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
-    if (sort === "key") arr.sort((a, b) => String(a.key || "").localeCompare(String(b.key || "")));
-    if (sort === "heat") arr.sort((a, b) => (idxMap.get(b.key) || 0) - (idxMap.get(a.key) || 0));
-    return arr;
-  }, [filtered, sort, items, norms]);
+    if (sort === "name") return [...filtered].sort((a, b) => entityTitle(a).localeCompare(entityTitle(b)));
+    if (sort === "key") return [...filtered].sort((a, b) => String(a.key || "").localeCompare(String(b.key || "")));
+    return sortByStat(filtered, sort);
+  }, [filtered, sort]);
 
-  const SORT_OPTIONS = [
-    { key: "heat", label: t("heat"), sign: "〰" },
-    { key: "name", label: t("name_label"), sign: "A" },
-    { key: "key", label: t("key_label"), sign: "#" },
-  ];
+  /* Group by the game's own `tags`, which is the only usable taxonomy the data
+   * has — `weapon.class` is a bare integer. */
+  const groups = useMemo(() => {
+    const buckets = new Map();
+    for (const item of sorted) {
+      const key = entityCategory(item) ?? "";
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(item);
+    }
+    const rest = buckets.get("")?.length ?? 0;
+    /* Heading every group only helps when the categories actually cover the
+     * list; 323 vehicles with 307 uncategorised reads better flat. */
+    if (buckets.size < 2 || rest > sorted.length * 0.5) return null;
+    return [...buckets.entries()].sort((a, b) => {
+      if (a[0] === "") return 1;
+      if (b[0] === "") return -1;
+      return b[1].length - a[1].length;
+    });
+  }, [sorted]);
 
-  const minColWidth = isMobile ? 100 : 130;
+  /* Several records share a display name — three different vehicles are all
+   * called "Leopold II Tank". Those rows carry their key so the list stays
+   * navigable; unique names don't need it. */
+  const ambiguous = useMemo(() => {
+    const seen = new Map();
+    for (const item of items) {
+      const title = entityTitle(item);
+      seen.set(title, (seen.get(title) ?? 0) + 1);
+    }
+    return new Set([...seen].filter(([, n]) => n > 1).map(([title]) => title));
+  }, [items]);
+
+  const minColWidth = isMobile ? 150 : 260;
   const barGap = isMobile ? 4 : 8;
+  const filterActive = priceFilter || exchangeSourceFilter || exchangePrizeFilter;
+  const filterLabels = [
+    priceFilter && t("filter_only_priced"),
+    exchangeSourceFilter && t("filter_exchange_source"),
+    exchangePrizeFilter && t("filter_exchange_prize"),
+  ].filter(Boolean);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "var(--font-mono)" }}>
-      {/* Toolbar: minimal on mobile */}
-      <div style={{
-        display: "flex", gap: barGap, fontSize: "var(--font-sm)",
-        color: "#3a4a5a",
-        padding: isMobile ? "4px 6px 3px" : "6px 12px 4px",
-        flexShrink: 0, borderBottom: "1px solid var(--border-subtle)",
-        alignItems: "center",
-        animation: "slide-down 0.25s var(--ease-smooth) both",
-      }}>
-        <span style={{ display: "inline-block", width: isMobile ? 7 : 10, height: isMobile ? 7 : 10, background: `rgb(${config.colorBase.join(",")})`, opacity: 0.8, flexShrink: 0 }} />
-        <span style={{ color: "var(--text-muted)" }}>{isMobile ? "" : t(type)}</span>
+    <div className="wiki-list">
+      {/* Toolbar: count on the left, sort fields on the right */}
+      <div className="wiki-bar" style={{ gap: barGap, padding: isMobile ? "4px 6px 3px" : "6px 12px 4px" }}>
+        <span className="wiki-bar-dot" style={{ background: color, width: isMobile ? 7 : 10, height: isMobile ? 7 : 10 }} />
+        {!isMobile && <span style={{ color: "var(--text-muted)" }}>{t(type)}</span>}
         <span style={{ color: "var(--border-mid)" }}>|</span>
         <span style={{ color: "var(--accent)" }}>{filtered.length}/{items.length}</span>
 
         <span style={{ flex: 1 }} />
 
-        {/* Sort chips */}
-        {SORT_OPTIONS.map((opt, i) => {
-          const isActive = sort === opt.key;
-          return (
-            <button
-              key={opt.key}
-              onClick={() => setSort(opt.key)}
-              aria-pressed={isActive}
-              style={{
-                cursor: "pointer",
-                padding: isMobile ? "1px 4px" : "2px 6px",
-                fontSize: "var(--font-sm)",
-                fontFamily: "var(--font-mono)",
-                color: isActive ? "var(--accent)" : "#3a4a5a",
-                background: "none",
-                border: "none",
-                borderBottom: isActive ? "1px solid var(--accent)" : "1px solid transparent",
-                transition: "all 0.15s ease",
-                letterSpacing: isMobile ? "0.06em" : "0.1em",
-                marginLeft: i > 0 ? (isMobile ? 2 : i * 4) : 0,
-              }}
-              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = "var(--text-muted)"; }}
-              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = "#3a4a5a"; }}
-            >
-              <span style={{ marginRight: isMobile ? 2 : 3 }}>{opt.sign}</span>
-              {isMobile ? "" : opt.label}
-            </button>
-          );
-        })}
+        {sortOptions.map((opt, i) => (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={() => setSortState(opt.key)}
+            aria-pressed={sort === opt.key}
+            className="wiki-sort"
+            style={{ marginLeft: i > 0 ? (isMobile ? 2 : 4) : 0 }}
+            title={opt.label}
+          >
+            {isMobile ? opt.label.slice(0, 6) : opt.label}
+          </button>
+        ))}
       </div>
 
-      {/* ── Filter frame indicator ── */}
-      {(() => {
-        const filterActive = priceFilter || exchangeSourceFilter || exchangePrizeFilter;
-        const filterLabels = [];
-        if (priceFilter) filterLabels.push(t("filter_only_priced"));
-        if (exchangeSourceFilter) filterLabels.push(t("filter_exchange_source"));
-        if (exchangePrizeFilter) filterLabels.push(t("filter_exchange_prize"));
-
-        return (
-          <div style={{
-            flex: 1, overflow: "auto", position: "relative",
-            margin: filterActive ? (isMobile ? 3 : 4) : 0,
-            border: filterActive ? `1px solid var(--accent-dim)` : "none",
-            transition: "border var(--dur-fast) var(--ease-smooth)",
-          }}>
-            {/* Corner label */}
-            {filterActive && (
-              <div style={{
-                position: "absolute", top: 0, right: 0, zIndex: 10,
-                background: "var(--bg-surface)",
-                padding: isMobile ? "1px 5px" : "2px 8px",
-                display: "flex", gap: isMobile ? 2 : 6,
-                fontSize: "var(--font-xxs)",
-                color: "var(--accent)",
-                letterSpacing: "0.05em",
-                borderLeft: "1px solid var(--accent-dim)",
-                borderBottom: "1px solid var(--accent-dim)",
-                pointerEvents: "none",
-              }}>
-                <span style={{ fontWeight: 600 }}>{t("filter_label")}</span>
-                {filterLabels.map((l, i) => (
-                  <span key={i} style={{
-                    color: "var(--text-muted)",
-                    whiteSpace: isMobile ? "nowrap" : undefined,
-                  }}>
-                    {i > 0 && <span style={{ margin: "0 1px", color: "var(--border-mid)" }}>|</span>}
-                    {l}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Grid */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(auto-fill, minmax(${minColWidth}px, 1fr))`,
-              gridAutoRows: isMobile ? "minmax(46px, auto)" : "minmax(64px, auto)",
-              gap: isMobile ? 2 : 3,
-              padding: isMobile ? "3px 4px" : "4px 6px",
-            }}>
-              {sorted.length === 0 ? (
-                <div style={{
-                  position: "absolute", inset: 0,
-                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  color: "var(--text-muted)", fontSize: "var(--font-base)",
-                  fontFamily: "var(--font-mono)",
-                  gap: isMobile ? 6 : 8,
-                  opacity: 0.6,
-                }}>
-                  <InboxOutlined style={{ fontSize: 36, opacity: 0.4 }} />
-                  <span>{t("empty_list")}</span>
-                  {priceFilter && <span style={{ fontSize: "var(--font-xs)", color: "var(--text-dim)" }}>({t("filter_only_priced")})</span>}
-                </div>
-              ) : (
-                sorted.map((item) => {
-                  const idx = items.indexOf(item);
-                  const norm = norms[idx] || 0.5;
-                  return (
-                    <Tile key={item.key} item={item} config={config} norm={norm} index={idx} isMobile={isMobile}
-                      onClick={() => { window.history.pushState(null, "", `/params/${type}/${item.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
-                    />
-                  );
-                })
-              )}
-            </div>
+      <div className="wiki-scroll" style={{ margin: filterActive ? (isMobile ? 3 : 4) : 0, border: filterActive ? "1px solid var(--accent-dim)" : "none" }}>
+        {filterActive && (
+          <div className="wiki-filter-flag" style={{ padding: isMobile ? "1px 5px" : "2px 8px", gap: isMobile ? 2 : 6 }}>
+            <span style={{ fontWeight: 600 }}>{t("filter_label")}</span>
+            {filterLabels.map((l) => <span key={l} style={{ color: "var(--text-muted)" }}>{l}</span>)}
           </div>
-        );
-      })()}
+        )}
+
+        {sorted.length === 0 ? (
+          <div className="wiki-empty">
+            <InboxOutlined style={{ fontSize: 36, opacity: 0.4 }} />
+            <span>{t("empty_list")}</span>
+            {priceFilter && <span style={{ fontSize: "var(--font-xs)", color: "var(--text-dim)" }}>({t("filter_only_priced")})</span>}
+          </div>
+        ) : (
+          <div className="wiki-grid" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${minColWidth}px, 1fr))`, gap: isMobile ? 2 : 4, padding: isMobile ? "3px 4px" : "4px 6px" }}>
+            {(groups ?? [["", sorted]]).map(([cat, items]) => (
+              <Fragment key={cat || "__rest"}>
+                {groups && (
+                  <h2 className="wiki-group">
+                    {cat ? uiTag(cat.replace(/\s+/g, "_")) : t("other")}
+                    <span className="wiki-group-count">{items.length}</span>
+                  </h2>
+                )}
+                {items.map((item) => (
+                  <Tile
+                    key={item.key}
+                    item={item}
+                    type={type}
+                    color={color}
+                    isMobile={isMobile}
+                    ambiguous={ambiguous.has(entityTitle(item))}
+                    onClick={() => { window.history.pushState(null, "", `/params/${type}/${item.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
+                  />
+                ))}
+              </Fragment>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
