@@ -131,7 +131,7 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
       aria-describedby="search-footer"
       style={{
         position: "fixed", inset: 0, zIndex: 200,
-        background: "rgba(0,0,0,0.8)",
+        background: "var(--bg-deep)",
         display: "flex", justifyContent: "center", paddingTop: "10vh",
         animation: "fade-in 0.12s var(--ease-smooth) both",
       }}
@@ -140,7 +140,7 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
       <div onKeyDown={handleKey} style={{
         width: "min(600px, 92vw)", maxHeight: "75vh",
         background: "var(--bg-deep)", border: "1px solid var(--border-subtle)",
-        borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)",
+        borderRadius: "var(--radius-md)", boxShadow: "none",
         display: "flex", flexDirection: "column",
         fontFamily: "var(--font-body)",
         animation: "fade-in 0.18s var(--ease-smooth) 0.05s both",

@@ -108,7 +108,7 @@ export default function AchievementVisualization({ item }) {
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: "var(--font-sm)", fontWeight: 800,
                   color: isLast ? "var(--accent)" : "var(--text-muted)",
-                  background: isLast ? "rgba(245,158,11,0.08)" : "var(--bg-base)",
+                  background: isLast ? "var(--tint-warn)" : "var(--bg-base)",
                   fontFamily: "var(--font-display)",
                 }}>
                   {i + 1}

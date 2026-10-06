@@ -230,7 +230,7 @@ function StatChip({ label, value, isMobile }) {
       display: "flex", flexDirection: "column", alignItems: "center",
       minWidth: isMobile ? 48 : 64,
       padding: isMobile ? "4px 6px" : "6px 10px",
-      background: "rgba(0,0,0,0.35)",
+      background: "var(--bg-deep)",
     }}>
       <span style={{
         fontFamily: "var(--font-mono)",
@@ -466,7 +466,7 @@ export default function Showcase() {
 
   const progressPct = isPaused ? 0 : (timer / DISPLAY_DURATION) * 100;
   const isLightTheme = typeof document !== "undefined" && document.documentElement.classList.contains("light-theme");
-  const overlayBg = isLightTheme ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.45)";
+  const overlayBg = isLightTheme ? "var(--bg-elevated)" : "var(--bg-deep)";
 
 
   /* ── Navigation helpers ── */
@@ -687,7 +687,7 @@ export default function Showcase() {
             fontFamily: "var(--font-mono)",
             fontSize: "var(--font-xs)",
             color: "var(--text-secondary)",
-            boxShadow: "var(--shadow-md)",
+            boxShadow: "none",
             animation: "scale-in 0.2s var(--ease-out) both",
             zIndex: 10,
             minWidth: isMobile ? 200 : 260,
@@ -838,7 +838,7 @@ export default function Showcase() {
           marginTop: isMobile ? 6 : 10,
           height: 2,
           width: "100%",
-          background: "rgba(245,158,11,0.1)",
+          background: "var(--tint-warn)",
           overflow: "hidden",
           pointerEvents: "none",
         }}>

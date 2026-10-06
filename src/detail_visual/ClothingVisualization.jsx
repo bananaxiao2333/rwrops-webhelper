@@ -132,8 +132,8 @@ function ProtectionBar({ full, wear, none, t }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 6,
           padding: "3px 8px",
-          background: "color-mix(in srgb, var(--success) 12%, transparent)",
-          border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
+          background: "var(--tint-ok)",
+          border: "1px solid var(--tint-ok)",
         }}>
           <Icon icon="mdi:shield-check" style={{ fontSize: 13, color: "var(--success)", flexShrink: 0 }} />
           <span style={{
@@ -143,7 +143,7 @@ function ProtectionBar({ full, wear, none, t }) {
           }}>
             {t("protection_full")}
           </span>
-          <span style={{ color: "color-mix(in srgb, var(--success) 60%, transparent)", fontSize: 10 }}>·</span>
+          <span style={{ color: "var(--tint-ok)", fontSize: 10 }}>·</span>
           <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {full.map(m => (
               <span key={m.class} style={{
@@ -167,8 +167,8 @@ function ProtectionBar({ full, wear, none, t }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 6,
           padding: "3px 8px",
-          background: "color-mix(in srgb, var(--amber) 12%, transparent)",
-          border: "1px solid color-mix(in srgb, var(--amber) 35%, transparent)",
+          background: "var(--tint-warn)",
+          border: "1px solid var(--tint-warn)",
         }}>
           <Icon icon="mdi:shield-half" style={{ fontSize: 13, color: "var(--amber)", flexShrink: 0 }} />
           <span style={{
@@ -178,7 +178,7 @@ function ProtectionBar({ full, wear, none, t }) {
           }}>
             {t("protection_wear")}
           </span>
-          <span style={{ color: "color-mix(in srgb, var(--amber) 60%, transparent)", fontSize: 10 }}>·</span>
+          <span style={{ color: "var(--tint-warn)", fontSize: 10 }}>·</span>
           <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {wear.map(m => (
               <span key={m.class} style={{
@@ -202,8 +202,8 @@ function ProtectionBar({ full, wear, none, t }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 6,
           padding: "3px 8px",
-          background: "color-mix(in srgb, var(--danger) 12%, transparent)",
-          border: "1px solid color-mix(in srgb, var(--danger) 35%, transparent)",
+          background: "var(--tint-bad)",
+          border: "1px solid var(--tint-bad)",
         }}>
           <Icon icon="mdi:shield-off" style={{ fontSize: 13, color: "var(--danger)", flexShrink: 0 }} />
           <span style={{
@@ -213,7 +213,7 @@ function ProtectionBar({ full, wear, none, t }) {
           }}>
             {t("no_protection")}
           </span>
-          <span style={{ color: "color-mix(in srgb, var(--danger) 60%, transparent)", fontSize: 10 }}>·</span>
+          <span style={{ color: "var(--tint-bad)", fontSize: 10 }}>·</span>
           <span style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {none.map(cls => (
               <span key={cls} style={{
@@ -264,8 +264,8 @@ function ItemCard({ entry, isCurrent, accent, t, translate }) {
       position: "relative",
       transition: "border-color var(--dur-fast) var(--ease-smooth), background var(--dur-fast) var(--ease-smooth)",
       boxShadow: isCurrent
-        ? "0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 2px 8px rgba(0,0,0,0.12)"
-        : "0 1px 3px rgba(0,0,0,0.06)",
+        ? "0 0 0 1px var(--tint-warn), 0 2px 8px var(--bg-deep)"
+        : "0 1px 3px var(--bg-deep)",
     }}>
       {isCurrent && (
         <div style={{

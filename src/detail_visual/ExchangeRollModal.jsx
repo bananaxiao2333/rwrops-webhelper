@@ -86,8 +86,8 @@ function ResultTile({ entry, data, index }) {
       onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${type}/${entry.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
       style={{
         background: iconUrl
-          ? `url(${iconUrl}) left center / contain no-repeat, rgba(${r},${g},${b},0.35)`
-          : `rgba(${r},${g},${b},0.35)`,
+          ? `url(${iconUrl}) left center / contain no-repeat, rgb(${r},${g},${b})`
+          : `rgb(${r},${g},${b})`,
         padding: "8px 10px",
         cursor: "pointer",
         border: "1px solid transparent",
@@ -119,16 +119,14 @@ function ResultTile({ entry, data, index }) {
           fontSize: "var(--font-sm)", fontWeight: 700,
           fontFamily: "var(--font-display)",
           color: "#fff", letterSpacing: "0.03em",
-          textShadow: "0 1px 4px rgba(0,0,0,0.8)",
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
         }}>
           {translate(item?.name) || entry.key}
         </div>
         <div style={{
           fontSize: "var(--font-xxs)",
-          color: "rgba(255,255,255,0.6)",
+          color: "var(--bg-elevated)",
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-          textShadow: "0 1px 3px rgba(0,0,0,0.7)",
         }}>
           {translate(type) || t(type) || type}
         </div>
@@ -208,7 +206,7 @@ export default function ExchangeRollModal({ exchangePrizes, data, item, onClose 
     <div style={{
       position: "fixed", inset: 0, zIndex: 9999,
       display: "flex", alignItems: "center", justifyContent: "center",
-      background: "rgba(8,12,18,0.85)",
+      background: "var(--bg-deep)",
       backdropFilter: "blur(4px)",
       animation: "fade-in 0.2s ease both",
       fontFamily: "var(--font-mono)",
@@ -220,7 +218,7 @@ export default function ExchangeRollModal({ exchangePrizes, data, item, onClose 
         maxHeight: "90vh",
         background: "var(--bg-surface)",
         border: "1px solid var(--border-mid)",
-        boxShadow: "0 0 40px rgba(245,158,11,0.08)",
+        boxShadow: "none",
         display: "flex", flexDirection: "column",
         overflow: "hidden",
         animation: "scale-in 0.3s var(--ease-smooth) both",
@@ -228,7 +226,7 @@ export default function ExchangeRollModal({ exchangePrizes, data, item, onClose 
         <div style={{
           padding: "14px 18px",
           borderBottom: "2px solid var(--accent)",
-          background: "linear-gradient(180deg, rgba(245,158,11,0.08) 0%, transparent 100%)",
+          background: "var(--tint-warn)",
           display: "flex", alignItems: "center", gap: 10,
         }}>
           <Icon icon="mdi:gift-open-outline" style={{ fontSize: 20, color: "var(--accent)" }} />
@@ -279,7 +277,7 @@ export default function ExchangeRollModal({ exchangePrizes, data, item, onClose 
                       style={{
                         padding: "3px 8px", cursor: "pointer",
                         border: isActive ? "1px solid var(--accent)" : "1px solid var(--border-subtle)",
-                        background: isActive ? "rgba(245,158,11,0.1)" : "var(--bg-base)",
+                        background: isActive ? "var(--tint-warn)" : "var(--bg-base)",
                         color: isActive ? "var(--accent)" : "var(--text-muted)",
                         fontSize: "var(--font-xs)", fontWeight: isActive ? 700 : 400,
                         transition: "all 0.12s var(--ease-smooth)",
@@ -313,7 +311,7 @@ export default function ExchangeRollModal({ exchangePrizes, data, item, onClose 
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = "var(--accent)";
                   e.currentTarget.style.color = "var(--bg-deep)";
-                  e.currentTarget.style.boxShadow = "0 0 24px rgba(245,158,11,0.3)";
+                  e.currentTarget.style.boxShadow = "0 0 24px var(--tint-warn)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "transparent";

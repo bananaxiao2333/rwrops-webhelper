@@ -339,14 +339,14 @@ function TreeExplorer({
                 ? "var(--text-primary)"
                 : "var(--text-secondary)",
             background: isActiveCat
-              ? "rgba(245,158,11,0.08)"
+              ? "var(--tint-warn)"
               : selected
-                ? "rgba(245,158,11,0.04)"
+                ? "var(--tint-warn)"
                 : "transparent",
             borderLeft: isActiveCat
               ? "2px solid var(--accent)"
               : selected
-                ? "2px solid rgba(245,158,11,0.3)"
+                ? "2px solid var(--accent)"
                 : "2px solid transparent",
             transition: "all var(--dur-fast) var(--ease-smooth)",
           }}
@@ -429,8 +429,8 @@ function TreeExplorer({
                 justifyContent: "center",
                 fontSize: "var(--font-xs)",
                 color: selected ? "var(--success)" : "var(--text-dim)",
-                background: selected ? "rgba(34,197,94,0.1)" : "transparent",
-                border: selected ? "1px solid rgba(34,197,94,0.3)" : "1px solid transparent",
+                background: selected ? "var(--tint-ok)" : "transparent",
+                border: selected ? "1px solid var(--success)" : "1px solid transparent",
                 cursor: selected ? "default" : "pointer",
                 transition: "all var(--dur-fast) var(--ease-smooth)",
               }}
@@ -660,9 +660,9 @@ function TemplateEditor({
                 fontSize: "var(--font-xxs)",
                 fontFamily: "var(--font-mono)",
                 color: active ? `hsl(${hue}, 80%, 60%)` : "var(--text-dim)",
-                background: active ? `hsla(${hue}, 50%, 20%, 0.35)` : "var(--bg-deep)",
+                background: active ? `hsl(${hue}, 50%, 20%)` : "var(--bg-deep)",
                 border: active
-                  ? `1px solid hsla(${hue}, 60%, 45%, 0.5)`
+                  ? `1px solid hsl(${hue}, 60%, 45%)`
                   : "1px solid var(--border-subtle)",
                 borderRadius: 2,
                 transition: "all var(--dur-fast) var(--ease-smooth)",
@@ -748,7 +748,7 @@ function TemplateEditor({
       {dupes.length > 0 && (
         <div style={{
           padding: "6px 10px",
-          background: "rgba(239,68,68,0.12)",
+          background: "var(--tint-bad)",
           borderBottom: "1px solid var(--danger)",
           color: "var(--danger)",
           fontFamily: "var(--font-mono)",
@@ -761,7 +761,7 @@ function TemplateEditor({
           <Icon icon="ph:warning" width={14} />
           <span>{uiT("tools_metagen_dupe_warn")}</span>
           {dupes.map((d, i) => (
-            <span key={i} style={{ background: "rgba(239,68,68,0.2)", padding: "1px 6px", borderRadius: 2, fontWeight: 700 }}>
+            <span key={i} style={{ background: "var(--tint-bad)", padding: "1px 6px", borderRadius: 2, fontWeight: 700 }}>
               "{d.label}" x{d.count}
             </span>
           ))}
@@ -942,7 +942,7 @@ function LivePreview({ template, data, isMobile, onNavigate }) {
               </div>
             )}
             {previewEntries.map((entry) => (
-              <div key={`${entry.type}.${entry.key}`} style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.03)", padding: "1px 0", contentVisibility: "auto", containIntrinsicSize: "0 18px", whiteSpace: "nowrap" }}>
+              <div key={`${entry.type}.${entry.key}`} style={{ display: "flex", borderBottom: "1px solid var(--bg-elevated)", padding: "1px 0", contentVisibility: "auto", containIntrinsicSize: "0 18px", whiteSpace: "nowrap" }}>
                 <a href={`/params/${entry.type}/${entry.key}`} onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate(entry.type, entry.key); }}
                   style={{ flexShrink: 0, width: nameColWidth, overflow: "hidden", textOverflow: "ellipsis", color: "var(--text-primary)", fontWeight: 600, textDecoration: "none", cursor: "pointer" }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = "var(--accent)"; }} onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
@@ -1553,7 +1553,7 @@ function VizImportSection({ entityTypes, selectedPaths, onAddPath, isMobile }) {
             justifyContent: "center",
             fontSize: "var(--font-xxs)",
             color: alreadyAdded ? "var(--success)" : "var(--text-dim)",
-            background: alreadyAdded ? "rgba(34,197,94,0.1)" : "transparent",
+            background: alreadyAdded ? "var(--tint-ok)" : "transparent",
             borderRadius: 2,
             cursor: alreadyAdded ? "default" : "pointer",
             transition: "all var(--dur-fast) var(--ease-smooth)",
