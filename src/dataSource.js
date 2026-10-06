@@ -43,9 +43,21 @@ export function indexRecords(payload) {
     const out = {};
     for (const r of payload.records) {
       const t = r.type ?? "unknown";
-      // First record wins for a duplicated key; the rest stay reachable in
-      // payload.records if a view ever needs them.
-      (out[t] ??= {})[r.key ?? r._id] ??= r;
+      const id = r.key ?? r._id;
+      const bucket = (out[t] ??= {});
+      const prev = bucket[id];
+      if (!prev) {
+        bucket[id] = { ...r, _variants: [r] };
+        continue;
+      }
+      // The same (type, key) can be defined in several files and those files
+      // are often complementary, not duplicates: `language.cn` is metadata in
+      // languages/cn/language.xml and 911 translation strings in
+      // languages/cn/misc_text_vanilla.xml. Keeping only one of them silently
+      // dropped 167 records and left the game-data translation stage with
+      // nothing to read. Merge the definitions, keep them all for the page.
+      const variants = [...prev._variants, r];
+      bucket[id] = combine(variants);
     }
     return out;
   }
@@ -59,4 +71,22 @@ export function indexRecords(payload) {
   throw new Error(
     `Unsupported result.json schema ${payload?.schema} (expected ${SCHEMA_VERSION})`
   );
+}
+
+const countFields = (r) => Object.keys(r).filter((k) => !k.startsWith("_")).length;
+
+/* Richest definition first, then every other one fills the gaps it left. */
+function combine(variants) {
+  const ordered = [...variants].sort((a, b) => countFields(b) - countFields(a));
+  const merged = { ...ordered[0] };
+  for (const v of ordered.slice(1)) {
+    for (const [k, val] of Object.entries(v)) {
+      if (k.startsWith("_")) continue;
+      const cur = merged[k];
+      if (cur === undefined || cur === null) merged[k] = val;
+      else if (Array.isArray(cur) && Array.isArray(val) && val.length > cur.length) merged[k] = val;
+    }
+  }
+  merged._variants = variants;
+  return merged;
 }
