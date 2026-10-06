@@ -58,7 +58,7 @@ export default function ToolsListPage() {
       {/* Scanline */}
       <div style={{
         position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        background: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(245,158,11,0.02) 3px, rgba(245,158,11,0.02) 6px)",
+        background: "none",
       }} />
 
       <div style={{
@@ -90,7 +90,7 @@ export default function ToolsListPage() {
           </div>
           <div style={{
             height: 1, width: isMobile ? 60 : 100,
-            background: "linear-gradient(to right, var(--accent), transparent)",
+            background: "var(--accent)",
             marginTop: isMobile ? 6 : 10,
           }} />
         </div>

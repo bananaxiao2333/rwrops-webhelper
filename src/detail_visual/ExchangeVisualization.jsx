@@ -29,8 +29,10 @@ function PrizeChip({ entry, data, maxScore, totalScore }) {
         display: "flex", alignItems: "center", gap: 8,
         padding: "6px 10px",
         border: "1px solid var(--border-subtle)",
-        borderLeft: `3px solid color-mix(in srgb, var(--accent) ${weightRatio * 100}%, transparent)`,
-        background: `linear-gradient(90deg, rgba(245,158,11,${0.02 + weightRatio * 0.06}) 0%, var(--bg-base) 100%)`,
+        // Weight used to be a translucent accent wash; a solid accent bar of
+        // varying width carries the same signal without any alpha.
+        borderLeft: `${1 + Math.round(weightRatio * 3)}px solid var(--accent)`,
+        background: "var(--bg-base)",
         cursor: "pointer", textDecoration: "none",
         transition: "all var(--dur-fast) var(--ease-smooth)",
         fontSize: "var(--font-xs)",
@@ -42,7 +44,7 @@ function PrizeChip({ entry, data, maxScore, totalScore }) {
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = "var(--border-subtle)";
-        e.currentTarget.style.background = `linear-gradient(90deg, rgba(245,158,11,${0.02 + weightRatio * 0.06}) 0%, var(--bg-base) 100%)`;
+        e.currentTarget.style.background = "var(--tint-warn)";
       }}
       title={fullKey}
     >
@@ -74,7 +76,7 @@ function PrizeChip({ entry, data, maxScore, totalScore }) {
         <span style={{
           fontSize: "var(--font-xxs)", fontWeight: 700,
           color: "var(--accent)",
-          background: "rgba(245,158,11,0.1)",
+          background: "var(--tint-warn)",
           padding: "1px 5px",
           flexShrink: 0,
           fontFamily: "var(--font-mono)",
@@ -157,7 +159,7 @@ export default function ExchangeVisualization({ item, onOpenRoll }) {
           <div style={{
             padding: "10px 14px",
             borderBottom: "2px solid var(--accent)",
-            background: "linear-gradient(180deg, rgba(245,158,11,0.06) 0%, transparent 100%)",
+            background: "var(--bg-base)",
             display: "flex", alignItems: "center", gap: 10,
           }}>
             <Icon icon="mdi:gift-open-outline" style={{ fontSize: 18, color: "var(--accent)" }} />
@@ -237,7 +239,7 @@ export default function ExchangeVisualization({ item, onOpenRoll }) {
                       <div style={{
                         padding: "5px 10px",
                         borderBottom: "1px solid var(--border-subtle)",
-                        background: "rgba(245,158,11,0.03)",
+                        background: "var(--tint-warn)",
                         display: "flex", alignItems: "center", justifyContent: "space-between",
                         fontSize: "var(--font-xxs)",
                         color: "var(--text-muted)",
@@ -293,7 +295,7 @@ export default function ExchangeVisualization({ item, onOpenRoll }) {
           <div style={{
             padding: "10px 14px",
             borderBottom: "2px solid var(--accent-dim)",
-            background: "linear-gradient(180deg, rgba(180,83,9,0.04) 0%, transparent 100%)",
+            background: "var(--bg-base)",
             display: "flex", alignItems: "center", gap: 10,
           }}>
             <Icon icon="mdi:source-branch" style={{ fontSize: 18, color: "var(--accent-dim)" }} />

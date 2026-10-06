@@ -297,7 +297,7 @@ export default function StallGenerator() {
               style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "var(--text-primary)", fontSize: M ? "max(16px, var(--font-base))" : "var(--font-sm)", fontFamily: "var(--font-mono)", padding: "4px 6px", minWidth: 0, lineHeight: M ? 1.4 : undefined }} />
           </div>
           {showDropdown && query.trim() && (
-            <div style={{ position: "absolute", left: 0, right: 0, top: "100%", zIndex: 40, maxHeight: M ? 340 : 280, overflowY: "auto", background: "var(--bg-surface)", border: "1px solid var(--border-mid)", borderTop: "none", boxShadow: "var(--shadow-md)" }}>
+            <div style={{ position: "absolute", left: 0, right: 0, top: "100%", zIndex: 40, maxHeight: M ? 340 : 280, overflowY: "auto", background: "var(--bg-surface)", border: "1px solid var(--border-mid)", borderTop: "none", boxShadow: "none" }}>
               {searchResults.length === 0 ? (
                 <div style={{ padding: M ? 16 : 12, color: "var(--text-muted)", fontSize: "var(--font-sm)", textAlign: "center" }}>{t("tools_stall_search_no_results")}</div>
               ) : searchResults.map((r, i) => (
@@ -461,8 +461,8 @@ export default function StallGenerator() {
 
       {/* ═══ CONFIRM RESET MODAL ═══ */}
       {confirmReset && (
-        <div onClick={() => setConfirmReset(false)} style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", animation: "fade-in 0.15s ease both", fontFamily: "var(--font-mono)" }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", border: "1px solid var(--danger)", boxShadow: "var(--shadow-md)", padding: "24px 28px", maxWidth: 340, textAlign: "center", animation: "scale-in 0.2s var(--ease-out) both" }}>
+        <div onClick={() => setConfirmReset(false)} style={{ position: "fixed", inset: 0, zIndex: 300, background: "var(--bg-deep)", display: "flex", alignItems: "center", justifyContent: "center", animation: "fade-in 0.15s ease both", fontFamily: "var(--font-mono)" }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", border: "1px solid var(--danger)", boxShadow: "none", padding: "24px 28px", maxWidth: 340, textAlign: "center", animation: "scale-in 0.2s var(--ease-out) both" }}>
             <div style={{ color: "var(--danger)", fontSize: "var(--font-lg)", fontWeight: 700, marginBottom: 8 }}>{t("tools_stall_reset_confirm")}</div>
             <div style={{ color: "var(--text-muted)", fontSize: "var(--font-sm)", marginBottom: 20 }}>{t("tools_stall_reset_warn")}</div>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
@@ -534,9 +534,9 @@ function EditModal({ si, onUpdate, onRemove, onRevert, onClose, t, isMobile }) {
   }, [si, onRevert, onClose]);
 
   return (
-    <div onClick={handleClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: M ? "flex-end" : "center", justifyContent: "center", animation: "fade-in 0.15s ease both", fontFamily: "var(--font-mono)" }}>
+    <div onClick={handleClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "var(--bg-deep)", display: "flex", alignItems: M ? "flex-end" : "center", justifyContent: "center", animation: "fade-in 0.15s ease both", fontFamily: "var(--font-mono)" }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: "var(--bg-surface)", border: "1px solid var(--accent)", boxShadow: "var(--shadow-md), var(--glow-accent)",
+        background: "var(--bg-surface)", border: "1px solid var(--accent)", boxShadow: "none",
         padding: mPad, width: "100%", maxWidth: mW,
         borderRadius: M ? "12px 12px 0 0" : undefined,
         animation: M ? "slide-up 0.2s var(--ease-out) both" : "scale-in 0.2s var(--ease-out) both",

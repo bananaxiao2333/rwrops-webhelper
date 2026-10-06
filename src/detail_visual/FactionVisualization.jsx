@@ -145,7 +145,7 @@ function RankIcon({ filename, rankNum, isMajor }) {
           border: `1px solid ${isMajor ? "var(--accent)" : "var(--border-mid)"}`,
           fontSize: "var(--font-base)", fontWeight: 800, color: isMajor ? "var(--accent)" : "var(--text-muted)",
           fontFamily: "var(--font-display)",
-          background: isMajor ? "rgba(245,158,11,0.06)" : "transparent",
+          background: isMajor ? "var(--tint-warn)" : "transparent",
         }}>
           {rankNum}
         </span>

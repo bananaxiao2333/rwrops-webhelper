@@ -149,10 +149,10 @@ export default function ShareModal({ onClose }) {
               const fix = doc.createElement("style");
               fix.textContent = `
                 * {
-                  --accent-glow: rgba(245,158,11,0.35) !important;
-                  --glow-accent: 0 0 12px rgba(245,158,11,0.35) !important;
-                  --glow-success: 0 0 8px rgba(34,197,94,0.3) !important;
-                  --dot-color: rgba(245,158,11,0.04) !important;
+                  --accent-glow: var(--tint-warn) !important;
+                  --glow-accent: 0 0 12px var(--tint-warn) !important;
+                  --glow-success: 0 0 8px var(--tint-ok) !important;
+                  --dot-color: var(--tint-warn) !important;
                 }
               `;
               doc.head.appendChild(fix);
@@ -236,7 +236,7 @@ export default function ShareModal({ onClose }) {
       style={{
         position: "fixed", inset: 0, zIndex: 50,
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(0,0,0,0.6)",
+        background: "var(--bg-deep)",
         fontFamily: "var(--font-mono)",
         animation: "fade-in 0.2s var(--ease-smooth) both",
       }}
@@ -249,7 +249,7 @@ export default function ShareModal({ onClose }) {
           width: "min(90vw, 520px)",
           maxHeight: "min(90vh, 640px)",
           display: "flex", flexDirection: "column",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+          boxShadow: "none",
           animation: "scale-in 0.25s var(--ease-smooth) both",
         }}
       >

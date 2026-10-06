@@ -103,7 +103,7 @@ export default function StanceVisualization({ item }) {
                   }}>
                     <div style={{
                       width: `${pct * 100}%`, height: "100%",
-                      background: `linear-gradient(90deg, var(--info)88, var(--info))`,
+                      background: "var(--info)",
                       transition: "width var(--dur-norm) var(--ease-smooth)",
                     }} />
                   </div>

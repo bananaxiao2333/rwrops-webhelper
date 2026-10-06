@@ -150,7 +150,7 @@ function FactionRankCard({ faction, xpNeeded, factionColor, idx }) {
         }}>
           <div style={{
             width: `${pct}%`, height: "100%",
-            background: `linear-gradient(90deg, ${factionColor}88, ${factionColor})`,
+            background: factionColor,
             transition: "width var(--dur-norm) var(--ease-smooth)",
           }} />
         </div>

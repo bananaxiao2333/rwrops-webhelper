@@ -181,7 +181,7 @@ const DOC_CSS = `
 .doc-content th { background: var(--bg-surface); color: var(--accent); font-weight: 600; }
 .doc-content td { color: var(--text-primary); }
 .doc-content a { color: var(--accent); text-decoration: underline; }
-.doc-content mark.doc-highlight { background: rgba(245,158,11,0.35); color: var(--text-primary); border-radius: 2px; padding: 1px 2px; }
+.doc-content mark.doc-highlight { background: var(--tint-warn); color: var(--text-primary); border-radius: 2px; padding: 1px 2px; }
 `;
 
 /* ══════════════════════════════════════════════════
@@ -255,7 +255,7 @@ function SearchModal({ open, onClose, lang, onSelectArticle }) {
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 100,
-      background: "rgba(0,0,0,0.75)",
+      background: "var(--bg-deep)",
       display: "flex", justifyContent: "center", paddingTop: "12vh",
       animation: "fade-in 0.15s var(--ease-smooth) both",
     }}
@@ -265,7 +265,7 @@ function SearchModal({ open, onClose, lang, onSelectArticle }) {
       <div onKeyDown={handleKey} style={{
         width: "min(640px, 92vw)", maxHeight: "70vh",
         background: "var(--bg-deep)", border: "1px solid var(--border-subtle)",
-        borderRadius: 6, boxShadow: "var(--shadow-lg)",
+        borderRadius: 6, boxShadow: "none",
         display: "flex", flexDirection: "column",
         fontFamily: "var(--font-mono)",
         animation: "fade-in 0.2s var(--ease-smooth) 0.05s both",
@@ -426,7 +426,7 @@ export function DocsListPage({ isMobile }) {
       {/* Scanline */}
       <div style={{
         position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        background: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(245,158,11,0.02) 3px, rgba(245,158,11,0.02) 6px)",
+        background: "none",
       }} />
 
       <div style={{
@@ -460,7 +460,7 @@ export function DocsListPage({ isMobile }) {
             </div>
             <div style={{
               height: 1, width: isMobile ? 60 : 100,
-              background: "linear-gradient(to right, var(--accent), transparent)",
+          background: "var(--accent)",
               marginTop: isMobile ? 6 : 10,
             }} />
           </div>
@@ -614,7 +614,7 @@ function DocToc({ headings, isMobile }) {
         color: open ? "var(--accent)" : "var(--text-muted)",
         fontSize: "var(--font-sm)", fontFamily: "var(--font-mono)",
         transition: "all var(--dur-fast) var(--ease-smooth)",
-        boxShadow: "var(--shadow-md)",
+        boxShadow: "none",
       }}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
@@ -628,7 +628,7 @@ function DocToc({ headings, isMobile }) {
           zIndex: 50,
           maxWidth: isMobile ? 220 : 280, maxHeight: "50vh", overflowY: "auto",
           background: "var(--bg-surface)", border: "1px solid var(--border-subtle)",
-          boxShadow: "var(--shadow-md)", padding: "8px 0",
+          boxShadow: "none", padding: "8px 0",
           fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)",
           animation: "fade-in 0.2s var(--ease-smooth) both",
         }}>

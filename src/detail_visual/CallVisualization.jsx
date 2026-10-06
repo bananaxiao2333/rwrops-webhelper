@@ -35,7 +35,7 @@ export default function CallVisualization({ item }) {
               borderLeft: "2px solid var(--border-mid)",
               animation: "fade-in 0.25s var(--ease-smooth) 0.06s both",
               fontFamily: "var(--font-text)", lineHeight: 1.5,
-              background: "linear-gradient(90deg, var(--bg-base) 0%, transparent 100%)",
+              background: "var(--bg-base)",
             }}>
               <Icon icon="mdi:radio-handheld" style={{ fontSize: 12, marginRight: 6, color: "var(--text-dim)" }} />
               "{translate(item.initiation_comment1)}"
@@ -48,7 +48,7 @@ export default function CallVisualization({ item }) {
               borderLeft: "2px solid var(--accent)",
               animation: "fade-in 0.25s var(--ease-smooth) 0.1s both",
               fontFamily: "var(--font-text)", lineHeight: 1.5,
-              background: "linear-gradient(90deg, var(--bg-base) 0%, transparent 100%)",
+              background: "var(--bg-base)",
             }}>
               <Icon icon="mdi:check-circle-outline" style={{ fontSize: 12, marginRight: 6, color: "var(--accent-dim)" }} />
               "{translate(item.acknowledge_comment)}"
@@ -61,7 +61,7 @@ export default function CallVisualization({ item }) {
               borderLeft: "2px solid var(--border-mid)",
               animation: "fade-in 0.25s var(--ease-smooth) 0.14s both",
               fontFamily: "var(--font-text)", lineHeight: 1.5,
-              background: "linear-gradient(90deg, var(--bg-base) 0%, transparent 100%)",
+              background: "var(--bg-base)",
             }}>
               <Icon icon="mdi:rocket-launch" style={{ fontSize: 12, marginRight: 6, color: "var(--text-dim)" }} />
               "{translate(item.launch_comment)}"

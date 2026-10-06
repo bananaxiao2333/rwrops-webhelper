@@ -136,7 +136,7 @@ function OpacitySlider({ value, onChange, label }) {
         flexShrink: 0,
         transition: "border-color var(--dur-fast) var(--ease-smooth)",
       }}
-        onMouseEnter={(e) => { e.currentTarget.style.borderColor = color; }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "color"; }}
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
       >
         <div style={{
@@ -144,7 +144,7 @@ function OpacitySlider({ value, onChange, label }) {
           width: `${pct}%`,
           borderRadius: 6,
           background: active
-            ? `linear-gradient(to right, ${color}33, ${color})`
+            ? color
             : "transparent",
           transition: "width 0.08s ease",
           pointerEvents: "none",
@@ -155,7 +155,7 @@ function OpacitySlider({ value, onChange, label }) {
           width: 10, height: 10,
           borderRadius: "50%",
           background: active ? color : "var(--text-muted)",
-          boxShadow: active ? `0 0 6px ${color}88` : "none",
+          boxShadow: active ? `0 0 6px ${color}` : "none",
           transition: "left 0.08s ease, background var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth)",
           pointerEvents: "none",
         }} />
@@ -298,7 +298,7 @@ export default function MapVisualization({ item }) {
           width: 5, height: 5,
           borderRadius: "50%",
           background: "var(--accent)",
-          boxShadow: "0 0 8px var(--accent)",
+          boxShadow: "none",
           animation: "breathe 2.5s ease-in-out infinite",
           flexShrink: 0,
         }} />
