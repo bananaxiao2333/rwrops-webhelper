@@ -9,13 +9,18 @@
   --bg-void:       #07080b;
 
   --accent:        #f5a623;
-  --accent-glow:   rgba(245, 166, 35, 0.2);
   --accent-dim:    #c2851a;
-  --accent-subtle: rgba(245, 166, 35, 0.08);
+  --accent-subtle: #2a2213;
   --amber:         #f5a623;
+  /* Washes, glows and gradients are gone: panels are solid, colour is carried
+   * by borders and text. Kept as names so existing references stay valid. */
+  --accent-glow:   transparent;
+  --tint-warn:     #2a2213;
+  --tint-ok:       #14251c;
+  --tint-bad:      #2b1417;
 
   --secondary:     #6366f1;
-  --secondary-glow: rgba(99, 102, 241, 0.15);
+  --secondary-glow: transparent;
   --danger:        #ef4455;
   --success:       #22c59e;
   --info:          #3b82f6;
@@ -44,16 +49,18 @@
   --font-body:     'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-text:     'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* Square by definition. The reset below enforces it on inline styles too. */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
 
-  --shadow-sm:   0 1px 2px rgba(0,0,0,0.4);
-  --shadow-md:   0 4px 16px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-lg:   0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
-  --glow-accent: 0 0 16px var(--accent-glow);
-  --glow-secondary: 0 0 12px var(--secondary-glow);
-  --glow-success: 0 0 8px rgba(34, 197, 158, 0.3);
+  /* No drop shadows or glows: depth comes from 1px borders, not blur. */
+  --shadow-sm:   none;
+  --shadow-md:   none;
+  --shadow-lg:   none;
+  --glow-accent: none;
+  --glow-secondary: none;
+  --glow-success: none;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -76,12 +83,15 @@
   --bg-void:       #fafbfd;
 
   --accent:        #d97706;
-  --accent-glow:   rgba(217, 119, 6, 0.15);
   --accent-dim:    #b45309;
-  --accent-subtle: rgba(217, 119, 6, 0.06);
+  --accent-subtle: #fdf3e3;
+  --accent-glow:   transparent;
+  --tint-warn:     #fdf3e3;
+  --tint-ok:       #eaf6ef;
+  --tint-bad:      #fdeceb;
 
   --secondary:     #4f46e5;
-  --secondary-glow: rgba(79, 70, 229, 0.12);
+  --secondary-glow: transparent;
 
   --danger:        #dc2626;
   --success:       #16a34a;
@@ -97,11 +107,11 @@
   --border-mid:    #c8ccd6;
   --border-heavy:  #a8aec0;
 
-  --shadow-sm:   0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md:   0 4px 16px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
-  --shadow-lg:   0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.06);
-  --glow-accent: 0 0 12px var(--accent-glow);
-  --glow-success: 0 0 6px rgba(22,163,74,0.2);
+  --shadow-sm:   none;
+  --shadow-md:   none;
+  --shadow-lg:   none;
+  --glow-accent: none;
+  --glow-success: none;
 }
 
 :root, .light-theme {
@@ -109,6 +119,12 @@
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Hardcore tactical: square corners everywhere ──────────────────────────
+   `!important` is deliberate — it beats the inline border-radius scattered
+   through the components, so no widget can quietly reintroduce a rounded
+   corner and the rule never has to be revisited per component. */
+*, *::before, *::after { border-radius: 0 !important; }
 html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 html, body {
   height: 100%;
@@ -131,7 +147,7 @@ body {
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border-mid); }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
 * { scrollbar-width: thin; scrollbar-color: var(--border-mid) transparent; }
 
@@ -148,7 +164,6 @@ a { text-decoration: none; color: inherit; }
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: var(--radius-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -168,8 +183,7 @@ a { text-decoration: none; color: inherit; }
 @keyframes slide-down { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes slide-in-left { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 6px var(--accent-glow); } 50% { box-shadow: 0 0 18px var(--accent-glow); } }
+@keyframes pulse-glow { 0%, 100% { border-color: var(--border-mid); } 50% { border-color: var(--accent); } }
 
 button, select, summary {
   cursor: pointer;
@@ -184,20 +198,12 @@ button:active, select:active, summary:active {
   width: 1em; height: 1em;
   border: 2px solid var(--border-mid);
   border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  animation: spin 0.6s steps(4, end) infinite;
 }
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--bg-surface) 25%,
-    var(--bg-elevated) 50%,
-    var(--bg-surface) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  animation: breathe 1.2s steps(2, end) infinite;
 }
 
 @media (max-width: 768px) {
@@ -213,39 +219,14 @@ button:active, select:active, summary:active {
 /* ── Site header (RXSEND-inspired) ── */
 .site-header {
   position: relative;
-  background-color: var(--bg-base);
-  background-image:
-    repeating-linear-gradient(
-      -45deg,
-      rgba(255, 255, 255, 0.012) 0px,
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(
-      -30deg,
-      rgba(245, 166, 35, 0.03) 0%,
-      transparent 60%
-    );
-  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-mid);
 }
 
-/* ── Site sidebar (matches header texture) ── */
+/* ── Site sidebar ── */
 .site-sidebar {
-  background-color: var(--bg-base);
-  background-image:
-    repeating-linear-gradient(
-      -45deg,
-      rgba(255, 255, 255, 0.012) 0px,
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(
-      -30deg,
-      rgba(245, 166, 35, 0.03) 0%,
-      transparent 60%
-    );
+  background: var(--bg-base);
+  border-right: 1px solid var(--border-subtle);
 }
 
 /* ── Header navigation (RXSEND-inspired fill effect) ── */
@@ -284,12 +265,12 @@ button:active, select:active, summary:active {
 }
 
 .header-nav-btn::before {
-  background: var(--accent-subtle);
+  background: var(--bg-elevated);
   transition: height 0.15s ease;
 }
 
 .header-nav-btn::after {
-  background: var(--bg-elevated);
+  background: var(--bg-overlay);
   transition: height 0.205s ease-out;
 }
 
@@ -317,7 +298,7 @@ button:active, select:active, summary:active {
 
 .header-nav-btn.active::before {
   height: 100%;
-  background: var(--accent-subtle);
+  background: var(--bg-elevated);
 }
 
 @media (max-width: 768px) {
@@ -325,4 +306,428 @@ button:active, select:active, summary:active {
     padding: 0 8px;
     font-size: 10px;
   }
+}
+
+/* ── Entity list (List.jsx) ───────────────────────────────────────────────
+   Rows carry the record's real stats instead of its internal file key, so the
+   list reads as a reference table rather than a wall of identifiers. */
+.wiki-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: var(--font-mono);
+}
+
+.wiki-bar {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+  animation: slide-down 0.25s var(--ease-out) both;
+}
+.wiki-bar-dot { display: inline-block; flex-shrink: 0; }
+
+.wiki-sort {
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: var(--font-sm);
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+.wiki-sort:hover { color: var(--text-primary); }
+.wiki-sort[aria-pressed="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+
+.wiki-scroll {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.wiki-filter-flag {
+  position: absolute;
+  top: 0; right: 0;
+  z-index: 10;
+  display: flex;
+  font-size: var(--font-xxs);
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--accent-dim);
+  border-bottom: 1px solid var(--accent-dim);
+  pointer-events: none;
+}
+
+.wiki-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--font-base);
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.wiki-grid { display: grid; grid-auto-rows: minmax(56px, auto); }
+
+.wiki-tile {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  text-align: left;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 2px solid var(--tile-accent, var(--border-mid));
+  animation: fade-in 0.3s var(--ease-out) both;
+  transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .wiki-tile:hover {
+    background: var(--bg-elevated);
+    border-color: var(--tile-accent, var(--border-mid));
+  }
+}
+.wiki-tile:active { transform: scale(0.985); }
+
+.wiki-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 100%;
+  max-height: 40px;
+  aspect-ratio: 1;
+}
+.wiki-tile-icon img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.wiki-tile-icon-blank {
+  width: 60%;
+  height: 60%;
+  border: 1px dashed var(--border-mid);
+  opacity: 0.5;
+}
+
+.wiki-tile-body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.wiki-tile-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wiki-tile-ai {
+  flex-shrink: 0;
+  padding: 0 3px;
+  font-family: var(--font-mono);
+  font-size: var(--font-xxs);
+  font-weight: 800;
+  color: #fff;
+  background: var(--danger);
+}
+
+.wiki-tile-stats { display: flex; flex-wrap: wrap; gap: 8px; font-size: var(--font-xs); line-height: 1.3; }
+.wiki-tile-stat { display: inline-flex; gap: 4px; white-space: nowrap; color: var(--text-secondary); }
+.wiki-tile-stat b { font-weight: 600; color: var(--text-muted); letter-spacing: 0.02em; }
+
+/* ── Content page (Detail.jsx) ────────────────────────────────────────────
+   An encyclopedia layout: title, one-sentence lead, right-hand infobox with
+   the fields a reader came for, then body sections. Modeled on how the RWR
+   community wiki presents a weapon ("击杀几率：46%") and on Wikipedia's
+   article/​infobox split — not on the raw record. */
+.article {
+  height: 100%;
+  overflow: auto;
+  background: var(--bg-void);
+  font-family: var(--font-body);
+}
+.article-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(16px, 2.5vw, 32px) clamp(14px, 2.5vw, 28px) 64px;
+}
+
+/* ── Head ── */
+.article-head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  animation: fade-in 0.35s var(--ease-out) both;
+}
+.article-head h1 {
+  font-size: clamp(24px, 3.4vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.article-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+}
+.article-sub code {
+  font-family: var(--font-mono);
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+}
+.article-dot { color: var(--border-heavy); }
+.article-kind {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.article-src { color: var(--text-dim); }
+
+.article-lead {
+  margin-top: 14px;
+  max-width: 68ch;
+  font-size: var(--font-base);
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+/* ── Two columns: body left, infobox right ── */
+.article-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 264px;
+  grid-template-areas: "main box";
+  gap: 36px;
+  margin-top: 28px;
+  align-items: start;
+}
+.article-main { grid-area: main; min-width: 0; }
+.article-infobox {
+  grid-area: box;
+  position: sticky;
+  top: 20px;
+  padding: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  animation: fade-in 0.35s var(--ease-out) 0.06s both;
+}
+
+.article-figure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.article-figure img {
+  max-width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+  transition: opacity 200ms var(--ease-out);
+}
+
+/* ── label / value rows ── */
+.article-rows {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-sm);
+}
+.article-row {
+  display: grid;
+  grid-template-columns: minmax(84px, 40%) minmax(0, 1fr);
+  gap: 10px;
+  padding: 5px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+.article-row:first-child { border-top: none; }
+.article-rows:not(.is-compact) .article-row:first-child { border-top: none; }
+.article-row dt {
+  font-family: var(--font-mono);
+  font-size: var(--font-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--amber);
+  overflow-wrap: anywhere;
+}
+.article-row dd {
+  margin: 0;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+/* ── field group ── */
+.article-field + .article-field { margin-top: 4px; }
+.article-field > .article-rows > .article-row:first-child > dt { color: var(--amber); }
+.article-nest { display: flex; flex-direction: column; gap: 6px; }
+
+/* ── data tables (arrays of flat objects) ── */
+.article-table-wrap { overflow-x: auto; margin: 6px 0 10px; }
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-xs);
+}
+.article-table th,
+.article-table td {
+  padding: 4px 10px 4px 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.article-table th {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--amber);
+  border-bottom-color: var(--border-mid);
+}
+.article-table td { color: var(--text-primary); }
+
+/* ── sections ── */
+.article-section { margin-top: 22px; }
+.article-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 0;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-mid);
+  transition: border-color 160ms var(--ease-out);
+}
+.article-section-head:hover { border-bottom-color: var(--accent); }
+.article-section-head h2 {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+.article-caret { color: var(--accent); font-size: var(--font-xs); }
+.article-count {
+  font-family: var(--font-mono);
+  font-size: var(--font-xxs);
+  color: var(--text-dim);
+}
+.article-section-body {
+  padding-top: 10px;
+  animation: fade-in 0.22s var(--ease-out) both;
+}
+.article-section-raw .article-section-head h2 { color: var(--text-muted); }
+
+/* ── links ── */
+.article-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: color 120ms ease;
+}
+.article-link:hover { color: var(--amber); }
+
+.article-siblings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.article-siblings-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-right: 2px;
+}
+.article-chip {
+  padding: 2px 8px;
+  font-size: var(--font-xs);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .article-chip:hover { border-color: var(--accent); color: var(--accent); }
+}
+.article-chip:active { transform: scale(0.97); }
+
+@media (max-width: 900px) {
+  .article-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "box" "main";
+    gap: 24px;
+  }
+  .article-infobox { position: static; }
+}
+
+/* ── A labelled table inside a field group ── */
+.article-block { margin: 12px 0 4px; }
+.article-block-title {
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--amber);
+}
+
+/* ── Category heading inside the entity grid ── */
+.wiki-group {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 10px 0 2px;
+  padding-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.wiki-group:first-child { margin-top: 2px; }
+.wiki-group-count {
+  font-size: var(--font-xxs);
+  color: var(--text-dim);
+  letter-spacing: 0;
+}
+
+/* Disambiguator for the few records that share a display name. */
+.wiki-tile-key {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+  font-size: var(--font-xs);
+  font-weight: 400;
+  color: var(--text-dim);
 }

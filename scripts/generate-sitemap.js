@@ -9,6 +9,7 @@
 import { readdirSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { sectionEnabled } from "../src/sections.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITE_URL = process.argv[2] || "https://rwrops.079682.xyz";
@@ -39,9 +40,9 @@ function getArticleSlugs() {
 const STATIC_ROUTES = [
   { path: "/", priority: "1.0", changefreq: "weekly" },
   { path: "/params", priority: "0.8", changefreq: "weekly" },
-  { path: "/docs", priority: "0.9", changefreq: "weekly" },
-  { path: "/tools", priority: "0.7", changefreq: "monthly" },
-];
+  { path: "/docs", priority: "0.9", changefreq: "weekly", section: "docs" },
+  { path: "/tools", priority: "0.7", changefreq: "monthly", section: "tools" },
+].filter((r) => !r.section || sectionEnabled(r.section));
 
 // ── Category routes (game data) ──
 const CATEGORIES = [
@@ -76,11 +77,11 @@ function generateSitemap() {
   }
 
   // Tools routes
-  const TOOLS = [
+  const TOOLS = sectionEnabled("tools") ? [
     { path: "/tools/stall", priority: "0.6", changefreq: "monthly" },
     { path: "/tools/metagen", priority: "0.6", changefreq: "monthly" },
     { path: "/tools/showcase", priority: "0.5", changefreq: "monthly" },
-  ];
+  ] : [];
   for (const t of TOOLS) {
     xml += `  <url>\n`;
     xml += `    <loc>${SITE_URL}${t.path}</loc>\n`;
@@ -90,6 +91,7 @@ function generateSitemap() {
   }
 
   // Article routes
+  if (!sectionEnabled("docs")) { xml += "</urlset>\n"; return xml; }
   for (const slug of slugs) {
     const lastmod = dates[slug] || new Date().toISOString().split("T")[0];
     xml += `  <url>\n`;
