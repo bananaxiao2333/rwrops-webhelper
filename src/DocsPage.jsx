@@ -419,7 +419,7 @@ export function DocsListPage({ isMobile }) {
   };
 
   return (
-    <div style={{
+    <div data-tour="docs" style={{
       display: "flex", flexDirection: "column", height: "100%",
       background: "var(--bg-deep)",
     }}>

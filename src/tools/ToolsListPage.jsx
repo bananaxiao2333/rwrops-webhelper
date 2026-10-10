@@ -51,7 +51,7 @@ export default function ToolsListPage() {
   const isMobile = useIsMobile();
 
   return (
-    <div style={{
+    <div data-tour="tools" style={{
       display: "flex", flexDirection: "column", height: "100%",
       background: "var(--bg-deep)",
     }}>
