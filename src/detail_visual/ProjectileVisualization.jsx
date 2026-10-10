@@ -183,25 +183,6 @@ export default function ProjectileVisualization({ item }) {
     return f;
   }, [item, t]);
 
-  const economy = useMemo(() => {
-    const inv = item?.inventory || {};
-    const common = item?.commonness || {};
-    const f = [];
-    if (inv.price !== undefined)
-      f.push({ label: t("field_inventory_price"), value: "$" + fmt(inv.price) });
-    if (inv.encumbrance !== undefined)
-      f.push({ label: t("field_inventory_encumbrance"), value: fmt(inv.encumbrance) + " kg" });
-    if (common.commonness_value !== undefined)
-      f.push({ label: t("field_commonness_value"), value: fmt(common.commonness_value) });
-    if (common.commonness_in_stock !== undefined)
-      f.push({ label: t("field_commonness_in_stock"), value: fmt(common.commonness_in_stock) });
-    if (common.can_respawn_with !== undefined)
-      f.push({ label: t("field_commonness_can_respawn_with"), value: common.can_respawn_with ? t("yes") : t("no") });
-    if (item.in_stock !== undefined)
-      f.push({ label: t("field_in_stock"), value: item.in_stock ? t("yes") : t("no") });
-    return f;
-  }, [item, t]);
-
   const config = useMemo(() => {
     const f = [];
     if (item.time_to_live !== undefined)
@@ -239,26 +220,14 @@ export default function ProjectileVisualization({ item }) {
 
   const tags = item.tags;
 
-  const caps = useMemo(() => {
-    if (!Array.isArray(item.capacities) || item.capacities.length === 0) return null;
-    return item.capacities.map((c) => ({
-      label: safeStr(c.source) || t("unknown"),
-      value: c.source_value !== undefined
-        ? `${fmt(c.value)} @ ${t("rank")} ${fmt(c.source_value)}`
-        : fmt(c.value),
-    }));
-  }, [item, t]);
-
   if (!item || item.type !== "projectile") return null;
 
   const sections = [
     ballistics.length > 0 && { title: t("ballistics"), titleKey: "ballistics", children: <Fields fields={ballistics} /> },
     effects.length > 0 && { title: t("results"), titleKey: "results", children: <Fields fields={effects} /> },
     behavior.length > 0 && { title: t("behavior"), titleKey: "behavior", children: <Fields fields={behavior} /> },
-    economy.length > 0 && { title: t("economy"), titleKey: "economy", children: <Fields fields={economy} /> },
     config.length > 0 && { title: t("config"), titleKey: "config", children: <Fields fields={config} /> },
     visual.length > 0 && { title: t("visual"), titleKey: "visual", children: <Fields fields={visual} /> },
-    caps && { title: t("capacities"), titleKey: "capacities", children: <Fields fields={caps} /> },
     tags && Array.isArray(tags) && tags.length > 0 && {
       title: t("field_tags"), titleKey: "tags",
       children: <Tags items={tags} />,

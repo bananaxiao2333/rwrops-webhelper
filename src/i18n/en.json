@@ -842,5 +842,11 @@
   "count_items": "{0} entries",
   "consumes_item": "consumes {0}",
   "modifier_applies": "applies",
-  "no_change": "no change"
+  "no_change": "no change",
+
+  "armament": "ARMAMENT",
+  "recoil": "RECOIL",
+  "arc": "ARC",
+  "traverse": "TRAVERSE",
+  "no_weapon": "no weapon mounted"
 }

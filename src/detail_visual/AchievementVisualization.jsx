@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import { useMemo } from "react";
 import { useI18n } from "../i18n.jsx";
+import { navigateTo } from "../hashRouter.js";
 
 export default function AchievementVisualization({ item }) {
   const { translate, t } = useI18n();
@@ -68,15 +69,33 @@ export default function AchievementVisualization({ item }) {
             )}
             {c.vehicles && c.vehicles.length > 0 && (
               <div style={{ display: "flex", gap: 3, marginTop: 4, flexWrap: "wrap" }}>
-                {c.vehicles.map((v, vi) => (
-                  <span key={vi} style={{
+                {c.vehicles.map((v, vi) => {
+                  const chip = {
                     fontSize: "var(--font-xxs)", padding: "1px 5px",
                     border: "1px solid var(--border-subtle)", color: "var(--text-dim)",
                     fontFamily: "var(--font-mono)",
-                  }}>
-                    {v.tag || v.key || "—"}
-                  </span>
-                ))}
+                  };
+                  const label = v.tag || v.key || "—";
+                  // Key-based targets name a real vehicle record → link it;
+                  // tag-based ones ("tank", "apc") are categories, left as text.
+                  return v.key ? (
+                    <a
+                      key={vi}
+                      href={`/params/vehicle/${v.key}`}
+                      onClick={(e) => { e.preventDefault(); navigateTo(`/params/vehicle/${v.key}`); }}
+                      title={v.key}
+                      style={{
+                        ...chip, color: "var(--accent)", cursor: "pointer",
+                        textDecoration: "underline", textDecorationStyle: "dotted",
+                        textUnderlineOffset: 2,
+                      }}
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <span key={vi} style={chip}>{label}</span>
+                  );
+                })}
               </div>
             )}
           </div>
