@@ -102,7 +102,7 @@ function markSeen() {
   try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
 }
 
-const CARD_W = 380;
+const CARD_W = 400;
 
 export default function Tour({ open, onClose, onNavigate }) {
   const t = useT();
@@ -240,29 +240,33 @@ export default function Tour({ open, onClose, onNavigate }) {
           {t(current.bodyKey)}
         </p>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
-          <div style={{ display: "flex", gap: 4 }}>
-            {steps.map((s, i) => (
-              <span key={s.key} style={{
-                width: 6, height: 6, borderRadius: "50%",
-                background: i === safeStep ? "var(--accent)" : "var(--border-heavy)",
-              }} />
-            ))}
+        <div style={{ marginTop: 18 }}>
+          {/* A single progress bar scales to any number of steps; a row of dots
+              per step became unreadably tight once the tour grew. */}
+          <div style={{ height: 3, background: "var(--border-subtle)", overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              width: `${((safeStep + 1) / steps.length) * 100}%`,
+              background: "var(--accent)",
+              transition: "width 0.25s var(--ease-out)",
+            }} />
           </div>
-          <span style={{ fontSize: "var(--font-xxs)", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
-            {t("tour_step", safeStep + 1, steps.length)}
-          </span>
-          <span style={{ flex: 1 }} />
-          {safeStep > 0 && (
-            <button onClick={back}
-              style={{ cursor: "pointer", padding: "5px 12px", background: "none", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)", fontSize: "var(--font-xs)" }}>
-              {t("tour_back")}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
+            <span style={{ fontSize: "var(--font-xxs)", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+              {t("tour_step", safeStep + 1, steps.length)}
+            </span>
+            <span style={{ flex: 1 }} />
+            {safeStep > 0 && (
+              <button onClick={back}
+                style={{ cursor: "pointer", padding: "6px 14px", background: "none", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)", fontSize: "var(--font-xs)" }}>
+                {t("tour_back")}
+              </button>
+            )}
+            <button onClick={next}
+              style={{ cursor: "pointer", padding: "6px 16px", background: "var(--accent)", border: "1px solid var(--accent)", color: "var(--bg-deep)", fontSize: "var(--font-xs)", fontWeight: 700 }}>
+              {isLast ? t("tour_done") : t("tour_next")}
             </button>
-          )}
-          <button onClick={next}
-            style={{ cursor: "pointer", padding: "5px 14px", background: "var(--accent)", border: "1px solid var(--accent)", color: "var(--bg-deep)", fontSize: "var(--font-xs)", fontWeight: 700 }}>
-            {isLast ? t("tour_done") : t("tour_next")}
-          </button>
+          </div>
         </div>
       </div>
     </div>

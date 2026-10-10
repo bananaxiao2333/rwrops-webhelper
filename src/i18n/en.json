@@ -837,7 +837,7 @@
   "not_in_stock": "out of stock",
   "requires": "requires",
   "cost": "COST",
-  "price_unit": "credits",
+  "price_unit": "RP",
   "weight_unit": "kg",
   "count_items": "{0} entries",
   "consumes_item": "consumes {0}",
