@@ -1,43 +1,111 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import { useT } from "./i18n.jsx";
 import { useData } from "./DataContext.jsx";
+import { tourStepsFor } from "./detail_visual/VisualizationComponentPool";
 
 /**
  * A guided tour of the whole site.
  *
- * This is a SPA, so the tour does not just spotlight one page — it *drives* the
- * app: it navigates from the home page to a category, into a real item page,
- * then on to the guides and the tools, spotlighting the relevant region on each.
- * That is the only honest way to show how deep the site goes, since a first-time
- * visitor would otherwise never click through all of it.
+ * The tour is a SPA driver: it navigates from the home page to a category, into
+ * real item pages, then on to the guides and the tools, spotlighting the
+ * relevant region on each step.
  *
- * Each step names a route and a `data-tour` target. On advance the tour
- * navigates, then polls for the target element (pages render asynchronously)
- * and moves the spotlight. Dismissible, remembered, replayable from the "?".
+ * The item-page steps are not hard-coded here — they are *collected* from the
+ * visualization registry (see VisualizationComponentPool.tourStepsFor). Each
+ * visualization declares its own tour title/body next to its implementation, so
+ * adding a visualization (or editing its copy) updates the tour automatically.
+ *
+ * Because the tour must land on records that actually render a section, it
+ * features two records — a weapon (performance/modifiers/supply/…) and an
+ * exchangeable item (how-to-obtain) — and skips any step whose record is absent.
  */
 const STORAGE_KEY = "rwrops_tour_done";
 
-/* `route: "ITEM"` resolves at runtime to a real record so the tour lands on a
- * populated detail page rather than an empty one. */
-const STEPS = [
-  { key: "welcome", route: "/", target: null, place: "center" },
-  { key: "search", route: "/", target: '[data-tour="search"]', place: "bottom" },
-  { key: "package", route: "/", target: '[data-tour="package"]', place: "bottom" },
-  { key: "nav", route: "/", target: '[data-tour="nav"]', place: "bottom" },
-  { key: "index", route: "/", target: '[data-tour="index"]', place: "center" },
-  { key: "category", route: "/params/weapon", target: '[data-tour="list"]', place: "center" },
-  { key: "detail", route: "ITEM", target: '[data-tour="article"]', place: "center" },
-  // The item page's visualization sections — the site's actual depth. Each
-  // section is tagged with data-share-id by the visualization pool.
-  { key: "viz_gun", route: null, target: '[data-share-id="vis_Gun Performance"]', place: "dock" },
-  { key: "viz_modifiers", route: null, target: '[data-share-id="vis_Modifiers"]', place: "dock" },
-  { key: "viz_supply", route: null, target: '[data-share-id="vis_Supply"]', place: "dock" },
-  { key: "viz_acquisition", route: null, target: '[data-share-id="vis_Acquisition"]', place: "dock" },
-  { key: "docs", route: "/docs", target: '[data-tour="docs"]', place: "center" },
-  { key: "tools", route: "/tools", target: '[data-tour="tools"]', place: "center" },
-  { key: "end", route: "/", target: null, place: "center" },
+const FIXED_HEAD = [
+  { key: "welcome", route: "/", target: null, place: "center", titleKey: "tour_welcome_title", bodyKey: "tour_welcome_body" },
+  { key: "search", route: "/", target: '[data-tour="search"]', place: "bottom", titleKey: "tour_search_title", bodyKey: "tour_search_body" },
+  { key: "package", route: "/", target: '[data-tour="package"]', place: "bottom", titleKey: "tour_package_title", bodyKey: "tour_package_body" },
+  { key: "nav", route: "/", target: '[data-tour="nav"]', place: "bottom", titleKey: "tour_nav_title", bodyKey: "tour_nav_body" },
+  { key: "index", route: "/", target: '[data-tour="index"]', place: "center", titleKey: "tour_index_title", bodyKey: "tour_index_body" },
+  { key: "category", route: "/params/weapon", target: '[data-tour="list"]', place: "center", titleKey: "tour_category_title", bodyKey: "tour_category_body" },
 ];
+const FIXED_TAIL = [
+  { key: "docs", route: "/docs", target: '[data-tour="docs"]', place: "center", titleKey: "tour_docs_title", bodyKey: "tour_docs_body" },
+  { key: "tools", route: "/tools", target: '[data-tour="tools"]', place: "center", titleKey: "tour_tools_title", bodyKey: "tour_tools_body" },
+  { key: "end", route: "/", target: null, place: "center", titleKey: "tour_end_title", bodyKey: "tour_end_body" },
+];
+
+/* A weapon that renders Performance + Modifiers + Supply at once. */
+const FEATURED_WEAPON = {
+  types: ["weapon"],
+  test: (r) =>
+    r.projectile_result_kill_probability !== undefined &&
+    Array.isArray(r.modifiers) && r.modifiers.length &&
+    ((r.commonness && typeof r.commonness === "object") ||
+      (Array.isArray(r.capacities) && r.capacities.length)),
+};
+/* Any item the game hands out via exchange (→ renders "How to obtain"). */
+const ACQUIRABLE = {
+  types: ["carry_item", "weapon", "vehicle", "projectile", "call"],
+  test: (r) => Array.isArray(r.exchange_sources) && r.exchange_sources.length,
+};
+
+const MAX_VIZ_STEPS = 8;
+
+function findItem(data, spec) {
+  if (!data || !spec) return null;
+  for (const type of spec.types) {
+    const bucket = data[type];
+    if (!bucket) continue;
+    for (const [key, rec] of Object.entries(bucket)) {
+      try { if (spec.test(rec)) return { type, key, item: rec }; } catch { /* skip malformed */ }
+    }
+  }
+  return null;
+}
+
+function buildSteps(data) {
+  const steps = [...FIXED_HEAD];
+
+  const featured = [];
+  const weapon = findItem(data, FEATURED_WEAPON);
+  if (weapon) featured.push(weapon);
+  const acq = findItem(data, ACQUIRABLE);
+  if (acq && (!weapon || acq.type !== weapon.type || acq.key !== weapon.key)) featured.push(acq);
+
+  if (featured[0]) {
+    steps.push({
+      key: "detail",
+      route: `/params/${featured[0].type}/${featured[0].key}`,
+      target: '[data-tour="article"]', place: "center",
+      titleKey: "tour_detail_title", bodyKey: "tour_detail_body",
+    });
+  }
+
+  // Collect one step per visualization that renders, from the registry.
+  const shown = new Set();
+  let vizCount = 0;
+  for (const f of featured) {
+    for (const viz of tourStepsFor(f.item)) {
+      if (shown.has(viz.name)) continue;
+      shown.add(viz.name);
+      steps.push({
+        key: `viz_${viz.name}`,
+        route: `/params/${f.type}/${f.key}`,
+        target: viz.target, place: viz.place,
+        titleKey: viz.titleKey, bodyKey: viz.bodyKey,
+        isViz: true,
+      });
+      vizCount++;
+      if (vizCount >= MAX_VIZ_STEPS) break;
+    }
+    if (vizCount >= MAX_VIZ_STEPS) break;
+  }
+
+  steps.push(...FIXED_TAIL);
+  return steps;
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function tourSeen() {
@@ -59,52 +127,34 @@ export default function Tour({ open, onClose, onNavigate }) {
     h: typeof window !== "undefined" ? window.innerHeight : 800,
   }));
 
-  const navRef = useRef(onNavigate);
-  navRef.current = onNavigate;
-  const stepRef = useRef(step);
-  stepRef.current = step;
+  const steps = useMemo(() => buildSteps(data), [data]);
   const settledRef = useRef(false);
-  const dataRef = useRef(data);
-  dataRef.current = data;
-
-  const routeFor = useCallback((s) => {
-    if (!s?.route) return null;
-    if (s.route === "ITEM") {
-      const d = dataRef.current;
-      const entries = d?.weapon ? Object.entries(d.weapon) : [];
-      // Prefer a weapon that actually renders the sections the tour points at,
-      // so the spotlight steps land on real content rather than an empty page.
-      const rich = entries.find(([, w]) =>
-        Array.isArray(w.modifiers) && w.modifiers.length &&
-        w.projectile_result_kill_probability !== undefined &&
-        Array.isArray(w.capacities) && w.capacities.length);
-      const key = rich?.[0] || entries[0]?.[0];
-      return key ? `/params/weapon/${key}` : "/params/weapon";
-    }
-    return s.route;
-  }, []);
+  const initRef = useRef(false);
+  const navRef = useRef(onNavigate);
+  useEffect(() => { navRef.current = onNavigate; }, [onNavigate]);
 
   const goTo = useCallback((i) => {
-    const idx = Math.max(0, Math.min(STEPS.length - 1, i));
+    const idx = Math.max(0, Math.min(steps.length - 1, i));
     setStep(idx);
     settledRef.current = false;
-    const route = routeFor(STEPS[idx]);
+    const route = steps[idx]?.route;
     if (route) navRef.current?.(route);
-  }, [routeFor]);
+  }, [steps]);
 
-  // On open, start at the home page so the tour always begins from the same place.
+  // On open, start from the home page so the tour always begins in the same place.
   useEffect(() => {
-    const route = routeFor(STEPS[0]);
+    if (initRef.current) return;
+    initRef.current = true;
+    const route = steps[0]?.route;
     if (route) navRef.current?.(route);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [steps]);
 
   const measure = useCallback(() => {
     if (typeof window === "undefined") return;
     const w = window.innerWidth, h = window.innerHeight;
     setVp((p) => (p.w === w && p.h === h ? p : { w, h }));
 
-    const s = STEPS[stepRef.current];
+    const s = steps[step];
     if (!s?.target) { setRect(null); return; }
     const el = document.querySelector(s.target);
     if (!el || (el.offsetWidth === 0 && el.offsetHeight === 0)) { setRect(null); return; }
@@ -122,7 +172,7 @@ export default function Tour({ open, onClose, onNavigate }) {
       settledRef.current = true;
       if (r.top < 0 || r.bottom > h) el.scrollIntoView({ block: "center", behavior: "smooth" });
     }
-  }, []);
+  }, [steps, step]);
 
   useEffect(() => {
     if (!open) return;
@@ -136,14 +186,15 @@ export default function Tour({ open, onClose, onNavigate }) {
       window.removeEventListener("scroll", measure, true);
       clearInterval(id);
     };
-  }, [open, measure, step]);
+  }, [open, measure]);
 
-  if (!open) return null;
+  if (!open || steps.length === 0) return null;
 
-  const current = STEPS[step];
-  const isLast = step === STEPS.length - 1;
-  const next = () => (isLast ? finish() : goTo(step + 1));
-  const back = () => goTo(step - 1);
+  const safeStep = Math.min(step, steps.length - 1);
+  const current = steps[safeStep];
+  const isLast = safeStep === steps.length - 1;
+  const next = () => (isLast ? finish() : goTo(safeStep + 1));
+  const back = () => goTo(safeStep - 1);
   const finish = () => { markSeen(); onClose(); };
   const skip = () => { markSeen(); onClose(); };
 
@@ -190,7 +241,7 @@ export default function Tour({ open, onClose, onNavigate }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
           <Icon icon="mdi:compass-outline" style={{ fontSize: 16, color: "var(--accent)" }} />
           <span style={{ fontSize: "var(--font-base)", fontWeight: 700, color: "var(--text-primary)" }}>
-            {t(`tour_${current.key}_title`)}
+            {t(current.titleKey)}
           </span>
           <button onClick={skip} aria-label={t("tour_skip")}
             style={{ marginLeft: "auto", cursor: "pointer", background: "none", border: "none", color: "var(--text-muted)", display: "flex", padding: 2 }}>
@@ -199,23 +250,23 @@ export default function Tour({ open, onClose, onNavigate }) {
         </div>
 
         <p style={{ fontSize: "var(--font-sm)", lineHeight: 1.7, color: "var(--text-secondary)", margin: 0 }}>
-          {t(`tour_${current.key}_body`)}
+          {t(current.bodyKey)}
         </p>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16 }}>
           <div style={{ display: "flex", gap: 4 }}>
-            {STEPS.map((s, i) => (
+            {steps.map((s, i) => (
               <span key={s.key} style={{
                 width: 6, height: 6, borderRadius: "50%",
-                background: i === step ? "var(--accent)" : "var(--border-heavy)",
+                background: i === safeStep ? "var(--accent)" : "var(--border-heavy)",
               }} />
             ))}
           </div>
           <span style={{ fontSize: "var(--font-xxs)", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
-            {t("tour_step", step + 1, STEPS.length)}
+            {t("tour_step", safeStep + 1, steps.length)}
           </span>
           <span style={{ flex: 1 }} />
-          {step > 0 && (
+          {safeStep > 0 && (
             <button onClick={back}
               style={{ cursor: "pointer", padding: "5px 12px", background: "none", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)", fontSize: "var(--font-xs)" }}>
               {t("tour_back")}
