@@ -45,19 +45,17 @@ export default function SupplyVisualization({ item }) {
   const capacities = item?.capacities;
   const inventory = item?.inventory;
 
-  const has =
-    (commonness && typeof commonness === "object") ||
-    (Array.isArray(capacities) && capacities.length) ||
-    (inventory && typeof inventory === "object");
-
-  if (!has) return null;
-
   const weight = typeof commonness?.value === "number" ? commonness.value : null;
   const tier = rarityTier(weight);
   const tierColor = TONE[tier.tone] || "var(--info)";
   // A capacity with value 0 is "no gate" (available from the start), so it is
   // noise on the page — only real requirements are listed.
   const gates = (Array.isArray(capacities) ? capacities : []).filter((c) => (c.value ?? 0) > 0);
+  const hasCost = inventory && typeof inventory === "object" && (inventory.price != null || inventory.encumbrance != null);
+
+  // Only render a section when at least one row has content — an item with a
+  // zeroed-out commonness and a rank-0 gate has nothing to say here.
+  if (!(weight != null && weight > 0) && gates.length === 0 && !hasCost) return null;
 
   return (
     <VizFrame icon="mdi:package-variant-closed" title={t("supply")} lead={t("viz_lead_supply")}>
@@ -101,7 +99,7 @@ export default function SupplyVisualization({ item }) {
         )}
 
         {/* Cost */}
-        {inventory && (inventory.price != null || inventory.encumbrance != null) && (
+        {hasCost && (
           <div className="article-row">
             <dt>{t("cost")}</dt>
             <dd>

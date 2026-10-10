@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import { useT } from "./i18n.jsx";
 import { useData } from "./DataContext.jsx";
-import { tourStepsFor } from "./detail_visual/VisualizationComponentPool";
+import { visualizationComponents } from "./detail_visual/VisualizationComponentPool";
 
 /**
  * A guided tour of the whole site.
@@ -36,71 +36,58 @@ const FIXED_TAIL = [
   { key: "end", route: "/", target: null, place: "center", titleKey: "tour_end_title", bodyKey: "tour_end_body" },
 ];
 
-/* A weapon that renders Performance + Modifiers + Supply at once. */
-const FEATURED_WEAPON = {
-  types: ["weapon"],
-  test: (r) =>
-    r.projectile_result_kill_probability !== undefined &&
-    Array.isArray(r.modifiers) && r.modifiers.length &&
-    ((r.commonness && typeof r.commonness === "object") ||
-      (Array.isArray(r.capacities) && r.capacities.length)),
-};
-/* Any item the game hands out via exchange (→ renders "How to obtain"). */
-const ACQUIRABLE = {
-  types: ["carry_item", "weapon", "vehicle", "projectile", "call"],
-  test: (r) => Array.isArray(r.exchange_sources) && r.exchange_sources.length,
-};
-
-const MAX_VIZ_STEPS = 8;
-
-function findItem(data, spec) {
-  if (!data || !spec) return null;
-  for (const type of spec.types) {
-    const bucket = data[type];
+/* Find a record the tour can land on to show a given visualization: the first
+ * record (of the types that make sense for it) where it actually renders. */
+function findItemFor(entry, data) {
+  const test = entry.renders || entry.shouldRender;
+  const types = entry.findTypes || Object.keys(data || {});
+  for (const type of types) {
+    const bucket = data?.[type];
     if (!bucket) continue;
     for (const [key, rec] of Object.entries(bucket)) {
-      try { if (spec.test(rec)) return { type, key, item: rec }; } catch { /* skip malformed */ }
+      try { if (test(rec, data)) return { type, key, item: rec }; } catch { /* skip malformed */ }
     }
   }
   return null;
 }
 
+function rendersHere(entry, item, data) {
+  const test = entry.renders || entry.shouldRender;
+  try { return test(item, data); } catch { return false; }
+}
+
+/* The item-page steps are collected from the visualization registry: for every
+ * visualization that declares tour text, the tour navigates to a record where
+ * it renders and spotlights it — reusing the current record while it keeps
+ * working, so consecutive sections on one page don't re-navigate. A
+ * visualization that renders nowhere in this package simply gets no step. */
 function buildSteps(data) {
   const steps = [...FIXED_HEAD];
+  let current = null;
+  let detailAdded = false;
 
-  const featured = [];
-  const weapon = findItem(data, FEATURED_WEAPON);
-  if (weapon) featured.push(weapon);
-  const acq = findItem(data, ACQUIRABLE);
-  if (acq && (!weapon || acq.type !== weapon.type || acq.key !== weapon.key)) featured.push(acq);
-
-  if (featured[0]) {
-    steps.push({
-      key: "detail",
-      route: `/params/${featured[0].type}/${featured[0].key}`,
-      target: '[data-tour="article"]', place: "center",
-      titleKey: "tour_detail_title", bodyKey: "tour_detail_body",
-    });
-  }
-
-  // Collect one step per visualization that renders, from the registry.
-  const shown = new Set();
-  let vizCount = 0;
-  for (const f of featured) {
-    for (const viz of tourStepsFor(f.item)) {
-      if (shown.has(viz.name)) continue;
-      shown.add(viz.name);
-      steps.push({
-        key: `viz_${viz.name}`,
-        route: `/params/${f.type}/${f.key}`,
-        target: viz.target, place: viz.place,
-        titleKey: viz.titleKey, bodyKey: viz.bodyKey,
-        isViz: true,
-      });
-      vizCount++;
-      if (vizCount >= MAX_VIZ_STEPS) break;
+  for (const entry of visualizationComponents) {
+    if (!entry.tour) continue;
+    if (!current || !rendersHere(entry, current.item, data)) {
+      current = findItemFor(entry, data);
     }
-    if (vizCount >= MAX_VIZ_STEPS) break;
+    if (!current) continue;   // nothing in this package renders it → skip the step
+
+    if (!detailAdded) {
+      steps.push({
+        key: "detail",
+        route: `/params/${current.type}/${current.key}`,
+        target: '[data-tour="article"]', place: "center",
+        titleKey: "tour_detail_title", bodyKey: "tour_detail_body",
+      });
+      detailAdded = true;
+    }
+    steps.push({
+      key: `viz_${entry.name}`,
+      route: `/params/${current.type}/${current.key}`,
+      target: `[data-share-id="vis_${entry.name}"]`, place: "dock",
+      titleKey: entry.tour.titleKey, bodyKey: entry.tour.bodyKey,
+    });
   }
 
   steps.push(...FIXED_TAIL);
