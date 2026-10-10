@@ -1,5 +1,6 @@
 import { useHashRoute, useRouteParams, navigateTo } from "./hashRouter.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { PACKAGE_PARAM, withPackage } from "./dataSource.js";
 import { useI18n } from "./i18n.jsx";
 import { HomePage, extractAllKeywords } from "./routes.jsx";
 import { sectionEnabled } from "./sections.js";
@@ -22,7 +23,7 @@ import ShareModal from "./ShareModal.jsx";
 /* ── Language first-time picker modal ── */
 import List from "./List.jsx";
 import Detail from "./Detail.jsx";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useData } from "./DataContext.jsx";
 
 function LanguageModal({ languages, onSelect }) {
@@ -285,8 +286,100 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
       )}
 
       {/* Language switch */}
+      <PackageSelector isMobile={isMobile} />
       <LanguageSelector />
     </header>
+  );
+}
+
+/* ── Package selector ──────────────────────────────────────────────────────
+ * The data site serves one dataset per game package (vanilla, classic, ww2_base,
+ * …). Switching remounts the whole record set, so this lives in the status bar
+ * next to the language switch rather than inside a page. */
+function PackageSelector({ isMobile }) {
+  const { packages, packageId, selectPackage, switching } = useData();
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+
+  if (!packages || packages.length < 2) return null;
+
+  const current = packages.find((p) => p.id === packageId);
+
+  return (
+    <div style={{ position: "relative", display: "flex", alignItems: "stretch" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={t("nav_package")}
+        style={{
+          cursor: "pointer", padding: "3px 6px",
+          border: "1px solid var(--border-subtle)",
+          fontSize: "var(--font-xs)",
+          color: switching ? "var(--text-muted)" : "var(--text-primary)",
+          fontFamily: "var(--font-mono)",
+          background: "none",
+          borderRadius: "var(--radius-sm)",
+          marginLeft: 4,
+          display: "flex", alignItems: "center", gap: 4,
+          maxWidth: isMobile ? 92 : 160,
+        }}
+      >
+        <span style={{ color: "var(--accent)", flexShrink: 0 }}>&#9635;</span>
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {switching ? "…" : (current?.id ?? packageId ?? "?")}
+        </span>
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          aria-label={t("nav_package")}
+          style={{
+            position: "absolute", top: "100%", right: 0, zIndex: 30,
+            background: "var(--bg-surface)", border: "1px solid var(--border-subtle)",
+            borderRadius: "var(--radius-sm)",
+            minWidth: 230, maxHeight: 320, overflowY: "auto",
+          }}
+          onMouseLeave={() => setOpen(false)}
+        >
+          {packages.map((p) => (
+            <button
+              key={p.id}
+              role="option"
+              aria-selected={p.id === packageId}
+              onClick={() => { selectPackage(p.id); setOpen(false); }}
+              style={{
+                display: "block",
+                width: "100%",
+                padding: "5px 10px", cursor: "pointer", fontSize: "var(--font-sm)",
+                color: p.id === packageId ? "var(--accent)" : "var(--text-primary)",
+                background: p.id === packageId ? "var(--bg-elevated)" : "transparent",
+                border: "none",
+                borderBottom: "1px solid var(--border-subtle)",
+                fontFamily: "var(--font-mono)",
+                textAlign: "left",
+                borderRadius: 0,
+              }}
+            >
+              <span style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.id}</span>
+                <span style={{ fontSize: "var(--font-xxs)", color: "var(--text-muted)", flexShrink: 0 }}>
+                  {p.records != null ? p.records.toLocaleString() : ""}
+                </span>
+              </span>
+              {p.layers?.length > 1 && (
+                <span style={{
+                  display: "block", fontSize: "var(--font-xxs)", color: "var(--text-dim)",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>
+                  {p.layers.join(" + ")}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -370,7 +463,7 @@ const NAV_SECTIONS = [
 ];
 
 /* ── Sidebar: section-driven navigation panel ── */
-function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, toolsSlug, isMobile, priceFilter, onPriceFilterChange, exchangeSourceFilter, onExchangeSourceFilterChange, exchangePrizeFilter, onExchangePrizeFilterChange, onNav, articleMetas = {} }) {
+function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, toolsSlug, isMobile, priceFilter, onPriceFilterChange, exchangeSourceFilter, onExchangeSourceFilterChange, exchangePrizeFilter, onExchangePrizeFilterChange, groupStates, onGroupStatesChange, sinkIconless, onSinkIconlessChange, onNav, articleMetas = {} }) {
   const { translate, t } = useI18n();
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -468,7 +561,7 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, tool
           >
             <span>&#9776;</span>
             <span style={{ flex: 1 }}>{t("filter")}</span>
-            {(priceFilter || exchangeSourceFilter || exchangePrizeFilter) && <span style={{ color: "var(--success)", fontSize: 8 }} aria-label="Filter active">&#9679;</span>}
+            {(priceFilter || exchangeSourceFilter || exchangePrizeFilter || !groupStates || !sinkIconless) && <span style={{ color: "var(--success)", fontSize: 8 }} aria-label="Filter active">&#9679;</span>}
           </button>
           {filterOpen && (
             <div style={{
@@ -482,6 +575,8 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, tool
                 { label: t("filter_only_priced"), value: priceFilter, onChange: onPriceFilterChange },
                 { label: t("filter_exchange_source"), value: exchangeSourceFilter, onChange: onExchangeSourceFilterChange },
                 { label: t("filter_exchange_prize"), value: exchangePrizeFilter, onChange: onExchangePrizeFilterChange },
+                { label: t("filter_group_states"), value: groupStates, onChange: onGroupStatesChange },
+                { label: t("filter_sink_iconless"), value: sinkIconless, onChange: onSinkIconlessChange },
               ].map((opt, i) => (
                 <label key={i}
                   style={{
@@ -509,12 +604,14 @@ function SidebarPanel({ sections, activeSection, activeType, activeDocSlug, tool
 }
 
 /* ── Sidebar shell (desktop inline / mobile overlay) ── */
-function CategoryTree({ sections, activeSection, activeType, activeDocSlug, toolsSlug, isMobile, sidebarOpen, onClose, priceFilter, onPriceFilterChange, exchangeSourceFilter, onExchangeSourceFilterChange, exchangePrizeFilter, onExchangePrizeFilterChange, articleMetas = {} }) {
+function CategoryTree({ sections, activeSection, activeType, activeDocSlug, toolsSlug, isMobile, sidebarOpen, onClose, priceFilter, onPriceFilterChange, exchangeSourceFilter, onExchangeSourceFilterChange, exchangePrizeFilter, onExchangePrizeFilterChange, groupStates, onGroupStatesChange, sinkIconless, onSinkIconlessChange, articleMetas = {} }) {
   const { t } = useI18n();
   const nav = <SidebarPanel sections={sections} activeSection={activeSection} activeType={activeType} activeDocSlug={activeDocSlug} toolsSlug={toolsSlug} isMobile={isMobile}
     priceFilter={priceFilter} onPriceFilterChange={onPriceFilterChange}
     exchangeSourceFilter={exchangeSourceFilter} onExchangeSourceFilterChange={onExchangeSourceFilterChange}
     exchangePrizeFilter={exchangePrizeFilter} onExchangePrizeFilterChange={onExchangePrizeFilterChange}
+    groupStates={groupStates} onGroupStatesChange={onGroupStatesChange}
+    sinkIconless={sinkIconless} onSinkIconlessChange={onSinkIconlessChange}
     onNav={onClose} articleMetas={articleMetas} />;
 
   if (isMobile) {
@@ -570,7 +667,7 @@ function CategoryTree({ sections, activeSection, activeType, activeDocSlug, tool
 
 /* ── Main App ── */
 export default function App() {
-  const { data } = useData();
+  const { data, packageId, switching } = useData();
   const route = useHashRoute();
   useRouteParams(data);
   const navigate = useNavigate();
@@ -583,6 +680,10 @@ export default function App() {
   const [priceFilter, setPriceFilter] = useState(false);
   const [exchangeSourceFilter, setExchangeSourceFilter] = useState(false);
   const [exchangePrizeFilter, setExchangePrizeFilter] = useState(false);
+  /* Display shaping, not filtering — but it belongs in the same menu because it
+   * is the same kind of decision about what the list shows. Both default on. */
+  const [groupStates, setGroupStates] = useState(true);
+  const [sinkIconless, setSinkIconless] = useState(true);
   const [rollItem, setRollItem] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [articleMetas, setArticleMetas] = useState({});
@@ -651,6 +752,42 @@ export default function App() {
     if (activeSection && !sectionEnabled(activeSection)) navigate("/", { replace: true });
   }, [activeSection, navigate]);
 
+  // Switching package remounts every record, so a deep link into the previous
+  // package's data (an item key that may not exist here) would land on
+  // "ITEM NOT FOUND". Return to the index instead.
+  //
+  // Compare against the *previous* package rather than "have we resolved yet":
+  // StrictMode runs effects twice on mount, so a mount-only guard redirects away
+  // from every deep link in dev.
+  const prevPackage = useRef(null);
+  useEffect(() => {
+    if (packageId == null) return;
+    if (prevPackage.current !== null && prevPackage.current !== packageId) {
+      // `withPackage` because React Router replaces the whole URL here, query
+      // string included — without it the switch would drop the package the
+      // link is supposed to name.
+      navigate(withPackage("/"), { replace: true });
+    }
+    prevPackage.current = packageId;
+  }, [packageId, navigate]);
+
+  /* Keep the package in the URL, whatever navigation just happened.
+   *
+   * The package is part of the identity of a page — vanilla's `map13` and
+   * classic's `map13` are different data — so a copied link has to say which
+   * one it is. Navigation here is a mix of React Router's `navigate()` and
+   * hand-rolled `history.pushState`, and neither preserves a query string, so
+   * re-stamp it after every route change instead of chasing ~20 call sites.
+   * `replaceState` keeps this out of the history stack. */
+  const routeLocation = useLocation();
+  useEffect(() => {
+    if (!packageId || packageId.startsWith("__")) return;   // "__legacy__" = pre-multi-package layout
+    const url = new URL(window.location.href);
+    if (url.searchParams.get(PACKAGE_PARAM) === packageId) return;
+    url.searchParams.set(PACKAGE_PARAM, packageId);
+    window.history.replaceState(null, "", url);
+  }, [packageId, routeLocation]);
+
   // Load article metadata for sidebar titles
   useEffect(() => {
     getAllArticleMetas(lang).then(setArticleMetas);
@@ -718,6 +855,24 @@ export default function App() {
         activeSection={activeSection}
       />
 
+      {/* Dataset switch in flight — the page stays up, so say what is happening */}
+      {switching && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            height: 2, flexShrink: 0, position: "relative", overflow: "hidden",
+            background: "var(--border-subtle)",
+          }}
+        >
+          <div style={{
+            position: "absolute", inset: 0, width: "40%",
+            background: "var(--accent)",
+            animation: "slide-in-left 1s var(--ease-smooth) infinite alternate",
+          }} />
+        </div>
+      )}
+
       {/* Content */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         {/* Sidebar: desktop inline, mobile overlay */}
@@ -737,6 +892,10 @@ export default function App() {
             onExchangeSourceFilterChange={setExchangeSourceFilter}
             exchangePrizeFilter={exchangePrizeFilter}
             onExchangePrizeFilterChange={setExchangePrizeFilter}
+            groupStates={groupStates}
+            onGroupStatesChange={setGroupStates}
+            sinkIconless={sinkIconless}
+            onSinkIconlessChange={setSinkIconless}
             articleMetas={articleMetas}
           />
         ) : !isHome ? (
@@ -753,6 +912,10 @@ export default function App() {
             onExchangeSourceFilterChange={setExchangeSourceFilter}
             exchangePrizeFilter={exchangePrizeFilter}
             onExchangePrizeFilterChange={setExchangePrizeFilter}
+            groupStates={groupStates}
+            onGroupStatesChange={setGroupStates}
+            sinkIconless={sinkIconless}
+            onSinkIconlessChange={setSinkIconless}
             articleMetas={articleMetas}
           />
         ) : null}
@@ -782,6 +945,8 @@ export default function App() {
               priceFilter={priceFilter}
               exchangeSourceFilter={exchangeSourceFilter}
               exchangePrizeFilter={exchangePrizeFilter}
+              groupStates={groupStates}
+              sinkIconless={sinkIconless}
             />
           ) : activeType && data?.[activeType]?.[itemKey] ? (
             <Detail

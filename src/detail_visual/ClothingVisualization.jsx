@@ -1,5 +1,5 @@
 import { Icon } from "@iconify/react";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useI18n } from "../i18n.jsx";
 import { useData } from "../DataContext.jsx";
 
@@ -235,110 +235,173 @@ function ProtectionBar({ full, wear, none, t }) {
   );
 }
 
-/* ── Item card ── */
-
-function ItemCard({ entry, isCurrent, accent, t, translate }) {
+/* ── One state on the rail ──
+ * Collapsed by default: a 45-state chain rendered as 45 full cards is a page
+ * nobody scrolls. The row carries what you scan for (name, protection counts,
+ * commonness); the badges only open on demand. */
+function StateRow({ entry, index, isCurrent, isFirst, isLast, routes, t, translate, open, onToggle }) {
   const commonness = useMemo(() => getCommonness(entry.item), [entry]);
   const { full, wear, none } = useMemo(() => getProtectionCategories(entry.item), [entry]);
 
-  const accentColor = isCurrent
-    ? "var(--accent)"
-    : accent === "first"
-      ? "var(--success)"
-      : accent === "last"
-        ? "var(--danger)"
-        : "var(--border-mid)";
-
   const displayName = (() => {
     const n = resolveName(entry.item);
-    const tn = translate(n);
-    return tn || n;
+    return translate(n) || n;
   })();
 
+  const dotColor = isCurrent
+    ? "var(--accent)"
+    : isFirst
+      ? "var(--success)"
+      : isLast
+        ? "var(--danger)"
+        : "var(--border-heavy)";
+
   return (
-    <div style={{
-      border: "1px solid var(--border-subtle)",
-      borderLeft: `4px solid ${accentColor}`,
-      background: isCurrent ? "var(--bg-elevated)" : "var(--bg-surface)",
-      padding: "12px 16px",
-      position: "relative",
-      transition: "border-color var(--dur-fast) var(--ease-smooth), background var(--dur-fast) var(--ease-smooth)",
-      boxShadow: isCurrent
-        ? "0 0 0 1px var(--tint-warn), 0 2px 8px var(--bg-deep)"
-        : "0 1px 3px var(--bg-deep)",
-    }}>
-      {isCurrent && (
-        <div style={{
-          position: "absolute", top: 6, right: 8,
-          display: "flex", alignItems: "center", gap: 3,
-          fontSize: "var(--font-xxs)", fontWeight: 800,
-          color: "var(--accent)",
-          letterSpacing: "0.06em",
-          fontFamily: "var(--font-mono)",
-        }}>
-          <Icon icon="mdi:target" style={{ fontSize: 11 }} />
-          {t("current")}
-        </div>
-      )}
-      <div style={{ display: "flex", alignItems: "baseline", gap: 8, maxWidth: "90%" }}>
-        <span style={{
-          fontSize: "var(--font-md)", fontWeight: 800,
-          color: isCurrent ? "var(--accent)" : "var(--text-primary)",
-          fontFamily: "var(--font-display)", textTransform: "uppercase",
-          lineHeight: 1.2,
-        }}>
+    <li className="chain-item" style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}>
+      <span className="chain-dot" style={{ background: dotColor }} data-current={isCurrent || undefined} />
+
+      <button
+        type="button"
+        className="chain-head"
+        onClick={onToggle}
+        aria-expanded={open}
+        title={`${entry.key} — ${t(open ? "chain_collapse" : "chain_expand")}`}
+      >
+        <span className="chain-index">#{String(index + 1).padStart(2, "0")}</span>
+        <span className="chain-name" data-current={isCurrent || undefined}>
           {isCurrent && "★ "}{displayName}
         </span>
-        <span style={{
-          fontSize: "var(--font-xxs)", color: "var(--text-dim)",
-          fontFamily: "var(--font-mono)",
-          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        }}>
-          {entry.key}
+        <span className="chain-key">{entry.key}</span>
+
+        <span className="chain-badges">
+          {full.length > 0 && (
+            <span className="chain-badge" data-kind="full">
+              <Icon icon="mdi:shield-check" />{full.length}
+            </span>
+          )}
+          {wear.length > 0 && (
+            <span className="chain-badge" data-kind="wear">
+              <Icon icon="mdi:shield-half" />{wear.length}
+            </span>
+          )}
+          {none.length > 0 && (
+            <span className="chain-badge" data-kind="none">
+              <Icon icon="mdi:shield-off" />{none.length}
+            </span>
+          )}
         </span>
-      </div>
-      <CommonnessBar value={commonness} />
-      <ProtectionBar full={full} wear={wear} none={none} t={t} />
-    </div>
+
+        <span className="chain-common" data-empty={commonness == null || undefined}>
+          {commonness == null ? "—" : `${Math.round(commonness * 100)}%`}
+        </span>
+        <Icon icon="mdi:chevron-down" className="chain-chev" data-open={open || undefined} />
+      </button>
+
+      {open && (
+        <div className="chain-body">
+          <CommonnessBar value={commonness} />
+          <ProtectionBar full={full} wear={wear} none={none} t={t} />
+          {entry.next && (
+            <div className="chain-note">
+              <Icon icon="mdi:swap-vertical" style={{ fontSize: 10 }} />
+              <span className="chain-note-key">{t("consumes")}</span>
+              <span style={{ color: "var(--text-dim)" }}>→</span>
+              <span className="chain-note-key">{entry.next}</span>
+            </div>
+          )}
+          {routes?.length > 0 && (
+            <div className="chain-note">
+              <Icon icon="mdi:source-branch" style={{ fontSize: 10 }} />
+              <span>{t("chain_routes")}</span>
+              {routes.map(r => <span key={r} className="chain-note-key">{r}</span>)}
+            </div>
+          )}
+        </div>
+      )}
+    </li>
   );
 }
 
-/* ── Chain connector ── */
+/* ── Chain builder ──
+ * `transform_on_consume` is a graph, not a list. Three things it can do that a
+ * naive forward walk gets wrong:
+ *   1. Loop. `vest_exo_ai_4` transforms into itself, which froze the tab —
+ *      the walk had no visited set.
+ *   2. Dangle. `god_vest_2 → god_vest_3` and three others point at items this
+ *      package does not ship; the old code dropped the edge and the chain just
+ *      stopped, looking like a final state.
+ *   3. Merge. `vest_elf_bomber` and `vest_elf_bomber_ally` both transform into
+ *      `elf_bomber_1`, so the shared tail was rendered twice under a misleading
+ *      "BRANCH" divider. */
+function buildEcosystem(carryItems, currentKey) {
+  const forward = new Map();   // key -> target key (present in the index)
+  const backward = new Map();  // key -> Set(keys that transform into it)
+  const dangling = new Map();  // key -> target key this package does not ship
 
-function ChainConnector({ triggerLabel, t }) {
-  return (
-    <div style={{
-      display: "flex", flexDirection: "column", alignItems: "center",
-      padding: "4px 0",
-    }}>
-      <div style={{ width: 2, height: 14, background: "var(--border-mid)" }} />
-      {triggerLabel && (
-        <span style={{
-          display: "inline-flex", alignItems: "center", gap: 4,
-          fontSize: "var(--font-xxs)", fontWeight: 700,
-          color: "var(--text-muted)", textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          padding: "2px 10px",
-          border: "1px solid var(--border-subtle)",
-          background: "var(--bg-base)",
-          fontFamily: "var(--font-mono)",
-          whiteSpace: "nowrap",
-        }}>
-          <Icon icon="mdi:delete" style={{ fontSize: 10, color: "var(--danger)" }} />
-          <span style={{ color: "var(--danger)" }}>{t("consumes")}</span>
-          <span style={{ color: "var(--text-dim)" }}>→</span>
-          {triggerLabel}
-        </span>
-      )}
-      <div style={{
-        width: 0, height: 0,
-        borderLeft: "6px solid transparent",
-        borderRight: "6px solid transparent",
-        borderTop: "7px solid var(--border-mid)",
-      }} />
-      <div style={{ width: 2, height: 4, background: "var(--border-mid)" }} />
-    </div>
-  );
+  for (const [key, ci] of Object.entries(carryItems)) {
+    const target = resolveKey(ci?.transform_on_consume);
+    if (!target) continue;
+    if (carryItems[target]) {
+      forward.set(key, target);
+      if (!backward.has(target)) backward.set(target, new Set());
+      backward.get(target).add(key);
+    } else {
+      dangling.set(key, target);
+    }
+  }
+
+  // Connected component of the current item, both directions.
+  const connected = new Set();
+  if (currentKey && carryItems[currentKey]) {
+    const queue = [currentKey];
+    while (queue.length) {
+      const k = queue.pop();
+      if (connected.has(k)) continue;
+      connected.add(k);
+      const f = forward.get(k);
+      if (f && !connected.has(f)) queue.push(f);
+      for (const p of backward.get(k) ?? []) if (!connected.has(p)) queue.push(p);
+    }
+  }
+
+  const parentsIn = (k) => [...(backward.get(k) ?? [])].filter(p => connected.has(p));
+  const roots = [...connected].filter(k => parentsIn(k).length === 0);
+
+  const chains = roots.map(root => {
+    const items = [];
+    const seen = new Set();
+    let cursor = root;
+    while (cursor && connected.has(cursor) && !seen.has(cursor)) {
+      seen.add(cursor);
+      items.push({ key: cursor, item: carryItems[cursor], next: forward.get(cursor) ?? null });
+      cursor = forward.get(cursor) ?? null;
+    }
+    // Why the walk stopped, when it stopped for a reason other than "no more".
+    const lastKey = items[items.length - 1]?.key;
+    const tail = cursor && seen.has(cursor)
+      ? { kind: "loop", key: cursor }
+      : dangling.has(lastKey)
+        ? { kind: "missing", key: dangling.get(lastKey) }
+        : null;
+    return { root, items, tail };
+  }).filter(c => c.items.length > 0);
+
+  // Prefer the chain that actually contains the item being viewed; merges put
+  // it in more than one.
+  const primary = chains.find(c => c.items.some(e => e.key === currentKey)) ?? chains[0] ?? null;
+  const otherRoots = primary ? roots.filter(r => r !== primary.root) : [];
+
+  // Sources that feed the primary chain from outside it.
+  const chainKeys = new Set(primary?.items.map(e => e.key) ?? []);
+  const routesFor = (key) =>
+    [...(backward.get(key) ?? [])].filter(p => !chainKeys.has(p));
+
+  const standalone =
+    !primary && currentKey && carryItems[currentKey]
+      ? [{ key: currentKey, item: carryItems[currentKey], next: null }]
+      : [];
+
+  return { primary, otherRoots, routesFor, standalone };
 }
 
 /* ── Main component ── */
@@ -349,167 +412,81 @@ export default function ClothingVisualization({ item }) {
   const carryItems = data?.carry_item;
   const currentKey = item?.key;
 
-  const ecosystem = useMemo(() => {
-    if (!carryItems || Object.keys(carryItems).length === 0) {
-      return { chains: [], standalone: [] };
-    }
+  const [openKey, setOpenKey] = useState(currentKey);
 
-    const forward = {};
-    const backward = {};
+  const { primary, otherRoots, routesFor, standalone } = useMemo(
+    () => (carryItems && Object.keys(carryItems).length
+      ? buildEcosystem(carryItems, currentKey)
+      : { primary: null, otherRoots: [], routesFor: () => [], standalone: [] }),
+    [carryItems, currentKey]
+  );
 
-    for (const key of Object.keys(carryItems)) {
-      const ci = carryItems[key];
-      if (ci.transform_on_consume) {
-        const target = resolveKey(ci.transform_on_consume);
-        if (target && carryItems[target]) {
-          forward[key] = target;
-          if (!backward[target]) backward[target] = [];
-          backward[target].push(key);
-        }
-      }
-    }
-
-    const connected = new Set();
-    if (currentKey && carryItems[currentKey]) {
-      const queue = [currentKey];
-      while (queue.length) {
-        const k = queue.shift();
-        if (connected.has(k)) continue;
-        connected.add(k);
-        if (forward[k] && !connected.has(forward[k])) queue.push(forward[k]);
-        if (backward[k]) backward[k].forEach(p => { if (!connected.has(p)) queue.push(p); });
-      }
-    }
-
-    const chainRoots = [...connected].filter(k => !backward[k] || !backward[k].some(p => connected.has(p)));
-    const chains = chainRoots
-      .map(root => {
-        const items = [];
-        let cursor = root;
-        while (cursor && connected.has(cursor)) {
-          items.push({
-            key: cursor,
-            name: resolveName(carryItems[cursor]),
-            item: carryItems[cursor],
-          });
-          cursor = forward[cursor] || null;
-        }
-        return items;
-      })
-      .filter(ch => ch.length > 0);
-
-    const standalone = [];
-    if (!connected.size || chains.length === 0) {
-      if (currentKey && carryItems[currentKey]) {
-        standalone.push({
-          key: currentKey,
-          name: resolveName(carryItems[currentKey]),
-          item: carryItems[currentKey],
-        });
-      }
-    }
-
-    return { chains, standalone };
-  }, [carryItems, currentKey]);
-
-  const { chains, standalone } = ecosystem;
-  const totalNodes = chains.reduce((s, ch) => s + ch.length, 0) + standalone.length;
+  const totalNodes = (primary?.items.length ?? 0) + standalone.length;
   if (totalNodes === 0) return null;
 
+  const rows = primary?.items ?? standalone;
+
   return (
-    <div style={{
-      border: "1px solid var(--border-subtle)",
-      background: "var(--bg-surface)",
-      fontFamily: "var(--font-mono)",
-    }}>
-      <div style={{
-        padding: "12px 18px",
-        borderBottom: "1px solid var(--border-subtle)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        animation: "fade-in 0.3s var(--ease-smooth) both",
-      }}>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 10,
-          fontSize: "var(--font-base)", fontWeight: 700,
-          color: "var(--accent)", textTransform: "uppercase",
-          letterSpacing: "0.08em",
-          fontFamily: "var(--font-display)",
-        }}>
+    <div className="chain-panel">
+      <div className="chain-header">
+        <div className="chain-title">
           <Icon icon="mdi:swap-vertical-bold" style={{ fontSize: "var(--font-md)" }} />
           {t("degradation_chain")}
         </div>
-        <span style={{
-          fontSize: "var(--font-xs)", fontWeight: 600,
-          color: "var(--text-muted)", textTransform: "uppercase",
-          letterSpacing: "0.06em",
-        }}>
-          {totalNodes} {totalNodes === 1 ? t("state") : t("states")}
-        </span>
+        <div className="chain-meta">
+          {otherRoots.length > 0 && (
+            <span className="chain-meta-item">
+              {otherRoots.length + 1} {t("chain_routes")}
+            </span>
+          )}
+          <span className="chain-meta-item">
+            {totalNodes} {totalNodes === 1 ? t("state") : t("states")}
+          </span>
+        </div>
       </div>
 
-      <div style={{ padding: "16px 18px 18px" }}>
-        {chains.map((chain, ci) => {
-          const chainLen = chain.length;
-          return (
-            <div key={`ch-${ci}`} style={{ animation: `fade-in 0.3s var(--ease-smooth) ${ci * 0.06}s both` }}>
-              {chain.map((entry, ei) => (
-                <div key={entry.key}>
-                  <ItemCard
-                    entry={entry}
-                    isCurrent={entry.key === currentKey}
-                    t={t}
-                    translate={translate}
-                    accent={
-                      chainLen === 1
-                        ? "single"
-                        : ei === 0
-                          ? "first"
-                          : ei === chainLen - 1
-                            ? "last"
-                            : "middle"
-                    }
-                  />
-                  {ei < chainLen - 1 && (() => {
-                    const curItem = entry.item;
-                    let trigger = entry.key;
-                    if (curItem.transform_on_consume) {
-                      const ref = resolveKey(curItem.transform_on_consume);
-                      if (ref) trigger = ref;
-                    }
-                    return <ChainConnector triggerLabel={trigger} t={t} />;
-                  })()}
-                </div>
-              ))}
-              {ci < chains.length - 1 && (
-                <div style={{
-                  textAlign: "center", padding: "10px 0",
-                  fontSize: "var(--font-xxs)",
-                  color: "var(--text-dim)", fontWeight: 600,
-                  letterSpacing: "0.15em",
-                  fontFamily: "var(--font-mono)",
-                }}>
-                  ——— {t("branch")} ———
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {standalone.map(entry => (
-          <div key={entry.key} style={{
-            animation: "fade-in 0.3s var(--ease-smooth) 0.1s both",
-            marginTop: chains.length > 0 ? 10 : 0,
-          }}>
-            <ItemCard
-              entry={entry}
-              isCurrent={entry.key === currentKey}
-              t={t}
-              translate={translate}
-              accent="single"
-            />
-          </div>
+      <ol className="chain-list">
+        {rows.map((entry, i) => (
+          <StateRow
+            key={entry.key}
+            entry={entry}
+            index={i}
+            isCurrent={entry.key === currentKey}
+            isFirst={i === 0}
+            isLast={i === rows.length - 1 && !primary?.tail}
+            routes={routesFor(entry.key)}
+            t={t}
+            translate={translate}
+            open={openKey === entry.key}
+            onToggle={() => setOpenKey(k => (k === entry.key ? null : entry.key))}
+          />
         ))}
-      </div>
+
+        {/* The chain continues into something this package does not ship. */}
+        {primary?.tail && (
+          <li className="chain-item chain-tail" style={{ animationDelay: "320ms" }}>
+            <span className="chain-dot" data-tail={primary.tail.kind} />
+            <div className="chain-tail-body">
+              <Icon
+                icon={primary.tail.kind === "loop" ? "mdi:restart" : "mdi:help-circle-outline"}
+                style={{ fontSize: 12 }}
+              />
+              <span className="chain-note-key">{primary.tail.key}</span>
+              <span>
+                {primary.tail.kind === "loop" ? t("chain_loops") : t("chain_missing")}
+              </span>
+            </div>
+          </li>
+        )}
+      </ol>
+
+      {otherRoots.length > 0 && (
+        <div className="chain-footnote">
+          <Icon icon="mdi:source-branch" style={{ fontSize: 10 }} />
+          {t("chain_also_from")}
+          {otherRoots.map(r => <span key={r} className="chain-note-key">{r}</span>)}
+        </div>
+      )}
     </div>
   );
 }

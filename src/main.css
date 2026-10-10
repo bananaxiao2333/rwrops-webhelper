@@ -185,12 +185,37 @@ a { text-decoration: none; color: inherit; }
 @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 @keyframes pulse-glow { 0%, 100% { border-color: var(--border-mid); } 50% { border-color: var(--accent); } }
 
+/* Enumerated on purpose: `all` also transitions layout properties (width,
+ * height, padding), so every hover forced a reflow. These are the properties
+ * pressables actually animate. */
 button, select, summary {
   cursor: pointer;
-  transition: all var(--dur-fast) var(--ease-smooth);
+  transition:
+    color var(--dur-fast) var(--ease-smooth),
+    background-color var(--dur-fast) var(--ease-smooth),
+    border-color var(--dur-fast) var(--ease-smooth),
+    opacity var(--dur-fast) var(--ease-smooth),
+    transform var(--dur-fast) var(--ease-out);
 }
 button:active, select:active, summary:active {
   transform: scale(0.97);
+}
+
+/* Reduced motion means fewer and gentler animations, not none: colour and
+ * opacity still carry meaning, movement does not. The spinner is the one
+ * animation that is information rather than decoration. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .loading-spinner {
+    animation-duration: 1.2s !important;
+    animation-iteration-count: infinite !important;
+  }
+  button:active, select:active, summary:active { transform: none; }
 }
 
 .loading-spinner {
@@ -730,4 +755,236 @@ button:active, select:active, summary:active {
   font-size: var(--font-xs);
   font-weight: 400;
   color: var(--text-dim);
+}
+
+/* State count on a collapsed multi-state card. Without it, one card standing
+   for 46 records just looks like the other 45 went missing. */
+.wiki-tile-states {
+  flex-shrink: 0;
+  padding: 0 4px;
+  border: 1px solid var(--border-mid);
+  font-family: var(--font-mono);
+  font-size: var(--font-xxs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* ── Degradation chain ──────────────────────────────────────────────────────
+ * A rail of collapsed states. Six chains in the data run 45 states long, and
+ * 45 full cards is a page nobody scrolls: the row carries the scannable facts
+ * (name, protection counts, commonness) and the badges open on demand. */
+.chain-panel {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+}
+
+.chain-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.chain-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: var(--font-base);
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.chain-meta {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.chain-meta-item + .chain-meta-item::before {
+  content: "·";
+  margin: 0 8px;
+  color: var(--border-heavy);
+}
+
+.chain-list {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 10px 18px 14px;
+}
+/* The rail the states hang off. */
+.chain-list::before {
+  content: "";
+  position: absolute;
+  left: 21px;
+  top: 22px;
+  bottom: 22px;
+  width: 1px;
+  background: var(--border-subtle);
+}
+
+.chain-item {
+  position: relative;
+  padding-left: 26px;
+  animation: fade-in var(--dur-norm) var(--ease-out) both;
+}
+
+.chain-dot {
+  position: absolute;
+  left: 0;
+  top: 13px;
+  width: 7px;
+  height: 7px;
+  z-index: 1;
+}
+.chain-dot[data-current] { outline: 3px solid var(--accent-subtle); }
+.chain-dot[data-tail="missing"] { background: var(--text-dim); }
+.chain-dot[data-tail="loop"] { background: var(--info); }
+
+.chain-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-left: 2px solid transparent;
+  background: transparent;
+  text-align: left;
+  color: var(--text-primary);
+}
+@media (hover: hover) and (pointer: fine) {
+  .chain-head:hover {
+    background: var(--bg-elevated);
+    border-left-color: var(--border-heavy);
+  }
+}
+.chain-head:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+.chain-head[aria-expanded="true"] {
+  background: var(--bg-elevated);
+  border-left-color: var(--accent);
+}
+.chain-head:active { transform: scale(0.997); }
+
+.chain-index {
+  flex-shrink: 0;
+  font-size: var(--font-xxs);
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+.chain-name {
+  font-family: var(--font-display);
+  font-size: var(--font-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.chain-name[data-current] { color: var(--accent); }
+.chain-key {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-xxs);
+  color: var(--text-dim);
+}
+.chain-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.chain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--font-xxs);
+  font-weight: 800;
+}
+.chain-badge[data-kind="full"] { color: var(--success); }
+.chain-badge[data-kind="wear"] { color: var(--amber); }
+.chain-badge[data-kind="none"] { color: var(--danger); }
+.chain-common {
+  flex-shrink: 0;
+  min-width: 40px;
+  text-align: right;
+  font-size: var(--font-xs);
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+.chain-common[data-empty] { color: var(--text-dim); }
+.chain-chev {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.chain-chev[data-open] { transform: rotate(180deg); }
+
+.chain-body {
+  padding: 2px 10px 12px;
+  animation: fade-in var(--dur-fast) var(--ease-out) both;
+}
+.chain-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--font-xxs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.chain-note-key {
+  color: var(--text-secondary);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* The chain runs past what this package ships, or loops back on itself. */
+.chain-tail-body {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 8px 10px;
+  border: 1px dashed var(--border-mid);
+  font-size: var(--font-xxs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.chain-footnote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 18px 12px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--font-xxs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }

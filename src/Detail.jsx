@@ -5,6 +5,17 @@ import VisualizationComponentPool, { visualizationComponents } from "./detail_vi
 import { detailFacts, entityCategory, entityTitle, isInlineValue, tableFor } from "./entityStats.js";
 import { useData } from "./DataContext.jsx";
 import { useShare } from "./ShareContext.jsx";
+import { navigateTo } from "./hashRouter.js";
+
+/* "a Assault" reads wrong. Only English inflects the article this way, and the
+ * other locales ship the same sentence for both variants, so the test is a
+ * no-op there. `uni-`/`use-`/`eu-`/`ut-` words take "a" despite the vowel
+ * ("a Utility", "a unit"). */
+function needsAn(label) {
+  const word = String(label ?? "").trim();
+  if (!/^[aeiou]/i.test(word)) return false;
+  return !/^(uni|use|eu|ut)/i.test(word);
+}
 
 /* ── Which group each field is filed under on the page ──
  * The stat block (entityStats.FACTS) is always rendered first and its fields
@@ -295,6 +306,23 @@ export default function Detail({ item, type, onOpenRoll }) {
   const factText = (f) => (f.kind === "bool" ? t(f.value) : uiValue(f.value));
   const leadFacts = facts.slice(0, 4);
 
+  /* Second sentence of the lead. An encyclopedic lead says what the subject
+   * *is and does* before listing numbers, so this comes from the record's own
+   * behaviour rather than a field dump: a weapon's alternate configurations, a
+   * carry item's transform-on-consume. Empty when the data offers neither. */
+  const roleSentence = useMemo(() => {
+    if (!item) return "";
+    const variants = (Array.isArray(item.next_in_chains) ? item.next_in_chains : [])
+      .map((c) => (typeof c === "string" ? c : c?.key))
+      .filter(Boolean).length;
+    if (variants > 0) return t("article_lead_variants", String(variants + 1));
+    const into = typeof item.transform_on_consume === "string"
+      ? item.transform_on_consume
+      : item.transform_on_consume?.key;
+    if (into) return t("article_lead_transform", into);
+    return "";
+  }, [item, t]);
+
   useEffect(() => {
     if (!item) return;
     const tree = [{ id: "hero", label: uiValue(entityTitle(item)), type: "hero", icon: "mdi:card-text-outline" }];
@@ -335,10 +363,12 @@ export default function Detail({ item, type, onOpenRoll }) {
             {item._source && <><span className="article-dot">·</span><code className="article-src">{item._source}</code></>}
           </p>
           <p className="article-lead">
+            {t(needsAn(categoryLabel) ? "article_lead_vowel" : "article_lead", title, categoryLabel)}
+            {roleSentence && ` ${roleSentence}`}
             {leadFacts.length > 0
-              ? t("article_lead", title, categoryLabel,
-                  leadFacts.map((f) => `${uiLabel(f.field)} ${factText(f)}`).join(t("fact_sep")))
-              : t("article_lead_bare", title, categoryLabel)}
+              ? ` ${t("article_lead_values",
+                  leadFacts.map((f) => `${uiLabel(f.field)} ${factText(f)}`).join(t("fact_sep")))}`
+              : (roleSentence ? "" : ` ${t("article_lead_bare_tail")}`)}
           </p>
         </header>
 
@@ -360,7 +390,7 @@ export default function Detail({ item, type, onOpenRoll }) {
             {/* ── Visualizations ── */}
             <VisualizationComponentPool
               item={item}
-              onDataNavigate={(targetKey) => { window.location.hash = `#/params/${type}/${targetKey}`; }}
+              onDataNavigate={(targetKey) => { navigateTo(`/params/${type}/${targetKey}`); }}
               onOpenRoll={onOpenRoll}
             />
 

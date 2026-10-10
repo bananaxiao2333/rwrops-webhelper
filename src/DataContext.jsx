@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
-import { getDataSource, indexRecords } from "./dataSource.js";
+import {
+  getDataSource, indexRecords, fetchPackages, storedPackage,
+  rememberPackage, setActivePackage, packageFromUrl, PACKAGE_PARAM,
+} from "./dataSource.js";
 
 /* ── Minimal YAML parser for metadata.yaml ── */
 function parseMetadata(text) {
@@ -85,6 +88,38 @@ export const DataProvider = ({ children }) => {
   const [data, setData] = useState(null);
   const [metadata, setMetadata] = useState(null);
   const [error, setError] = useState(null);
+  const [packages, setPackages] = useState([]);
+  const [packageId, setPackageId] = useState(null);
+  const [switching, setSwitching] = useState(false);
+  // Bumped by the selector to re-run the load effect for the same package.
+  const [reloadToken, setReloadToken] = useState(0);
+
+  /* ── Resolve the package index once, then pick the package to mount ──
+   * A data source without packages.json is the pre-multi-package layout; we
+   * stay in that mode (packageId === null) rather than failing. */
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const list = await fetchPackages();
+      if (cancelled) return;
+      if (!list) {
+        setActivePackage(null);
+        setPackages([]);
+        setPackageId("__legacy__");
+        return;
+      }
+      // A URL that names a package wins over the remembered one — that is the
+      // whole point of putting it in the link.
+      const fromUrl = packageFromUrl();
+      const chosen = fromUrl && list.some((p) => p.id === fromUrl)
+        ? fromUrl
+        : storedPackage(list);
+      setPackages(list);
+      setActivePackage(chosen);
+      setPackageId(chosen);
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (window.__RWROPS_DATA__) {
@@ -92,19 +127,29 @@ export const DataProvider = ({ children }) => {
       loadFinish();
       return;
     }
+    // Wait until the package index has decided which dataset to mount.
+    if (packageId === null) return;
 
     const { dataUrl, metadataUrl, isRemote } = getDataSource();
     let cancelled = false;
+    // The boot screen belongs to the first load only; switching datasets keeps
+    // the current page up and shows a lighter indicator instead.
+    const firstLoad = data === null;
 
     const load = async () => {
       try {
-        loadSet(8, "INITIALIZING", "Terminal boot sequence engaged");
-        loadAppendLog("log-1", "Initializing system…");
-        await new Promise((r) => setTimeout(r, 80));
+        if (firstLoad) {
+          loadSet(8, "INITIALIZING", "Terminal boot sequence engaged");
+          loadAppendLog("log-1", "Initializing system…");
+          await new Promise((r) => setTimeout(r, 80));
 
-        // ── Fetch metadata ──
-        loadSet(15, "LOADING METADATA", isRemote ? `Fetching ${metadataUrl}` : `Reading ${metadataUrl}`);
-        loadAppendLog("log-2", "Loading metadata…");
+          // ── Fetch metadata ──
+          loadSet(15, "LOADING METADATA", isRemote ? `Fetching ${metadataUrl}` : `Reading ${metadataUrl}`);
+          loadAppendLog("log-2", "Loading metadata…");
+        } else {
+          setSwitching(true);
+        }
+
         const metaResp = await fetch(metadataUrl);
         if (!metaResp.ok) throw new Error(`Metadata fetch failed: ${metaResp.status}`);
         const metaText = await metaResp.text();
@@ -112,14 +157,18 @@ export const DataProvider = ({ children }) => {
         if (!cancelled) setMetadata(parsedMeta);
 
         // ── Fetch data package ──
-        loadSet(25, "LOADING DATA PACKAGE", isRemote ? `Fetching ${dataUrl}` : `Reading ${dataUrl}`);
-        loadAppendLog("log-3", "Loading data package…");
+        if (firstLoad) {
+          loadSet(25, "LOADING DATA PACKAGE", isRemote ? `Fetching ${dataUrl}` : `Reading ${dataUrl}`);
+          loadAppendLog("log-3", "Loading data package…");
+        }
         const dataResp = await fetch(dataUrl);
         if (cancelled) return;
         if (!dataResp.ok) throw new Error(`Data fetch failed: ${dataResp.status}`);
 
-        loadSet(55, "PROCESSING MANIFEST", "Parsing entity registries…");
-        loadAppendLog("log-4", "Processing manifest…");
+        if (firstLoad) {
+          loadSet(55, "PROCESSING MANIFEST", "Parsing entity registries…");
+          loadAppendLog("log-4", "Processing manifest…");
+        }
         const payload = await dataResp.json();
         const raw = indexRecords(payload);   // flat records -> {type: {key: entity}}
 
@@ -127,23 +176,56 @@ export const DataProvider = ({ children }) => {
         const cats = Object.keys(raw).filter((k) => k !== "language");
         const totalEntities = cats.reduce((sum, k) => sum + Object.keys(raw[k]).length, 0);
 
-        loadSet(100, "MANIFEST LOADED", cats.length + " registries · " + totalEntities + " entities catalogued");
-        loadAppendLog("log-5", "Manifest loaded — " + cats.length + " registries, " + totalEntities + " entities");
-        loadPrompt("Select category to proceed");
-
-        // Brief pause so user sees 100%
-        await new Promise((r) => setTimeout(r, 500));
-        if (cancelled) return;
+        if (firstLoad) {
+          loadSet(100, "MANIFEST LOADED", cats.length + " registries · " + totalEntities + " entities catalogued");
+          loadAppendLog("log-5", "Manifest loaded — " + cats.length + " registries, " + totalEntities + " entities");
+          loadPrompt("Select category to proceed");
+          // Brief pause so user sees 100%
+          await new Promise((r) => setTimeout(r, 500));
+          if (cancelled) return;
+        }
 
         setData(raw);
-        loadFinish();
+        setSwitching(false);
+        if (firstLoad) loadFinish();
       } catch (err) {
-        if (!cancelled) { console.error(err); setError(err.message); }
+        if (!cancelled) { console.error(err); setError(err.message); setSwitching(false); }
       }
     };
 
     load();
     return () => { cancelled = true; };
+    // `data` is read only to decide whether this is the first load; including it
+    // would re-fetch on every setData.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [packageId, reloadToken]);
+
+  const selectPackage = useMemo(() => (id) => {
+    if (!id || id === packageId) return;
+    rememberPackage(id);
+    setActivePackage(id);   // must happen before the effect reads getDataSource()
+    setPackageId(id);
+    // Keep the address bar honest so the link stays shareable.
+    const url = new URL(window.location.href);
+    url.searchParams.set(PACKAGE_PARAM, id);
+    window.history.replaceState(null, "", url);
+  }, [packageId]);
+
+  /* Back/forward, or a pasted link, can change the package under us. */
+  useEffect(() => {
+    const onPop = () => {
+      const fromUrl = packageFromUrl();
+      if (fromUrl && fromUrl !== packageId && packages.some((p) => p.id === fromUrl)) {
+        selectPackage(fromUrl);
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [packageId, packages, selectPackage]);
+
+  const retry = useMemo(() => () => {
+    setError(null);
+    setReloadToken((n) => n + 1);
   }, []);
 
   const languages = useMemo(() => {
@@ -164,7 +246,7 @@ export const DataProvider = ({ children }) => {
           <div style={{ fontSize: "1.25rem", color: "var(--danger)", fontWeight: 600, marginBottom: "1rem", letterSpacing: "-0.01em" }}>Connection Error</div>
           <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem", fontSize: "0.85rem" }}>{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={retry}
             style={{
               padding: "0.5rem 1.5rem", background: "transparent", color: "var(--accent)",
               border: "1px solid var(--accent)", fontFamily: "var(--font-body)",
@@ -182,5 +264,12 @@ export const DataProvider = ({ children }) => {
 
   if (!data) return null;
 
-  return <DataContext.Provider value={{ data, languages, metadata }}>{children}</DataContext.Provider>;
+  return (
+    <DataContext.Provider value={{
+      data, languages, metadata,
+      packages, packageId, selectPackage, switching,
+    }}>
+      {children}
+    </DataContext.Provider>
+  );
 };

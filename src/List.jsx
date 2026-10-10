@@ -1,7 +1,8 @@
 import { Fragment, useMemo, useState } from "react";
 import { useI18n } from "./i18n.jsx";
-import { useItemIcon } from "./assetLoader.jsx";
+import { useItemIcon, hasAsset, useAssetIndexReady, iconFieldFor } from "./assetLoader.jsx";
 import { STATS, entityCategory, entityTitle, sortByStat, statCells } from "./entityStats.js";
+import { buildGroups, collapseToGroups, GROUPED_TYPES } from "./itemGroups.js";
 import InboxOutlined from "@mui/icons-material/InboxOutlined";
 
 const TYPE_COLOR = {
@@ -21,8 +22,8 @@ const TYPE_COLOR = {
  * It used to show the entity's internal key (`bunny_mgl.weapon`) and a fake
  * "heat" tint derived from averaged raw fields, so nothing on screen told a
  * reader what the thing was or let them compare two of them. */
-function Tile({ item, type, color, onClick, isMobile, ambiguous }) {
-  const { value: uiValue } = useI18n();
+function Tile({ item, type, color, onClick, isMobile, ambiguous, stateCount = 1 }) {
+  const { value: uiValue, t } = useI18n();
   const iconUrl = useItemIcon(item);
   const [broken, setBroken] = useState(false);
   const stats = statCells(type, item, isMobile ? 2 : 4);
@@ -51,6 +52,13 @@ function Tile({ item, type, color, onClick, isMobile, ambiguous }) {
         <span className="wiki-tile-title" style={{ fontSize: isMobile ? "var(--font-sm)" : "var(--font-md)" }}>
           {isAI && <span className="wiki-tile-ai">AI</span>}
           {uiValue(entityTitle(item))}
+          {/* One card can stand for several states of the same thing, so say so
+              — otherwise the count looks like records went missing. */}
+          {stateCount > 1 && (
+            <span className="wiki-tile-states" title={t("state_count_hint")}>
+              {stateCount}&#8202;{t("states")}
+            </span>
+          )}
           {ambiguous && <span className="wiki-tile-key">{item.key}</span>}
         </span>
         {stats.length > 0 && (
@@ -69,11 +77,12 @@ function Tile({ item, type, color, onClick, isMobile, ambiguous }) {
 }
 
 /* ── List ── */
-export default function List({ data, type, searchText, isMobile, priceFilter, exchangeSourceFilter, exchangePrizeFilter }) {
+export default function List({ data, type, searchText, isMobile, priceFilter, exchangeSourceFilter, exchangePrizeFilter, groupStates = true, sinkIconless = true }) {
   const { value: uiValue, tag: uiTag, t } = useI18n();
   const items = useMemo(() => Object.values(data), [data]);
   const color = TYPE_COLOR[type] || "#556677";
   const statFields = useMemo(() => (STATS[type] || []).map(([field]) => field), [type]);
+  const iconReady = useAssetIndexReady();
 
   const [sortState, setSortState] = useState(null);
   /* Default to the alphabetical index: leading with "highest kill chance"
@@ -122,25 +131,52 @@ export default function List({ data, type, searchText, isMobile, priceFilter, ex
     return sortByStat(filtered, sort);
   }, [filtered, sort]);
 
+  /* Alternate states of one thing are one entry, not several. Collapsed first,
+   * then the icon partition below — a group renders its representative's icon,
+   * so partitioning on any other member would leave an icon-less card in the
+   * top half. */
+  const collapsed = useMemo(() => {
+    if (!groupStates || !GROUPED_TYPES.has(type)) {
+      return sorted.map((item) => ({ key: item.key, item, states: [item.key] }));
+    }
+    const byKey = Object.fromEntries(sorted.map((i) => [i.key, i]));
+    return collapseToGroups(sorted, buildGroups(byKey, type));
+  }, [sorted, type, groupStates]);
+
+  /* Records with no icon sink to the bottom, so a list leads with the entries a
+   * reader can actually recognise. It is a stable partition *after* the chosen
+   * sort, so the sort still holds inside each half. Held back until the asset
+   * index arrives — before that every record looks icon-less and the list would
+   * shuffle for no reason. */
+  const entries = useMemo(() => {
+    if (!sinkIconless || !iconReady) return collapsed;
+    const withIcon = [];
+    const withoutIcon = [];
+    for (const entry of collapsed) {
+      (hasAsset(iconFieldFor(entry.item)) ? withIcon : withoutIcon).push(entry);
+    }
+    return withoutIcon.length === 0 ? collapsed : [...withIcon, ...withoutIcon];
+  }, [collapsed, sinkIconless, iconReady]);
+
   /* Group by the game's own `tags`, which is the only usable taxonomy the data
    * has — `weapon.class` is a bare integer. */
   const groups = useMemo(() => {
     const buckets = new Map();
-    for (const item of sorted) {
-      const key = entityCategory(item) ?? "";
+    for (const entry of entries) {
+      const key = entityCategory(entry.item) ?? "";
       if (!buckets.has(key)) buckets.set(key, []);
-      buckets.get(key).push(item);
+      buckets.get(key).push(entry);
     }
     const rest = buckets.get("")?.length ?? 0;
     /* Heading every group only helps when the categories actually cover the
      * list; 323 vehicles with 307 uncategorised reads better flat. */
-    if (buckets.size < 2 || rest > sorted.length * 0.5) return null;
+    if (buckets.size < 2 || rest > entries.length * 0.5) return null;
     return [...buckets.entries()].sort((a, b) => {
       if (a[0] === "") return 1;
       if (b[0] === "") return -1;
       return b[1].length - a[1].length;
     });
-  }, [sorted]);
+  }, [entries]);
 
   /* Several records share a display name — three different vehicles are all
    * called "Leopold II Tank". Those rows carry their key so the list stays
@@ -170,7 +206,10 @@ export default function List({ data, type, searchText, isMobile, priceFilter, ex
         <span className="wiki-bar-dot" style={{ background: color, width: isMobile ? 7 : 10, height: isMobile ? 7 : 10 }} />
         {!isMobile && <span style={{ color: "var(--text-muted)" }}>{t(type)}</span>}
         <span style={{ color: "var(--border-mid)" }}>|</span>
-        <span style={{ color: "var(--accent)" }}>{filtered.length}/{items.length}</span>
+        {/* Cards / records — they differ once state groups collapse. */}
+        <span style={{ color: "var(--accent)" }} title={t("state_count_hint")}>
+          {entries.length}/{items.length}
+        </span>
 
         <span style={{ flex: 1 }} />
 
@@ -197,7 +236,7 @@ export default function List({ data, type, searchText, isMobile, priceFilter, ex
           </div>
         )}
 
-        {sorted.length === 0 ? (
+        {entries.length === 0 ? (
           <div className="wiki-empty">
             <InboxOutlined style={{ fontSize: 36, opacity: 0.4 }} />
             <span>{t("empty_list")}</span>
@@ -205,23 +244,24 @@ export default function List({ data, type, searchText, isMobile, priceFilter, ex
           </div>
         ) : (
           <div className="wiki-grid" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${minColWidth}px, 1fr))`, gap: isMobile ? 2 : 4, padding: isMobile ? "3px 4px" : "4px 6px" }}>
-            {(groups ?? [["", sorted]]).map(([cat, items]) => (
+            {(groups ?? [["", entries]]).map(([cat, groupEntries]) => (
               <Fragment key={cat || "__rest"}>
                 {groups && (
                   <h2 className="wiki-group">
                     {cat ? uiTag(cat.replace(/\s+/g, "_")) : t("other")}
-                    <span className="wiki-group-count">{items.length}</span>
+                    <span className="wiki-group-count">{groupEntries.length}</span>
                   </h2>
                 )}
-                {items.map((item) => (
+                {groupEntries.map((entry) => (
                   <Tile
-                    key={item.key}
-                    item={item}
+                    key={entry.key}
+                    item={entry.item}
                     type={type}
                     color={color}
                     isMobile={isMobile}
-                    ambiguous={ambiguous.has(entityTitle(item))}
-                    onClick={() => { window.history.pushState(null, "", `/params/${type}/${item.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
+                    stateCount={entry.states.length}
+                    ambiguous={ambiguous.has(entityTitle(entry.item))}
+                    onClick={() => { window.history.pushState(null, "", `/params/${type}/${entry.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
                   />
                 ))}
               </Fragment>

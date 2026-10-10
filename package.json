@@ -8,7 +8,9 @@
     "build": "vite build && node scripts/generate-sitemap.js",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node src/entityStats.test.js && node src/dataSource.test.js"
+    "test": "node src/entityStats.test.js && node src/dataSource.test.js && node src/itemGroups.test.js",
+    "i18n": "node scripts/check-i18n.js",
+    "check": "npm run lint && npm run i18n && npm test && npm run build"
   },
   "dependencies": {
     "@emotion/styled": "^11.14.1",
