@@ -5,7 +5,6 @@ export default function CallVisualization({ item }) {
   const { translate, t } = useI18n();
   if (!item || item.type !== "call") return null;
   const rounds = item.rounds || [];
-  const inventory = item.inventory || {};
 
   const deployTypes = [];
   if (rounds.length > 0) {
@@ -94,17 +93,6 @@ export default function CallVisualization({ item }) {
               {t("global_notify")}
             </span>
           ) : null}
-          {inventory.price > 0 && (
-            <span style={{
-              padding: "3px 8px", fontSize: "var(--font-xs)",
-              border: "1px solid var(--border-mid)", color: "var(--text-muted)",
-              display: "inline-flex", alignItems: "center", gap: 4,
-              fontFamily: "var(--font-mono)",
-            }}>
-              <Icon icon="mdi:currency-usd" style={{ fontSize: 11 }} />
-              ${inventory.price}
-            </span>
-          )}
         </div>
       </div>
 
@@ -174,16 +162,6 @@ export default function CallVisualization({ item }) {
         </div>
       )}
 
-      {item.capacities && Array.isArray(item.capacities) && item.capacities.length > 0 && (
-        <div style={{
-          padding: "6px 14px", borderTop: "1px solid var(--border-subtle)",
-          fontSize: "var(--font-xxs)", color: "var(--text-dim)",
-          display: "flex", alignItems: "center", gap: 5,
-        }}>
-          <Icon icon="mdi:lock-outline" style={{ fontSize: 10 }} />
-          {t("unlock")}: {t("rank")} {item.capacities.map(c => (c.source_value * 100).toFixed(0) + "%").join(" → ")}
-        </div>
-      )}
     </div>
   );
 }

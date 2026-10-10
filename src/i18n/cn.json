@@ -844,6 +844,12 @@
   "modifier_applies": "生效",
   "no_change": "无变化",
 
+  "armament": "武装配置",
+  "recoil": "后坐力",
+  "arc": "射界",
+  "traverse": "回转",
+  "no_weapon": "未安装武器",
+
 
   "Kill Prob": "击杀概率",
   "Decay Start": "衰减起点",

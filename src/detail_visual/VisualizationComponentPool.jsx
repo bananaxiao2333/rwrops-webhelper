@@ -13,6 +13,7 @@ import ClothingVisualization from "./ClothingVisualization";
 import CommandVisualization from "./CommandVisualization";
 import ModifiersVisualization from "./ModifiersVisualization";
 import SupplyVisualization from "./SupplyVisualization";
+import VehicleArmamentVisualization from "./VehicleArmamentVisualization";
 import VehicleEventsVisualization from "./VehicleEventsVisualization";
 import VisualizationErrorBoundary from "./ErrorBoundary";
 
@@ -40,6 +41,7 @@ const visualizationComponents = [
      (item.inventory && typeof item.inventory === "object")) },
   { name: "Stance", component: StanceVisualization, shouldRender: (item) => item && Array.isArray(item.stances) && item.stances.length > 0 },
   { name: "Vehicle", component: VehicleVisualization, shouldRender: (item) => item && item.type === "vehicle" },
+  { name: "Armament", component: VehicleArmamentVisualization, shouldRender: (item) => item && item.type === "vehicle" && Array.isArray(item.turrets) && item.turrets.length > 0 },
   { name: "Vehicle Events", component: VehicleEventsVisualization, shouldRender: (item) => item && Array.isArray(item.events) && item.events.length > 0 },
   { name: "Event", component: EventVisualization, shouldRender: (item) => item &&
     item.type !== "weapon" && item.type !== "carry_item" && item.type !== "vehicle" &&
