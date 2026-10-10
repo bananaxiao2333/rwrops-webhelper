@@ -78,32 +78,9 @@ function PrizeChip({ entry, data, maxScore, totalScore }) {
   );
 }
 
-function SourceChip({ entry, data, translate }) {
-  const item = data?.[entry.class]?.[entry.key];
-  const iconUrl = useItemIcon(item || { hud_icon_filename: null });
-  return (
-    <a
-      href={`/params/${entry.class}/${entry.key}`}
-      onClick={(e) => { e.preventDefault(); navigateTo(`/params/${entry.class}/${entry.key}`); }}
-      className="article-chip"
-      style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
-      title={entry.key}
-    >
-      {iconUrl ? (
-        <img src={iconUrl} alt="" style={{ width: 18, height: 18, objectFit: "contain", imageRendering: "pixelated" }} />
-      ) : (
-        <Icon icon="mdi:package-variant-closed" style={{ fontSize: 14, color: "var(--text-muted)" }} />
-      )}
-      <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        {translate(item?.name) || entry.key.split(".")[0]}
-      </span>
-    </a>
-  );
-}
-
 export default function ExchangeVisualization({ item, onOpenRoll }) {
   const { data } = useData();
-  const { t, translate } = useI18n();
+  const { t } = useI18n();
   const exchangePrizes = item?.exchange_prizes;
   const exchangeSources = item?.exchange_sources;
 
@@ -176,32 +153,6 @@ export default function ExchangeVisualization({ item, onOpenRoll }) {
         </section>
       )}
 
-      {exchangeSources && exchangeSources.length > 0 && (
-        <section className="viz-section">
-          <div className="viz-section-title">
-            <Icon icon="mdi:source-branch" className="viz-icon" />
-            <h2>{t("sources_title")}</h2>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
-            {exchangeSources.map((src, si) => (
-              <div key={si} style={{
-                display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8,
-                paddingLeft: 10, borderLeft: "3px solid var(--accent-dim)",
-              }}>
-                <Icon icon="mdi:arrow-down-thin" style={{ fontSize: 14, color: "var(--accent-dim)", flexShrink: 0 }} />
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, flex: 1 }}>
-                  {src.input.map((inp, ii) => (
-                    <SourceChip key={ii} entry={inp} data={data} translate={translate} />
-                  ))}
-                </div>
-                <span style={{ fontSize: "var(--font-xxs)", color: "var(--text-dim)", whiteSpace: "nowrap", flexShrink: 0 }}>
-                  {src.category?.replace("Setup ", "")}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </>
   );
 }

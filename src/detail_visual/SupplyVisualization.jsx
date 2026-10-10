@@ -26,10 +26,6 @@ const TONE = {
   info: "var(--info)",
 };
 
-function humanizeSource(s) {
-  if (!s) return "—";
-  return String(s).replace(/_/g, " ");
-}
 
 export default function SupplyVisualization({ item }) {
   const t = useT();
@@ -59,6 +55,9 @@ export default function SupplyVisualization({ item }) {
   const weight = typeof commonness?.value === "number" ? commonness.value : null;
   const tier = rarityTier(weight);
   const tierColor = TONE[tier.tone] || "var(--info)";
+  // A capacity with value 0 is "no gate" (available from the start), so it is
+  // noise on the page — only real requirements are listed.
+  const gates = (Array.isArray(capacities) ? capacities : []).filter((c) => (c.value ?? 0) > 0);
 
   return (
     <VizFrame icon="mdi:package-variant-closed" title={t("supply")} lead={t("viz_lead_supply")}>
@@ -85,15 +84,15 @@ export default function SupplyVisualization({ item }) {
         )}
 
         {/* Unlock gate */}
-        {Array.isArray(capacities) && capacities.length > 0 && (
+        {gates.length > 0 && (
           <div className="article-row">
             <dt>{t("unlock")}</dt>
             <dd>
               <span style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
-                {capacities.map((c, i) => (
+                {gates.map((c, i) => (
                   <span key={i} className="article-chip" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                     <Icon icon="mdi:flag-outline" style={{ fontSize: 11, color: "var(--text-muted)" }} />
-                    {t("requires")} {humanizeSource(c.source)} {c.value}
+                    {t("requires")} {t(c.source)} {c.value}
                   </span>
                 ))}
               </span>
