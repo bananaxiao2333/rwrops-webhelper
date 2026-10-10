@@ -825,5 +825,22 @@
   "commonness": "Commonness",
   "value": "Value",
   "can_respawn_with": "Can Respawn With",
-  "in_stock": "In Stock"
+  "in_stock": "In Stock",
+
+  "events": "EVENTS",
+  "modifiers": "MODIFIERS",
+  "supply": "SUPPLY",
+  "rarity": "RARITY",
+  "spawn_weight": "spawn weight {0}",
+  "respawns_with": "respawns with you",
+  "no_respawn": "not carried on respawn",
+  "not_in_stock": "out of stock",
+  "requires": "requires",
+  "cost": "COST",
+  "price_unit": "credits",
+  "weight_unit": "kg",
+  "count_items": "{0} entries",
+  "consumes_item": "consumes {0}",
+  "modifier_applies": "applies",
+  "no_change": "no change"
 }

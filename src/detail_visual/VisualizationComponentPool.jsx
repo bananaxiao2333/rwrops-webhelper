@@ -11,6 +11,9 @@ import RankVisualization from "./RankVisualization";
 import ExchangeVisualization from "./ExchangeVisualization";
 import ClothingVisualization from "./ClothingVisualization";
 import CommandVisualization from "./CommandVisualization";
+import ModifiersVisualization from "./ModifiersVisualization";
+import SupplyVisualization from "./SupplyVisualization";
+import VehicleEventsVisualization from "./VehicleEventsVisualization";
 import VisualizationErrorBoundary from "./ErrorBoundary";
 
 /* eslint-disable react-refresh/only-export-components */
@@ -28,9 +31,19 @@ const visualizationComponents = [
     item.projectile_result_kill_probability !== undefined || item.retrigger_time !== undefined ||
     item.magazine_size !== undefined || item.can_shoot_standing !== undefined ||
     item.suppressed !== undefined) },
+  { name: "Modifiers", component: ModifiersVisualization, shouldRender: (item) => item &&
+    (item.type === "weapon" || item.type === "carry_item") &&
+    Array.isArray(item.modifiers) && item.modifiers.length > 0 },
+  { name: "Supply", component: SupplyVisualization, shouldRender: (item) => item &&
+    ((item.commonness && typeof item.commonness === "object") ||
+     (Array.isArray(item.capacities) && item.capacities.length) ||
+     (item.inventory && typeof item.inventory === "object")) },
   { name: "Stance", component: StanceVisualization, shouldRender: (item) => item && Array.isArray(item.stances) && item.stances.length > 0 },
   { name: "Vehicle", component: VehicleVisualization, shouldRender: (item) => item && item.type === "vehicle" },
-  { name: "Event", component: EventVisualization, shouldRender: (item) => item && (item.events !== undefined || item.modifiers !== undefined) },
+  { name: "Vehicle Events", component: VehicleEventsVisualization, shouldRender: (item) => item && Array.isArray(item.events) && item.events.length > 0 },
+  { name: "Event", component: EventVisualization, shouldRender: (item) => item &&
+    item.type !== "weapon" && item.type !== "carry_item" && item.type !== "vehicle" &&
+    (item.events !== undefined || item.modifiers !== undefined) },
   { name: "Call", component: CallVisualization, shouldRender: (item) => item && item.type === "call" },
   { name: "Achievement", component: AchievementVisualization, shouldRender: (item) => item && item.type === "achievement" },
   { name: "Faction", component: FactionVisualization, shouldRender: (item) => item && item.type === "faction" },
