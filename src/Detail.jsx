@@ -356,7 +356,7 @@ export default function Detail({ item, type, onOpenRoll }) {
   const valueProps = { uiT: t, uiLabel, tFn: uiValue, lookupMap, onNavigate: navigate };
 
   return (
-    <div className="article">
+    <div className="article" data-tour="article">
       <article className="article-inner">
         {/* ── Title ── */}
         <header className="article-head" data-share-id="hero">

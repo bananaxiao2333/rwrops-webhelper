@@ -200,7 +200,7 @@ export default function List({ data, type, searchText, isMobile, priceFilter, ex
   ].filter(Boolean);
 
   return (
-    <div className="wiki-list">
+    <div className="wiki-list" data-tour="list">
       {/* Toolbar: count on the left, sort fields on the right */}
       <div className="wiki-bar" style={{ gap: barGap, padding: isMobile ? "4px 6px 3px" : "6px 12px 4px" }}>
         <span className="wiki-bar-dot" style={{ background: color, width: isMobile ? 7 : 10, height: isMobile ? 7 : 10 }} />

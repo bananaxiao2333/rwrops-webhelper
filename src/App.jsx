@@ -1021,7 +1021,12 @@ export default function App() {
       )}
 
       {/* ── Guided tour ── (remount on open so it always restarts at step 1) */}
-      <Tour key={tourOpen ? "tour-open" : "tour-closed"} open={tourOpen} onClose={() => setTourOpen(false)} />
+      <Tour
+        key={tourOpen ? "tour-open" : "tour-closed"}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        onNavigate={(path) => navigate(path)}
+      />
 
       {/* ── Global Search Modal ── */}
       <GlobalSearch
