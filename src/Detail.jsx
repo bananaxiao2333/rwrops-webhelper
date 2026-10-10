@@ -21,26 +21,31 @@ function needsAn(label) {
  * The stat block (entityStats.FACTS) is always rendered first and its fields
  * are removed from these groups, so nothing appears twice. Anything in neither
  * list still reaches the page, in the collapsed "technical data" block. */
+/* Fields claimed by a dedicated visualization (Modifiers / Supply / Vehicle
+ * Events). They are removed from the section blocks and from the raw block so
+ * the page never shows the same data twice — the viz is the only rendering. */
+const VIZ_OWNED = new Set(["modifiers", "events", "commonness", "capacities", "inventory"]);
+
 const SECTIONS = {
   vehicle: [
     { label: "PHYSICAL", keys: ["extent", "collision_model_extent", "offset", "top_offset", "visual_offset", "collision_model_pos"] },
-    { label: "CONFIG",   keys: ["tags", "tire_sets", "character_slots", "turrets", "visuals", "events", "effects", "sounds"] },
+    { label: "CONFIG",   keys: ["tags", "tire_sets", "character_slots", "turrets", "visuals", "effects", "sounds"] },
   ],
   weapon: [
-    { label: "HANDLING", keys: ["projectile_result_class", "reload_one_at_a_time", "weak_hand_hold_offset", "modifiers"] },
+    { label: "HANDLING", keys: ["projectile_result_class", "reload_one_at_a_time", "weak_hand_hold_offset"] },
     { label: "DATA",     keys: ["stances", "animations", "sounds", "model_filename", "class"] },
   ],
   carry_item: [
-    { label: "ECONOMY", keys: ["commonness", "capacities", "transform_on_consume"] },
-    { label: "WORLD",   keys: ["drop_count_factor_on_death", "drop_count_factor_on_player_death", "tags", "modifiers"] },
+    { label: "ECONOMY", keys: ["transform_on_consume"] },
+    { label: "WORLD",   keys: ["drop_count_factor_on_death", "drop_count_factor_on_player_death", "tags"] },
   ],
   projectile: [
-    { label: "BEHAVIOR", keys: ["rotations", "commonness", "model_mesh"] },
-    { label: "EFFECTS",  keys: ["effects", "sounds", "capacities", "inventory"] },
+    { label: "BEHAVIOR", keys: ["rotations", "model_mesh"] },
+    { label: "EFFECTS",  keys: ["effects", "sounds"] },
   ],
   call: [
     { label: "DIALOGUE", keys: ["initiation_comment1", "initiation_comment2", "acknowledge_comment", "launch_comment"] },
-    { label: "INVENTORY", keys: ["inventory", "capacities", "hud_icon"] },
+    { label: "INVENTORY", keys: ["hud_icon"] },
   ],
   achievement: [{ label: "CRITERIA", keys: ["criteria_list", "levels", "no_level_title"] }],
   faction: [
@@ -265,7 +270,7 @@ export default function Detail({ item, type, onOpenRoll }) {
     [sections, facts],
   );
   const looseKeys = useMemo(
-    () => Object.keys(item || {}).filter((k) => !grouped.has(k) && !isInternal(k)),
+    () => Object.keys(item || {}).filter((k) => !grouped.has(k) && !isInternal(k) && !VIZ_OWNED.has(k)),
     [item, grouped],
   );
 

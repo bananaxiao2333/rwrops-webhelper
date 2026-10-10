@@ -18,7 +18,11 @@ export default function EventVisualization({ item }) {
   const t = useT();
   const [expandedId, setExpandedId] = useState(null);
 
-  if (!item || item.type === "carry_item" || (!item.modifiers && !item.events)) return null;
+  /* weapon/carry_item modifiers and vehicle events are decoded by the
+   * dedicated Modifiers / VehicleEvents visualizations; this generic fallback
+   * only kicks in for other types. */
+  if (!item || item.type === "weapon" || item.type === "carry_item" || item.type === "vehicle" ||
+      (!item.modifiers && !item.events)) return null;
 
   const eventsSource = item.events || item.modifiers || [];
   const events = [];
