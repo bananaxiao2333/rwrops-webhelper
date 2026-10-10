@@ -837,7 +837,7 @@
   "not_in_stock": "缺货",
   "requires": "需要",
   "cost": "消耗",
-  "price_unit": "信用点",
+  "price_unit": "RP",
   "weight_unit": "千克",
   "count_items": "{0} 项",
   "consumes_item": "消耗 {0}",
