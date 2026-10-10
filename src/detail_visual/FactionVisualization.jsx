@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import { useI18n } from "../i18n.jsx";
 import { useAsset } from "../assetLoader.jsx";
+import VizFrame from "./VizFrame";
 
 export default function FactionVisualization({ item }) {
   const { translate, t } = useI18n();
@@ -20,30 +21,18 @@ export default function FactionVisualization({ item }) {
   ].filter(x => x.file);
 
   return (
-    <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", fontFamily: "var(--font-mono)" }}>
-      <div style={{
-        padding: "12px 16px", borderBottom: `2px solid ${factionColor}`,
-        fontSize: "var(--font-md)", fontWeight: 700, color: "var(--accent)",
-        textTransform: "uppercase", letterSpacing: "0.08em",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        fontFamily: "var(--font-display)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 12, height: 12, background: factionColor, flexShrink: 0 }} />
-          <Icon icon="mdi:flag" style={{ fontSize: "var(--font-sm)" }} />
-          <span style={{ fontSize: "var(--font-md)" }}>{t("faction_label")}</span>
-        </div>
-        <span style={{ fontSize: "var(--font-sm)", color: "var(--text-muted)", fontWeight: 400, fontFamily: "var(--font-mono)" }}>
-          {ranks.length} {t("ranks")} · {soldierCount} {t("templates")}
-        </span>
-      </div>
-
+    <VizFrame
+      icon="mdi:flag"
+      title={t("faction_label")}
+      count={`${ranks.length} ${t("ranks")} · ${soldierCount} ${t("templates")}`}
+      lead={t("viz_lead_faction")}
+    >
       {iconList.length > 0 && (
         <div style={{
-          display: "flex", gap: 6, padding: "8px 14px",
+          display: "flex", gap: 6, paddingTop: 10, paddingBottom: 6,
           borderBottom: "1px solid var(--border-subtle)", flexWrap: "wrap", flexShrink: 0,
           alignItems: "center",
-          animation: "fade-in 0.25s var(--ease-smooth) 0.06s both",
+          animation: "fade-in 0.25s var(--ease-out) 0.06s both",
         }}>
           {iconList.map((ic, i) => (
             <div key={i} style={{ animation: `fade-in 0.25s var(--ease-smooth) ${0.08 + i * 0.04}s both` }}>
@@ -62,8 +51,8 @@ export default function FactionVisualization({ item }) {
           {item.soldiers.map((s, i) => (
             <div key={i} style={{
               border: "1px solid var(--border-subtle)", padding: "6px 10px",
-              background: "var(--bg-base)", flex: "1 1 160px",
-              animation: `fade-in 0.25s var(--ease-smooth) ${0.08 + i * 0.04}s both`,
+              flex: "1 1 160px",
+              animation: `fade-in 0.25s var(--ease-out) ${0.08 + i * 0.04}s both`,
               transition: "border-color var(--dur-fast) var(--ease-smooth)",
             }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
@@ -98,9 +87,7 @@ export default function FactionVisualization({ item }) {
                 display: "flex", gap: 8, alignItems: "center",
                 padding: "8px 14px",
                 borderBottom: i < ranks.length - 1 ? "1px solid var(--border-subtle)" : "none",
-                background: isMajor ? "var(--bg-elevated)" : (i % 2 ? "var(--bg-base)" : "transparent"),
-                animation: `fade-in 0.2s var(--ease-smooth) ${0.04 + i * 0.025}s both`,
-                transition: "background var(--dur-fast) var(--ease-smooth)",
+                animation: `fade-in 0.2s var(--ease-out) ${0.04 + i * 0.025}s both`,
               }}>
                 <RankIcon filename={rank.hud_icon?.filename} rankNum={i + 1} isMajor={isMajor} />
                 <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -124,7 +111,7 @@ export default function FactionVisualization({ item }) {
           })}
         </div>
       )}
-    </div>
+    </VizFrame>
   );
 }
 

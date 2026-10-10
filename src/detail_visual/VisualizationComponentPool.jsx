@@ -55,37 +55,23 @@ const visualizationComponents = [
 export { visualizationComponents };
 
 export default function VisualizationComponentPool({ item, onDataNavigate, onOpenRoll }) {
-  const hasContent = visualizationComponents.some(({ shouldRender }) => shouldRender(item));
-  if (!hasContent) return null;
-
-  let visIndex = 0;
+  const active = visualizationComponents.filter((entry) => entry.shouldRender(item));
+  if (active.length === 0) return null;
 
   return (
-    <div style={{
-      display: "flex", flexDirection: "column", gap: "1rem",
-      backgroundColor: "var(--bg-base)", padding: "1rem",
-      border: "1px solid var(--border-subtle)",
-      transition: "border-color var(--dur-fast) var(--ease-smooth)",
-    }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
-    >
-      {visualizationComponents.map((entry) => {
+    <>
+      {active.map((entry, idx) => {
         const Comp = entry.component;
-        if (entry.shouldRender(item)) {
-          const idx = visIndex++;
-          return (
-            <div key={idx} data-share-id={`vis_${entry.name}`} style={{
-              animation: `fade-in 0.3s var(--ease-smooth) ${0.06 * idx}s both`,
-            }}>
-              <VisualizationErrorBoundary>
-                <Comp item={item} onDataNavigate={onDataNavigate} onOpenRoll={onOpenRoll} />
-              </VisualizationErrorBoundary>
-            </div>
-          );
-        }
-        return null;
+        return (
+          <div key={entry.name} data-share-id={`vis_${entry.name}`} style={{
+            animation: `fade-in 0.3s var(--ease-out) ${0.06 * idx}s both`,
+          }}>
+            <VisualizationErrorBoundary>
+              <Comp item={item} onDataNavigate={onDataNavigate} onOpenRoll={onOpenRoll} />
+            </VisualizationErrorBoundary>
+          </div>
+        );
       })}
-    </div>
+    </>
   );
 }

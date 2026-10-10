@@ -2,6 +2,7 @@ import { Icon } from "@iconify/react";
 import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
 import { useI18n } from "../i18n.jsx";
+import VizFrame from "./VizFrame";
 
 const PERM_COLORS = {
   moderator: { accent: "var(--accent-dim)", text: "var(--accent)" },
@@ -28,9 +29,7 @@ function ActionRow({ action, index, data }) {
         display: "flex", alignItems: "center", gap: 8,
         padding: "7px 14px",
         borderTop: index > 0 ? "1px solid var(--border-subtle)" : "none",
-        background: index % 2 ? "var(--bg-base)" : "transparent",
-        animation: `fade-in 0.2s var(--ease-smooth) ${0.04 + index * 0.03}s both`,
-        transition: "background var(--dur-fast) var(--ease-smooth)",
+        animation: `fade-in 0.2s var(--ease-out) ${0.04 + index * 0.03}s both`,
       }}>
         <span style={{
           fontSize: "var(--font-xxs)", color: "var(--text-dim)",
@@ -146,19 +145,12 @@ export default function CommandVisualization({ item }) {
   const permColor = PERM_COLORS[item.permission] || PERM_COLORS.admin;
 
   return (
-    <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", fontFamily: "var(--font-mono)" }}>
-      <div style={{
-        padding: "10px 14px",
-        borderBottom: `1px solid ${permColor.accent}`,
-        fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)",
-        textTransform: "uppercase", letterSpacing: "0.08em",
-        display: "flex", alignItems: "center", gap: 8,
-        fontFamily: "var(--font-display)",
-      }}>
-        <Icon icon="mdi:terminal" style={{ fontSize: "var(--font-md)" }} />
-        <span style={{ fontFamily: "var(--font-mono)" }}>/{item.command}</span>
+    <VizFrame
+      icon="mdi:terminal"
+      title={`/${item.command}`}
+      lead={item.description || t("viz_lead_command")}
+      actions={
         <span style={{
-          marginLeft: "auto",
           fontSize: "var(--font-xxs)", fontWeight: 600,
           padding: "2px 8px",
           border: `1px solid ${permColor.text}`,
@@ -169,28 +161,13 @@ export default function CommandVisualization({ item }) {
             style={{ fontSize: 10, marginRight: 3 }} />
           {item.permission}
         </span>
-      </div>
-
-      {item.description && (
-        <div style={{
-          padding: "8px 14px",
-          borderBottom: "1px solid var(--border-subtle)",
-          fontSize: "var(--font-sm)", color: "var(--text-secondary)",
-          fontFamily: "var(--font-text)", lineHeight: 1.5,
-          fontStyle: "italic",
-          animation: "fade-in 0.25s var(--ease-smooth) 0.06s both",
-        }}>
-          {item.description}
-        </div>
-      )}
-
+      }
+    >
       {item.effects && (
         <div style={{
-          padding: "6px 14px",
-          borderBottom: "1px solid var(--border-subtle)",
-          fontSize: "var(--font-xxs)", color: "var(--text-dim)",
+          marginTop: 8,
+          fontSize: "var(--font-xs)", color: "var(--text-muted)",
           display: "flex", alignItems: "center", gap: 6,
-          animation: "fade-in 0.2s var(--ease-smooth) 0.08s both",
         }}>
           <Icon icon="mdi:lightning-bolt-outline" style={{ fontSize: 12 }} />
           {item.effects}
@@ -199,14 +176,8 @@ export default function CommandVisualization({ item }) {
 
       {actions.length > 0 && (
         <div>
-          <div style={{
-            padding: "6px 14px",
-            fontSize: "var(--font-xs)", color: "var(--text-muted)",
-            letterSpacing: "0.06em",
-            borderBottom: "1px solid var(--border-subtle)",
-            display: "flex", alignItems: "center", gap: 5,
-          }}>
-            <Icon icon="mdi:format-list-numbered" style={{ fontSize: 11 }} />
+          <div className="viz-block-title" style={{ marginTop: 12 }}>
+            <Icon icon="mdi:format-list-numbered" style={{ fontSize: 12, marginRight: 5, verticalAlign: "-1px" }} />
             {t("actions_label", actions.length)}
           </div>
           {actions.map((action, i) => (
@@ -214,6 +185,6 @@ export default function CommandVisualization({ item }) {
           ))}
         </div>
       )}
-    </div>
+    </VizFrame>
   );
 }

@@ -1,5 +1,6 @@
 import { Icon } from "@iconify/react";
 import { useI18n } from "../i18n.jsx";
+import VizFrame from "./VizFrame";
 
 export default function CallVisualization({ item }) {
   const { translate, t } = useI18n();
@@ -13,19 +14,8 @@ export default function CallVisualization({ item }) {
   }
 
   return (
-    <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", fontFamily: "var(--font-mono)" }}>
-      <div style={{
-        padding: "10px 14px", borderBottom: "1px solid var(--border-subtle)",
-        fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)",
-        textTransform: "uppercase", letterSpacing: "0.08em",
-        display: "flex", alignItems: "center", gap: 8,
-        fontFamily: "var(--font-display)",
-      }}>
-        <Icon icon="mdi:radio-tower" style={{ fontSize: "var(--font-md)" }} />
-        {t("radio_call")}
-      </div>
-
-      <div style={{ display: "flex", gap: 12, padding: "10px 14px", flexWrap: "wrap" }}>
+    <VizFrame icon="mdi:radio-tower" title={t("radio_call")} lead={t("viz_lead_call")}>
+      <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 200px", display: "flex", flexDirection: "column", gap: 5 }}>
           {item.initiation_comment1 && (
             <div style={{
@@ -115,9 +105,7 @@ export default function CallVisualization({ item }) {
                 display: "flex", gap: 10, alignItems: "center",
                 padding: "8px 14px",
                 borderTop: i > 0 ? "1px solid var(--border-subtle)" : "none",
-                background: i % 2 ? "var(--bg-base)" : "transparent",
-                animation: `fade-in 0.25s var(--ease-smooth) ${0.08 + i * 0.04}s both`,
-                transition: "background var(--dur-fast) var(--ease-smooth)",
+                animation: `fade-in 0.25s var(--ease-out) ${0.08 + i * 0.04}s both`,
               }}>
                 <span style={{
                   fontSize: "var(--font-sm)", color: "var(--accent)", fontWeight: 700,
@@ -161,7 +149,6 @@ export default function CallVisualization({ item }) {
           })}
         </div>
       )}
-
-    </div>
+    </VizFrame>
   );
 }

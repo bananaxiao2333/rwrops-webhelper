@@ -5,6 +5,7 @@ import { useData } from "../DataContext.jsx";
 import { useI18n } from "../i18n.jsx";
 import { navigateTo } from "../hashRouter.js";
 import { withPackage } from "../dataSource.js";
+import VizFrame from "./VizFrame";
 
 function resolveRef(entry, data) {
   const raw = entry.file || entry.key || "";
@@ -307,38 +308,7 @@ export default function MapVisualization({ item }) {
   ];
 
   return (
-    <div style={{
-      border: "1px solid var(--border-subtle)",
-      background: "var(--bg-surface)",
-      fontFamily: "var(--font-mono)",
-      animation: "fade-in 0.35s ease both",
-      transition: "border-color 0.2s ease",
-    }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}
-    >
-      <div style={{
-        padding: "10px 14px",
-        borderBottom: "1px solid var(--border-subtle)",
-        display: "flex", alignItems: "center", gap: 8,
-        fontSize: "var(--font-md)", fontWeight: 700,
-        color: "var(--accent)",
-        textTransform: "uppercase", letterSpacing: "0.12em",
-        background: "var(--bg-base)",
-        fontFamily: "var(--font-display)",
-      }}>
-        <div style={{
-          width: 5, height: 5,
-          borderRadius: "50%",
-          background: "var(--accent)",
-          boxShadow: "none",
-          animation: "breathe 2.5s ease-in-out infinite",
-          flexShrink: 0,
-        }} />
-        <Icon icon="mdi:map" style={{ fontSize: "var(--font-md)" }} />
-        <span>{t("map_label")} · {displayLabel}</span>
-      </div>
-
+    <VizFrame icon="mdi:map" title={`${t("map_label")} · ${displayLabel}`} lead={t("viz_lead_map")}>
       {hasStacked && <StackedMapView mapEntry={item} />}
 
       {hasFrame && (
@@ -383,6 +353,6 @@ export default function MapVisualization({ item }) {
       {categories.map((cat) => (
         <MapItemList key={cat.key} items={cat.items} label={cat.label} icon={cat.icon} data={data} />
       ))}
-    </div>
+    </VizFrame>
   );
 }

@@ -2,6 +2,7 @@ import { Icon } from "@iconify/react";
 import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
 import { useI18n } from "../i18n.jsx";
+import { navigateTo } from "../hashRouter.js";
 
 function PrizeChip({ entry, data, maxScore, totalScore }) {
   const { translate } = useI18n();
@@ -24,75 +25,52 @@ function PrizeChip({ entry, data, maxScore, totalScore }) {
   return (
     <a
       href={`/params/${type}/${fullKey}`}
-      onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${type}/${fullKey}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
+      onClick={(e) => { e.preventDefault(); navigateTo(`/params/${type}/${fullKey}`); }}
       style={{
         display: "flex", alignItems: "center", gap: 8,
-        padding: "6px 10px",
-        border: "1px solid var(--border-subtle)",
+        padding: "5px 8px",
         // Weight used to be a translucent accent wash; a solid accent bar of
         // varying width carries the same signal without any alpha.
         borderLeft: `${1 + Math.round(weightRatio * 3)}px solid var(--accent)`,
-        background: "var(--bg-base)",
         cursor: "pointer", textDecoration: "none",
-        transition: "all var(--dur-fast) var(--ease-smooth)",
         fontSize: "var(--font-xs)",
-        position: "relative", overflow: "hidden",
+        transition: "background var(--dur-fast) var(--ease-smooth)",
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--accent)";
-        e.currentTarget.style.background = "var(--bg-elevated)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--border-subtle)";
-        e.currentTarget.style.background = "var(--tint-warn)";
-      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-elevated)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
       title={fullKey}
     >
       <div style={{
-        width: 28, height: 28,
+        width: 26, height: 26,
         display: "flex", alignItems: "center", justifyContent: "center",
-        border: "1px solid var(--border-mid)",
-        background: "var(--bg-void)",
+        border: "1px solid var(--border-subtle)",
         flexShrink: 0,
       }}>
         {iconUrl ? (
-          <img src={iconUrl} alt="" style={{ width: 22, height: 22, objectFit: "contain", imageRendering: "pixelated" }} />
+          <img src={iconUrl} alt="" style={{ width: 20, height: 20, objectFit: "contain", imageRendering: "pixelated" }} />
         ) : (
-          <Icon icon={fallbackIcon} style={{ fontSize: 16, color: "var(--text-muted)" }} />
+          <Icon icon={fallbackIcon} style={{ fontSize: 15, color: "var(--text-muted)" }} />
         )}
       </div>
 
       <span style={{
         flex: 1, minWidth: 0,
-        color: "var(--text-primary)",
-        fontSize: "var(--font-sm)",
+        color: "var(--text-primary)", fontSize: "var(--font-sm)",
         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        letterSpacing: "0.02em",
       }}>
         {translate(item?.name) || fullKey.split(".").slice(0, -1).join(".")}
       </span>
 
       {entry.count > 1 && (
-        <span style={{
-          fontSize: "var(--font-xxs)", fontWeight: 700,
-          color: "var(--accent)",
-          background: "var(--tint-warn)",
-          padding: "1px 5px",
-          flexShrink: 0,
-          fontFamily: "var(--font-mono)",
-        }}>
+        <span style={{ fontSize: "var(--font-xxs)", fontWeight: 700, color: "var(--accent)", flexShrink: 0, fontFamily: "var(--font-mono)" }}>
           ×{entry.count}
         </span>
       )}
 
       <span style={{
-        fontSize: "var(--font-xxs)", fontWeight: 700,
-        color: "var(--amber)",
-        minWidth: 44, textAlign: "right",
-        fontVariantNumeric: "tabular-nums",
-        letterSpacing: "0.04em",
-        flexShrink: 0,
-        fontFamily: "var(--font-mono)",
+        fontSize: "var(--font-xxs)", fontWeight: 700, color: "var(--amber)",
+        minWidth: 44, textAlign: "right", fontVariantNumeric: "tabular-nums",
+        flexShrink: 0, fontFamily: "var(--font-mono)",
       }}>
         {pctStr}%
       </span>
@@ -106,25 +84,9 @@ function SourceChip({ entry, data, translate }) {
   return (
     <a
       href={`/params/${entry.class}/${entry.key}`}
-      onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", `/params/${entry.class}/${entry.key}`); window.dispatchEvent(new PopStateEvent("popstate")); }}
-      style={{
-        display: "inline-flex", alignItems: "center", gap: 5,
-        padding: "4px 8px",
-        border: "1px solid var(--border-mid)",
-        background: "var(--bg-surface)",
-        cursor: "pointer", textDecoration: "none",
-        transition: "all var(--dur-fast) var(--ease-smooth)",
-        fontSize: "var(--font-xs)",
-        fontFamily: "var(--font-mono)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--accent)";
-        e.currentTarget.style.background = "var(--bg-elevated)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--border-mid)";
-        e.currentTarget.style.background = "var(--bg-surface)";
-      }}
+      onClick={(e) => { e.preventDefault(); navigateTo(`/params/${entry.class}/${entry.key}`); }}
+      className="article-chip"
+      style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
       title={entry.key}
     >
       {iconUrl ? (
@@ -132,7 +94,7 @@ function SourceChip({ entry, data, translate }) {
       ) : (
         <Icon icon="mdi:package-variant-closed" style={{ fontSize: 14, color: "var(--text-muted)" }} />
       )}
-      <span style={{ color: "var(--text-primary)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {translate(item?.name) || entry.key.split(".")[0]}
       </span>
     </a>
@@ -148,133 +110,61 @@ export default function ExchangeVisualization({ item, onOpenRoll }) {
   if (!exchangePrizes && !exchangeSources) return null;
 
   return (
-    <div style={{
-      border: "1px solid var(--border-mid)",
-      background: "var(--bg-surface)",
-      fontFamily: "var(--font-mono)",
-      position: "relative",
-    }}>
+    <>
       {exchangePrizes && exchangePrizes.length > 0 && (
-        <>
-          <div style={{
-            padding: "10px 14px",
-            borderBottom: "2px solid var(--accent)",
-            background: "var(--bg-base)",
-            display: "flex", alignItems: "center", gap: 10,
-          }}>
-            <Icon icon="mdi:gift-open-outline" style={{ fontSize: 18, color: "var(--accent)" }} />
-            <span style={{
-              fontSize: "var(--font-base)", fontWeight: 700,
-              color: "var(--accent)",
-              textTransform: "uppercase", letterSpacing: "0.12em",
-              fontFamily: "var(--font-display)",
-            }}>
-              {t("exchange_title")}
-            </span>
-            <span style={{
-              marginLeft: "auto",
-              fontSize: "var(--font-xxs)", color: "var(--text-muted)",
-              letterSpacing: "0.06em",
-            }}>
-              {exchangePrizes.length} {exchangePrizes.length > 1 ? "SETS" : "SET"}
-            </span>
-            <span onClick={() => onOpenRoll && onOpenRoll(item)}
-              style={{
-                cursor: "pointer", userSelect: "none",
-                padding: "2px 10px",
-                border: "1px solid var(--accent)",
-                color: "var(--accent)",
-                fontSize: "var(--font-xxs)", fontWeight: 700,
-                letterSpacing: "0.1em",
-                marginLeft: 8,
-                transition: "all var(--dur-fast) var(--ease-smooth)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "var(--accent)";
-                e.currentTarget.style.color = "var(--bg-deep)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "var(--accent)";
-              }}
-            >
-              <Icon icon="mdi:dice-3" style={{ fontSize: 10, marginRight: 3 }} />
-              {t("roll_draw")}
+        <section className="viz-section">
+          <div className="viz-section-title">
+            <Icon icon="mdi:gift-open-outline" className="viz-icon" />
+            <h2>{t("exchange_title")}</h2>
+            <span className="viz-count">{exchangePrizes.length} {exchangePrizes.length > 1 ? "SETS" : "SET"}</span>
+            <span className="viz-actions">
+              <span onClick={() => onOpenRoll && onOpenRoll(item)}
+                style={{
+                  cursor: "pointer", userSelect: "none",
+                  padding: "2px 10px",
+                  border: "1px solid var(--accent)",
+                  color: "var(--accent)",
+                  fontSize: "var(--font-xxs)", fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  transition: "all var(--dur-fast) var(--ease-smooth)",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--accent)"; e.currentTarget.style.color = "var(--bg-deep)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--accent)"; }}
+              >
+                <Icon icon="mdi:dice-3" style={{ fontSize: 10, marginRight: 3 }} />
+                {t("roll_draw")}
+              </span>
             </span>
           </div>
 
           {exchangePrizes.map((cat, ci) => (
-            <div key={ci} style={{
-              borderBottom: ci < exchangePrizes.length - 1 ? "1px solid var(--border-heavy)" : "none",
-            }}>
-              <div style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px",
-                background: "var(--bg-base)",
-                borderBottom: "1px solid var(--border-subtle)",
-                fontSize: "var(--font-sm)",
-                color: "var(--text-primary)", fontWeight: 600,
-                letterSpacing: "0.06em",
-              }}>
-                <div style={{ width: 4, height: 14, background: "var(--accent)", flexShrink: 0 }} />
-                {cat.category?.replace("Setup ", "") || `Set ${ci + 1}`}
-              </div>
-
+            <div key={ci} className="viz-block">
+              <h3 className="viz-block-title">{cat.category?.replace("Setup ", "") || `Set ${ci + 1}`}</h3>
               <div style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%), 1fr))",
-                gap: 8,
-                padding: "10px 10px 12px",
+                gap: 12, marginTop: 6,
               }}>
                 {cat.prize_pools.map((pool, pi) => {
                   const maxScore = Math.max(...pool.map(p => p.score), 0);
                   const totalScore = pool.reduce((s, p) => s + p.score, 0);
-
                   return (
-                    <div key={pi} style={{
-                      border: "1px solid var(--border-subtle)",
-                      background: "var(--bg-base)",
-                      animation: `fade-in 0.3s var(--ease-smooth) ${0.08 + pi * 0.05}s both`,
-                    }}>
+                    <div key={pi}>
                       <div style={{
-                        padding: "5px 10px",
-                        borderBottom: "1px solid var(--border-subtle)",
-                        background: "var(--tint-warn)",
                         display: "flex", alignItems: "center", justifyContent: "space-between",
-                        fontSize: "var(--font-xxs)",
-                        color: "var(--text-muted)",
-                        letterSpacing: "0.06em",
+                        paddingBottom: 4, marginBottom: 2,
+                        borderBottom: "1px solid var(--border-subtle)",
+                        fontSize: "var(--font-xxs)", color: "var(--text-muted)", letterSpacing: "0.06em",
                       }}>
                         <span>{t("pool_label", pi + 1)}</span>
-                        <div style={{ display: "flex", gap: 12, fontFamily: "var(--font-mono)" }}>
+                        <span style={{ display: "flex", gap: 12, fontFamily: "var(--font-mono)" }}>
                           <span>{t("items_count", pool.length)}</span>
-                          <span style={{ color: "var(--amber)" }}>
-                            Σ {totalScore.toFixed(1)}
-                          </span>
-                        </div>
+                          <span style={{ color: "var(--amber)" }}>Σ {totalScore.toFixed(1)}</span>
+                        </span>
                       </div>
-
-                      <div style={{
-                        display: "flex",
-                        padding: "3px 10px 3px 60px",
-                        fontSize: 8,
-                        color: "var(--text-dim)",
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        borderBottom: "1px solid var(--border-subtle)",
-                      }}>
-                        <span style={{ flex: 1 }}>ITEM</span>
-                        <span style={{ width: 44, textAlign: "right" }}>%</span>
-                      </div>
-
                       <div style={{ display: "flex", flexDirection: "column" }}>
                         {[...pool].sort((a, b) => (b.score || 0) - (a.score || 0)).map((prize, i) => (
-                          <div key={i} style={{
-                            borderBottom: i < pool.length - 1 ? "0.5px solid var(--border-subtle)" : "none",
-                            animation: `fade-in 0.2s var(--ease-smooth) ${0.1 + i * 0.025}s both`,
-                          }}>
-                            <PrizeChip entry={prize} data={data} maxScore={maxScore} totalScore={totalScore} />
-                          </div>
+                          <PrizeChip key={i} entry={prize} data={data} maxScore={maxScore} totalScore={totalScore} />
                         ))}
                       </div>
                     </div>
@@ -283,68 +173,35 @@ export default function ExchangeVisualization({ item, onOpenRoll }) {
               </div>
             </div>
           ))}
-        </>
+        </section>
       )}
 
       {exchangeSources && exchangeSources.length > 0 && (
-        <>
-          {exchangePrizes && exchangePrizes.length > 0 && (
-            <div style={{ height: 1, background: "var(--border-heavy)" }} />
-          )}
-
-          <div style={{
-            padding: "10px 14px",
-            borderBottom: "2px solid var(--accent-dim)",
-            background: "var(--bg-base)",
-            display: "flex", alignItems: "center", gap: 10,
-          }}>
-            <Icon icon="mdi:source-branch" style={{ fontSize: 18, color: "var(--accent-dim)" }} />
-            <span style={{
-              fontSize: "var(--font-base)", fontWeight: 700,
-              color: "var(--amber)",
-              textTransform: "uppercase", letterSpacing: "0.12em",
-              fontFamily: "var(--font-display)",
-            }}>
-              {t("sources_title")}
-            </span>
+        <section className="viz-section">
+          <div className="viz-section-title">
+            <Icon icon="mdi:source-branch" className="viz-icon" />
+            <h2>{t("sources_title")}</h2>
           </div>
-
-          <div style={{ display: "flex", flexDirection: "column", padding: "10px 14px 12px", gap: 6 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
             {exchangeSources.map((src, si) => (
               <div key={si} style={{
                 display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8,
-                padding: "8px 10px",
-                border: "1px solid var(--border-subtle)",
-                borderLeft: "3px solid var(--accent-dim)",
-                background: "var(--bg-base)",
-                animation: `fade-in 0.25s var(--ease-smooth) ${0.06 + si * 0.05}s both`,
+                paddingLeft: 10, borderLeft: "3px solid var(--accent-dim)",
               }}>
-                <span style={{
-                  color: "var(--accent-dim)", fontSize: 11, fontWeight: 700,
-                  flexShrink: 0, fontFamily: "var(--font-mono)",
-                }}>
-                  <Icon icon="mdi:arrow-down-thin" style={{ fontSize: 14 }} />
-                </span>
-
+                <Icon icon="mdi:arrow-down-thin" style={{ fontSize: 14, color: "var(--accent-dim)", flexShrink: 0 }} />
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4, flex: 1 }}>
                   {src.input.map((inp, ii) => (
                     <SourceChip key={ii} entry={inp} data={data} translate={translate} />
                   ))}
                 </div>
-
-                <span style={{
-                  fontSize: "var(--font-xxs)", color: "var(--text-dim)",
-                  padding: "2px 7px", border: "1px solid var(--border-subtle)",
-                  whiteSpace: "nowrap", flexShrink: 0,
-                  fontFamily: "var(--font-mono)",
-                }}>
+                <span style={{ fontSize: "var(--font-xxs)", color: "var(--text-dim)", whiteSpace: "nowrap", flexShrink: 0 }}>
                   {src.category?.replace("Setup ", "")}
                 </span>
               </div>
             ))}
           </div>
-        </>
+        </section>
       )}
-    </div>
+    </>
   );
 }

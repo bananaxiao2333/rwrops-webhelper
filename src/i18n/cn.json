@@ -849,6 +849,23 @@
   "arc": "射界",
   "traverse": "回转",
   "no_weapon": "未安装武器",
+  "turret": "炮塔",
+
+  "viz_lead_modifiers": "装备此武器时会应用 {0} 项属性修正。",
+  "viz_lead_modifiers_use": "使用后会应用 {0} 项效果。",
+  "viz_lead_supply": "它在世界中的出现频率，以及获取所需的代价。",
+  "viz_lead_events": "满足下列条件时会触发 {0} 个事件。",
+  "viz_lead_armament": "共 {0} 个武器挂载点。",
+  "viz_lead_gun_performance": "一览击杀概率、射速与操控。",
+  "viz_lead_achievement": "该成就的条件与等级阈值。",
+  "viz_lead_call": "无线电对话与它召唤的部署波次。",
+  "viz_lead_rank_unlock": "解锁该物品所需的军衔进度。",
+  "viz_lead_faction": "该阵营的军衔、士兵模板与聊天图标。",
+  "viz_lead_events_modifiers": "该条目所施加的效果。",
+  "viz_lead_projectile": "该抛射体的弹道、效果与行为。",
+  "viz_lead_command": "该命令执行的动作。",
+  "viz_lead_vehicle": "载具的交互式 3D 预览。",
+  "viz_lead_map": "该地图的图层、文件与可生成资源。",
 
 
   "Kill Prob": "击杀概率",
