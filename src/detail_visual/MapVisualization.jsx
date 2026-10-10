@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Icon } from "@iconify/react";
-import { useAsset } from "../assetLoader.jsx";
+import { useAsset, useAssetState } from "../assetLoader.jsx";
 import { useData } from "../DataContext.jsx";
 import { useI18n } from "../i18n.jsx";
+import { navigateTo } from "../hashRouter.js";
+import { withPackage } from "../dataSource.js";
 
 function resolveRef(entry, data) {
   const raw = entry.file || entry.key || "";
@@ -74,10 +76,13 @@ function MapItemList({ items, label, icon, data }) {
             return (
               <a
                 key={i}
-                href={`#/params/${resolved.type}/${resolved.itemKey}`}
+                href={withPackage(`/params/${resolved.type}/${resolved.itemKey}`)}
                 onClick={(e) => {
                   e.preventDefault();
-                  window.location.hash = `#/params/${resolved.type}/${resolved.itemKey}`;
+                  // Was `window.location.hash = "#/params/…"`, which under
+                  // BrowserRouter only changes the fragment — the route reads
+                  // the pathname, so these links did nothing.
+                  navigateTo(`/params/${resolved.type}/${resolved.itemKey}`);
                 }}
                 style={{
                   display: "flex", alignItems: "baseline", gap: 8,
@@ -177,21 +182,28 @@ function OpacitySlider({ value, onChange, label }) {
 
 function StackedMapView({ mapEntry }) {
   const { t } = useI18n();
-  const baseMapUrl = useAsset(mapEntry?.hud_icon_filename);
-  const heightUrl = useAsset(mapEntry?.heightmap);
-  const maskUrl = useAsset(mapEntry?.mask_image);
-  const objectsUrl = useAsset(mapEntry?.objects_svg);
+  const base = useAssetState(mapEntry?.hud_icon_filename);
+  const height = useAssetState(mapEntry?.heightmap);
+  const mask = useAssetState(mapEntry?.mask_image);
+  const objects = useAssetState(mapEntry?.objects_svg);
 
   const [opacities, setOpacities] = useState({ map: 1.0, height: 0.4, mask: 0.4, objects: 0.6 });
   const setOpacity = (key, val) => setOpacities((p) => ({ ...p, [key]: val }));
 
   const layers = [];
-  if (baseMapUrl) layers.push({ key: "map", label: t("map_label"), url: baseMapUrl });
-  if (heightUrl) layers.push({ key: "height", label: t("height_label"), url: heightUrl });
-  if (maskUrl) layers.push({ key: "mask", label: t("mask"), url: maskUrl });
-  if (objectsUrl) layers.push({ key: "objects", label: t("objects_svg"), url: objectsUrl });
+  if (base.url) layers.push({ key: "map", label: t("map_label"), url: base.url });
+  if (height.url) layers.push({ key: "height", label: t("height_label"), url: height.url });
+  if (mask.url) layers.push({ key: "mask", label: t("mask"), url: mask.url });
+  if (objects.url) layers.push({ key: "objects", label: t("objects_svg"), url: objects.url });
 
-  if (layers.length === 0) return null;
+  /* Declared in the data but not in the asset pool. These used to render as a
+   * broken <img> stretched across the whole map — name them instead. */
+  const unavailable = [
+    { key: "mask", label: t("mask"), state: mask },
+    { key: "objects", label: t("objects_svg"), state: objects },
+  ].filter(({ state }) => state.missing);
+
+  if (layers.length === 0 && unavailable.length === 0) return null;
 
   return (
     <div>
@@ -209,6 +221,27 @@ function StackedMapView({ mapEntry }) {
               onChange={(v) => setOpacity(layer.key, v)}
             />
           </div>
+        ))}
+        {unavailable.map(({ key, label }) => (
+          <span
+            key={key}
+            title={t("layer_unavailable")}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 4,
+              padding: "2px 7px",
+              fontSize: "var(--font-xxs)", fontWeight: 700,
+              color: "var(--text-dim)",
+              background: "var(--bg-deep)",
+              border: "1px dashed var(--border-subtle)",
+              fontFamily: "var(--font-mono)",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              alignSelf: "center",
+            }}
+          >
+            <Icon icon="mdi:image-off-outline" style={{ fontSize: 11 }} />
+            {label}
+          </span>
         ))}
         <div style={{ flex: 1, minWidth: 0 }} />
         <span style={{
@@ -252,7 +285,7 @@ export default function MapVisualization({ item }) {
   const baseMapUrl = useAsset(item?.hud_icon_filename);
   const heightUrl = useAsset(item?.heightmap);
   const maskUrl = useAsset(item?.mask_image);
-  const frameUrl = useAsset(item?.frame_image);
+  const frame = useAssetState(item?.frame_image);
   const [splitOpen, setSplitOpen] = useState(false);
   const { t } = useI18n();
 
@@ -264,7 +297,7 @@ export default function MapVisualization({ item }) {
 
   const displayLabel = (item.key || "").replace(/_/g, ".").toUpperCase() || "MAP";
   const hasStacked = baseMapUrl || heightUrl || maskUrl;
-  const hasFrame = !!frameUrl;
+  const hasFrame = !!frame.url;
   const categories = [
     { key: "vehicles", label: t("vehicles"), icon: <Icon icon="mdi:truck" style={{ fontSize: "var(--font-base)" }} />, items: item.vehicles },
     { key: "weapons", label: t("weapons"), icon: <Icon icon="mdi:sword-cross" style={{ fontSize: "var(--font-base)" }} />, items: item.weapons },
@@ -334,7 +367,7 @@ export default function MapVisualization({ item }) {
           {splitOpen && (
             <div style={{ padding: "0 10px 10px" }}>
               <img
-                src={frameUrl}
+                src={frame.url}
                 alt={t("frame")}
                 style={{
                   width: "100%", height: "auto",

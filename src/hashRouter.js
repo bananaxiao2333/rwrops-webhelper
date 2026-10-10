@@ -3,6 +3,24 @@
 // Exports the same API surface so consumers need minimal changes.
 
 import { useLocation } from "react-router-dom";
+import { withPackage } from "./dataSource.js";
+
+/* The URL is the shareable artifact, so it has to name the game package:
+ * `/params/map_config/map13` is ambiguous between vanilla's map13 and
+ * classic's. Navigation here is a mix of React Router's `navigate()` and
+ * hand-rolled `history.pushState`, and neither carries a query string across,
+ * so stamp the package onto every URL the router writes — including URLs from
+ * call sites added later. `replaceState` matters as much as `pushState`:
+ * React Router uses it for redirects, which is exactly how the package switch
+ * was losing the parameter. */
+function stamp(url) {
+  return url == null ? url : withPackage(url);
+}
+
+const _pushState = window.history.pushState.bind(window.history);
+const _replaceState = window.history.replaceState.bind(window.history);
+window.history.pushState = (state, title, url) => _pushState(state, title, stamp(url));
+window.history.replaceState = (state, title, url) => _replaceState(state, title, stamp(url));
 
 /**
  * Parse current URL pathname into segments.
