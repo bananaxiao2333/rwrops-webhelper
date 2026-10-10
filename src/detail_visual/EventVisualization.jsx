@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import React, { useState } from "react";
 import { useT } from "../i18n.jsx";
+import VizFrame from "./VizFrame";
 
 const ICON_MAP = {
   projectile_blast_result: "mdi:explosion",
@@ -53,24 +54,7 @@ export default function EventVisualization({ item }) {
   if (events.length === 0) return null;
 
   return (
-    <div style={{
-      border: "1px solid var(--border-subtle)",
-      background: "var(--bg-surface)",
-      fontFamily: "var(--font-mono)",
-    }}>
-      <div style={{
-        padding: "10px 14px",
-        borderBottom: "1px solid var(--border-subtle)",
-        fontSize: "var(--font-base)", fontWeight: 700,
-        color: "var(--accent)", textTransform: "uppercase",
-        letterSpacing: "0.08em",
-        display: "flex", alignItems: "center", gap: 8,
-        fontFamily: "var(--font-display)",
-      }}>
-        <Icon icon="mdi:lightning-bolt" style={{ fontSize: "var(--font-md)" }} />
-        {t("events_modifiers")}
-      </div>
-
+    <VizFrame icon="mdi:lightning-bolt" title={t("events_modifiers")} lead={t("viz_lead_events_modifiers")}>
       <div>
         {events.map((event, idx) => {
           const isExpanded = expandedId === event.id;
@@ -83,8 +67,8 @@ export default function EventVisualization({ item }) {
                   display: "flex", alignItems: "center", gap: 10,
                   padding: "8px 14px",
                   borderBottom: isExpanded ? "none" : "1px solid var(--border-subtle)",
-                  background: isExpanded ? "var(--bg-elevated)" : idx % 2 ? "var(--bg-base)" : "transparent",
-                  animation: `fade-in 0.2s var(--ease-smooth) ${0.04 + idx * 0.035}s both`,
+                  background: isExpanded ? "var(--bg-elevated)" : "transparent",
+                  animation: `fade-in 0.2s var(--ease-out) ${0.04 + idx * 0.035}s both`,
                   transition: "background var(--dur-fast) var(--ease-smooth)",
                 }}
               >
@@ -178,6 +162,6 @@ export default function EventVisualization({ item }) {
           {t("click_collapse")}
         </div>
       )}
-    </div>
+    </VizFrame>
   );
 }

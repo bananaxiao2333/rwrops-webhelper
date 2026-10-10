@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useData } from "../DataContext.jsx";
 import { useI18n } from "../i18n.jsx";
 import { useAsset } from "../assetLoader.jsx";
+import VizFrame from "./VizFrame";
 
 /* ── Extract unlock XP from item.capacities ──
    Pick the rank-sourced entry with the highest value, use its source_value. */
@@ -71,8 +72,7 @@ function FactionRankCard({ faction, xpNeeded, factionColor, idx }) {
     <div style={{
       border: "1px solid var(--border-subtle)",
       borderTop: `3px solid ${factionColor}`,
-      background: "var(--bg-base)",
-      animation: `fade-in 0.25s var(--ease-smooth) ${0.06 + idx * 0.06}s both`,
+      animation: `fade-in 0.25s var(--ease-out) ${0.06 + idx * 0.06}s both`,
     }}>
       {/* Header: faction name + rank position */}
       <div style={{
@@ -203,24 +203,14 @@ export default function RankVisualization({ item }) {
   if (!factions || factions.length === 0) return null;
 
   return (
-    <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }}>
-      <div style={{
-        padding: "8px 14px", borderBottom: "1px solid var(--border-subtle)",
-        fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)",
-        textTransform: "uppercase", letterSpacing: "0.08em",
-        fontFamily: "var(--font-display)",
-        display: "flex", alignItems: "center", gap: 8,
-      }}>
-        <span style={{ fontSize: "var(--font-sm)" }}>◆</span>
-        {t("unlock_rank")}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 1, padding: 1 }}>
+    <VizFrame icon="mdi:star-circle-outline" title={t("unlock_rank")} lead={t("viz_lead_rank_unlock")}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
         {factions.map((f, i) => (
           <FactionRankCard key={f.key}
             faction={f} xpNeeded={xpNeeded}
             factionColor={f.color} idx={i} />
         ))}
       </div>
-    </div>
+    </VizFrame>
   );
 }

@@ -2,6 +2,7 @@ import { Icon } from "@iconify/react";
 import { useMemo } from "react";
 import { useI18n } from "../i18n.jsx";
 import { navigateTo } from "../hashRouter.js";
+import VizFrame from "./VizFrame";
 
 export default function AchievementVisualization({ item }) {
   const { translate, t } = useI18n();
@@ -24,29 +25,14 @@ export default function AchievementVisualization({ item }) {
   if (!item || item.type !== "achievement") return null;
 
   return (
-    <div style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", fontFamily: "var(--font-mono)" }}>
-      <div style={{
-        padding: "10px 14px", borderBottom: "1px solid var(--border-subtle)",
-        fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)",
-        textTransform: "uppercase", letterSpacing: "0.08em",
-        display: "flex", alignItems: "center", gap: 8,
-        fontFamily: "var(--font-display)",
-      }}>
-        <Icon icon="mdi:trophy" style={{ fontSize: "var(--font-md)" }} />
-        <span>{t("achievement_label")}</span>
-        <span style={{ color: "var(--text-dim)", fontSize: "var(--font-xxs)", fontWeight: 400, fontFamily: "var(--font-mono)" }}>
-          · {item.key}
-        </span>
-      </div>
-
-      <div style={{ display: "flex", gap: 8, padding: "8px 14px", borderBottom: "1px solid var(--border-subtle)", flexWrap: "wrap" }}>
+    <VizFrame icon="mdi:trophy" title={t("achievement_label")} lead={t("viz_lead_achievement")}>
+      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
         {criteria.map((c, ci) => (
           <div key={ci} style={{
-            flex: "1 1 180px",
-            padding: "6px 10px",
-            border: "1px solid var(--border-subtle)",
-            background: "var(--bg-base)",
-            animation: `fade-in 0.25s var(--ease-smooth) ${0.06 + ci * 0.04}s both`,
+            flex: "1 1 200px",
+            padding: "8px 12px",
+            borderLeft: "2px solid var(--border-mid)",
+            animation: `fade-in 0.25s var(--ease-out) ${0.06 + ci * 0.04}s both`,
           }}>
             <div style={{ fontSize: "var(--font-xs)", color: "var(--accent)", textTransform: "uppercase", marginBottom: 3, display: "flex", alignItems: "center", gap: 4 }}>
               <Icon icon={
@@ -116,9 +102,7 @@ export default function AchievementVisualization({ item }) {
                 display: "flex", gap: 10, alignItems: "flex-start",
                 padding: "8px 14px",
                 borderBottom: i < levelData.length - 1 ? "1px solid var(--border-subtle)" : "none",
-                background: isLast ? "var(--bg-elevated)" : (i % 2 ? "var(--bg-base)" : "transparent"),
-                animation: `fade-in 0.25s var(--ease-smooth) ${0.06 + i * 0.04}s both`,
-                transition: "background var(--dur-fast) var(--ease-smooth)",
+                animation: `fade-in 0.25s var(--ease-out) ${0.06 + i * 0.04}s both`,
               }}>
                 <div style={{
                   width: 32, height: 32, flexShrink: 0,
@@ -174,6 +158,6 @@ export default function AchievementVisualization({ item }) {
           {t("alltime_stats")}: {item.include_in_alltime_stats ? t("yes") : t("no")}
         </div>
       )}
-    </div>
+    </VizFrame>
   );
 }

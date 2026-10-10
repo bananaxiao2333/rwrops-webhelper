@@ -722,6 +722,78 @@ button:active, select:active, summary:active {
   color: var(--amber);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+ * Visualization sections.
+ *
+ * These used to be self-contained "instrument panels": every block drew its
+ * own border, a filled surface and an uppercase monospace header, so a record
+ * page read as a stack of dashboards rather than an article. Now each one is a
+ * plain article section — a normal-case heading, an optional prose lead, and
+ * the data inline — so the page reads like a wiki entry that happens to be
+ * data-dense, not a control room.
+ * ───────────────────────────────────────────────────────────────────────── */
+.viz-section { margin-top: 26px; }
+.viz-section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-mid);
+}
+.viz-section-title .viz-icon {
+  align-self: center;
+  color: var(--accent);
+  font-size: var(--font-md);
+  flex-shrink: 0;
+}
+.viz-section-title h2 {
+  font-family: var(--font-body);
+  font-size: var(--font-base);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+}
+.viz-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--font-xxs);
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.viz-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.viz-lead {
+  margin-top: 8px;
+  max-width: 72ch;
+  font-size: var(--font-sm);
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+/* Sub-heading inside a visualization (projectile's ballistics/results/…) */
+.viz-block { margin-top: 14px; }
+.viz-block-title {
+  margin-bottom: 2px;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+/* Generic inline stat used across the converted panels */
+.viz-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin-top: 10px;
+}
+.viz-stat { display: flex; align-items: baseline; gap: 6px; font-size: var(--font-sm); }
+.viz-stat-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-xxs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.viz-stat-value { color: var(--text-primary); font-weight: 600; }
+.viz-stat-value.is-accent { color: var(--accent); }
+
 /* ── Category heading inside the entity grid ── */
 .wiki-group {
   grid-column: 1 / -1;
@@ -777,29 +849,26 @@ button:active, select:active, summary:active {
  * 45 full cards is a page nobody scrolls: the row carries the scannable facts
  * (name, protection counts, commonness) and the badges open on demand. */
 .chain-panel {
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-surface);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
 }
 
 .chain-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-mid);
 }
 .chain-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-family: var(--font-display);
+  gap: 8px;
+  font-family: var(--font-body);
   font-size: var(--font-base);
-  font-weight: 700;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
 }
 .chain-meta {
   display: flex;

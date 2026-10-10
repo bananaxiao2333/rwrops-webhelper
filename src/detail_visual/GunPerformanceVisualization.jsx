@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
-import { Icon } from "@iconify/react";
 import { useT } from "../i18n.jsx";
+import VizFrame from "./VizFrame";
 
 const KillChart = ({ killProbability = 0, decayStart = 0, decayEnd = 0 }) => {
   const startD = decayStart * 100, endD = decayEnd * 100;
@@ -118,50 +118,12 @@ export default function GunPerformanceVisualization({ item }) {
     stats.push({ label: t("reload"), value: item.reload_one_at_a_time ? t("single") : t("full") });
 
   return (
-    <div style={{
-      border: "1px solid var(--border-subtle)",
-      background: "var(--bg-surface)",
-      fontFamily: "var(--font-mono)",
-    }}>
-      <div style={{
-        padding: "10px 14px",
-        borderBottom: "1px solid var(--border-subtle)",
-        fontSize: "var(--font-base)", fontWeight: 700,
-        color: "var(--accent)", textTransform: "uppercase",
-        letterSpacing: "0.08em",
-        display: "flex", alignItems: "center", gap: 8,
-        fontFamily: "var(--font-display)",
-      }}>
-        <Icon icon="mdi:target" style={{ fontSize: "var(--font-md)" }} />
-        {t("gun_performance")}
-      </div>
-
-      <div style={{
-        display: "flex", flexWrap: "wrap",
-        borderBottom: "1px solid var(--border-subtle)",
-      }}>
+    <VizFrame icon="mdi:target" title={t("gun_performance")} lead={t("viz_lead_gun_performance")}>
+      <div className="viz-stats">
         {stats.map((s, i) => (
-          <div key={i} style={{
-            flex: "1 1 110px",
-            padding: "8px 14px",
-            textAlign: "center",
-            borderRight: i < stats.length - 1 ? "1px solid var(--border-subtle)" : "none",
-            background: i % 2 ? "var(--bg-base)" : "transparent",
-            animation: `fade-in 0.2s var(--ease-smooth) ${0.03 + i * 0.03}s both`,
-          }}>
-            <div style={{
-              fontSize: "var(--font-lg)", fontWeight: 800,
-              color: s.accent ? "var(--accent)" : "var(--text-primary)",
-              fontFamily: "var(--font-display)",
-            }}>
-              {s.value}
-            </div>
-            <div style={{
-              fontSize: "var(--font-xxs)", color: "var(--text-muted)",
-              letterSpacing: "0.1em", marginTop: 3,
-            }}>
-              {s.label}
-            </div>
+          <div key={i} className="viz-stat">
+            <span className="viz-stat-label">{s.label}</span>
+            <span className={`viz-stat-value${s.accent ? " is-accent" : ""}`}>{s.value}</span>
           </div>
         ))}
       </div>
@@ -169,7 +131,7 @@ export default function GunPerformanceVisualization({ item }) {
       {item.projectile_result_kill_probability !== undefined &&
         item.projectile_result_kill_decay_start_time !== undefined &&
         item.projectile_result_kill_decay_end_time !== undefined && (
-        <div style={{ padding: "8px 4px" }}>
+        <div style={{ padding: "8px 0" }}>
           <KillChart
             killProbability={item.projectile_result_kill_probability}
             decayStart={item.projectile_result_kill_decay_start_time}
@@ -177,6 +139,6 @@ export default function GunPerformanceVisualization({ item }) {
           />
         </div>
       )}
-    </div>
+    </VizFrame>
   );
 }

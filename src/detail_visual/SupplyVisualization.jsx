@@ -1,13 +1,14 @@
 import { Icon } from "@iconify/react";
 import { useT } from "../i18n.jsx";
+import VizFrame from "./VizFrame";
 
 /**
- * Decodes supply-side detail that currently lands in the raw block:
+ * Decodes supply-side detail that would otherwise land in the raw block:
  *   commonness {value, can_respawn_with, in_stock}  — spawn weight / rarity
  *   capacities [{value, source, source_value}]       — unlock gate (usually rank)
  *   inventory  {encumbrance, price}                  — cost to call / pick up
- * (output_schema.md §2/§4/§5.) Presented as three readable bands instead of a
- * nested-object dump, so a reader sees "Rare · unlocks at rank 100" at a glance.
+ * (output_schema.md §2/§4/§5.) Rendered as article rows so a reader sees
+ * "Rare · unlocks at rank 100" at a glance.
  */
 function rarityTier(v) {
   if (v == null) return { label: "—", tone: "info" };
@@ -18,28 +19,23 @@ function rarityTier(v) {
   return { label: "Very Rare", tone: "danger" };
 }
 
-function Band({ icon, title, tone = "info", children }) {
-  const accent = tone === "success" ? "var(--success)" : tone === "danger" ? "var(--danger)"
-    : tone === "amber" ? "var(--amber)" : "var(--info)";
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 14px", borderTop: "1px solid var(--border-subtle)" }}>
-      <span style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, minWidth: 96 }}>
-        <Icon icon={icon} style={{ fontSize: 14, color: accent }} />
-        <span style={{
-          fontSize: "var(--font-xxs)", fontWeight: 700, textTransform: "uppercase",
-          letterSpacing: "0.08em", color: "var(--text-muted)",
-        }}>{title}</span>
-      </span>
-      <div style={{ flex: 1, minWidth: 0, color: "var(--text-primary)", fontSize: "var(--font-sm)" }}>{children}</div>
-    </div>
-  );
+const TONE = {
+  success: "var(--success)",
+  danger: "var(--danger)",
+  amber: "var(--amber)",
+  info: "var(--info)",
+};
+
+function humanizeSource(s) {
+  if (!s) return "—";
+  return String(s).replace(/_/g, " ");
 }
 
 export default function SupplyVisualization({ item }) {
   const t = useT();
   // The schema allows commonness to be either a nested object or three flat
   // sibling scalars (`commonness_value` / `_in_stock` / `_can_respawn_with`);
-  // normalise both shapes into the object the band renderer expects.
+  // normalise both shapes into the object the row renderer expects.
   let commonness = item?.commonness;
   if (!commonness || typeof commonness !== "object") {
     if (item?.commonness_value != null) {
@@ -60,91 +56,63 @@ export default function SupplyVisualization({ item }) {
 
   if (!has) return null;
 
-  const tier = rarityTier(commonness?.value);
   const weight = typeof commonness?.value === "number" ? commonness.value : null;
-  const capTone = tier.tone === "danger" ? "var(--danger)" : tier.tone === "amber" ? "var(--amber)"
-    : tier.tone === "success" ? "var(--success)" : "var(--info)";
+  const tier = rarityTier(weight);
+  const tierColor = TONE[tier.tone] || "var(--info)";
 
   return (
-    <div style={{
-      border: "1px solid var(--border-subtle)", background: "var(--bg-surface)",
-      fontFamily: "var(--font-mono)",
-    }}>
-      <div style={{
-        padding: "10px 14px", borderBottom: "1px solid var(--border-subtle)",
-        fontSize: "var(--font-base)", fontWeight: 700, color: "var(--accent)",
-        textTransform: "uppercase", letterSpacing: "0.08em",
-        display: "flex", alignItems: "center", gap: 8,
-        fontFamily: "var(--font-display)",
-      }}>
-        <Icon icon="mdi:package-variant-closed" style={{ fontSize: "var(--font-md)" }} />
-        {t("supply")}
-      </div>
-
-      {/* Rarity / spawn weight — only when something actually spawns
-          (commonness 0 means the item is never dropped, e.g. projectiles). */}
-      {weight != null && weight > 0 && (
-        <Band icon="mdi:chart-bubble" title={t("rarity")} tone={tier.tone}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span style={{
-              fontWeight: 800, color: capTone, letterSpacing: "0.02em", textTransform: "uppercase",
-            }}>{tier.label}</span>
-            <span style={{ fontSize: "var(--font-xxs)", color: "var(--text-muted)" }}>
-              {t("spawn_weight", weight.toFixed(weight < 0.01 ? 4 : 2))}
-            </span>
-            <span style={{
-              flex: 1, minWidth: 60, height: 4, background: "var(--border-subtle)", overflow: "hidden", maxWidth: 120,
-            }}>
-              <span style={{ display: "block", height: "100%", width: `${Math.min(100, weight * 100)}%`, background: capTone }} />
-            </span>
-          </div>
-          <div style={{ display: "flex", gap: 12, marginTop: 4, fontSize: "var(--font-xxs)", color: "var(--text-dim)" }}>
-            {commonness.can_respawn_with != null && (
-              <span>{t(commonness.can_respawn_with ? "respawns_with" : "no_respawn")}</span>
-            )}
-            {commonness.in_stock != null && (
-              <span>{t(commonness.in_stock ? "in_stock" : "not_in_stock")}</span>
-            )}
-          </div>
-        </Band>
-      )}
-
-      {/* Unlock gate */}
-      {Array.isArray(capacities) && capacities.length > 0 && (
-        <Band icon="mdi:lock-open-outline" title={t("unlock")}>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {capacities.map((c, i) => (
-              <span key={i} style={{
-                fontSize: "var(--font-xs)", color: "var(--text-secondary)",
-                border: "1px solid var(--border-subtle)", padding: "1px 7px",
-                display: "inline-flex", alignItems: "center", gap: 4,
-              }}>
-                <Icon icon="mdi:flag-outline" style={{ fontSize: 11, color: "var(--text-muted)" }} />
-                {t("requires")} {humanizeSource(c.source)} {c.value}
+    <VizFrame icon="mdi:package-variant-closed" title={t("supply")} lead={t("viz_lead_supply")}>
+      <dl className="article-rows">
+        {/* Rarity / spawn weight — only when something actually spawns
+            (commonness 0 means the item is never dropped, e.g. projectiles). */}
+        {weight != null && weight > 0 && (
+          <div className="article-row">
+            <dt>{t("rarity")}</dt>
+            <dd>
+              <span style={{ fontWeight: 700, color: tierColor }}>{tier.label}</span>
+              <span style={{ marginLeft: 8, fontSize: "var(--font-xs)", color: "var(--text-muted)" }}>
+                {t("spawn_weight", weight.toFixed(weight < 0.01 ? 4 : 2))}
               </span>
-            ))}
+              <span style={{ display: "inline-block", marginLeft: 10, width: 90, height: 4, background: "var(--border-subtle)", verticalAlign: "middle", overflow: "hidden" }}>
+                <span style={{ display: "block", height: "100%", width: `${Math.min(100, weight * 100)}%`, background: tierColor }} />
+              </span>
+              <span style={{ marginLeft: 10, fontSize: "var(--font-xxs)", color: "var(--text-dim)" }}>
+                {commonness.can_respawn_with != null && t(commonness.can_respawn_with ? "respawns_with" : "no_respawn")}
+                {commonness.in_stock != null && <> · {t(commonness.in_stock ? "in_stock" : "not_in_stock")}</>}
+              </span>
+            </dd>
           </div>
-        </Band>
-      )}
+        )}
 
-      {/* Cost */}
-      {inventory && (inventory.price != null || inventory.encumbrance != null) && (
-        <Band icon="mdi:scale-balance" title={t("cost")}>
-          <span style={{ display: "inline-flex", gap: 14, flexWrap: "wrap" }}>
-            {inventory.price != null && (
-              <span><b style={{ color: "var(--accent)" }}>{inventory.price}</b> {t("price_unit")}</span>
-            )}
-            {inventory.encumbrance != null && (
-              <span><b style={{ color: "var(--text-primary)" }}>{inventory.encumbrance}</b> {t("weight_unit")}</span>
-            )}
-          </span>
-        </Band>
-      )}
-    </div>
+        {/* Unlock gate */}
+        {Array.isArray(capacities) && capacities.length > 0 && (
+          <div className="article-row">
+            <dt>{t("unlock")}</dt>
+            <dd>
+              <span style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
+                {capacities.map((c, i) => (
+                  <span key={i} className="article-chip" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <Icon icon="mdi:flag-outline" style={{ fontSize: 11, color: "var(--text-muted)" }} />
+                    {t("requires")} {humanizeSource(c.source)} {c.value}
+                  </span>
+                ))}
+              </span>
+            </dd>
+          </div>
+        )}
+
+        {/* Cost */}
+        {inventory && (inventory.price != null || inventory.encumbrance != null) && (
+          <div className="article-row">
+            <dt>{t("cost")}</dt>
+            <dd>
+              {inventory.price != null && <><b style={{ color: "var(--accent)" }}>{inventory.price}</b> {t("price_unit")}</>}
+              {inventory.price != null && inventory.encumbrance != null && <span style={{ color: "var(--text-dim)" }}> · </span>}
+              {inventory.encumbrance != null && <><b>{inventory.encumbrance}</b> {t("weight_unit")}</>}
+            </dd>
+          </div>
+        )}
+      </dl>
+    </VizFrame>
   );
-}
-
-function humanizeSource(s) {
-  if (!s) return "—";
-  return String(s).replace(/_/g, " ");
 }

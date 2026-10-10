@@ -1,75 +1,14 @@
 import { useMemo } from "react";
-import { Icon } from "@iconify/react";
 import { useT } from "../i18n.jsx";
+import VizFrame from "./VizFrame";
 
-const SECTION_ICONS = {
-  ballistics: "mdi:chart-bell-curve",
-  results: "mdi:target",
-  behavior: "mdi:cog",
-  economy: "mdi:currency-usd",
-  config: "mdi:tune",
-  visual: "mdi:image",
-  capacities: "mdi:lock-outline",
-  tags: "mdi:tag",
-};
-
-const sectionStyle = {
-  border: "1px solid var(--border-subtle)",
-  background: "var(--bg-surface)",
-  fontFamily: "var(--font-mono)",
-  marginBottom: 6,
-};
-
-const fieldRowStyle = {
-  display: "flex", flexWrap: "wrap",
-};
-
-const fieldLabelStyle = {
-  fontSize: "var(--font-xs)", color: "var(--text-muted)",
-  letterSpacing: "0.08em", marginBottom: 2,
-};
-
-function Fields({ fields }) {
-  if (!fields || fields.length === 0) return null;
-  return (
-    <div style={fieldRowStyle}>
-      {fields.map((f, i) => (
-        <div key={i} style={{
-          flex: "1 1 160px",
-          padding: "6px 14px",
-          borderRight: i < fields.length - 1 ? "1px solid var(--border-subtle)" : "none",
-          animation: `fade-in 0.2s var(--ease-smooth) ${0.03 + i * 0.025}s both`,
-        }}>
-          <div style={fieldLabelStyle}>{f.label}</div>
-          <div style={{
-            fontSize: "var(--font-base)", color: "var(--text-primary)",
-            wordBreak: "break-all",
-            fontFamily: "var(--font-mono)",
-          }}>
-            {f.value}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function Section({ title, titleKey, children }) {
+/* A labelled block inside the projectile section — an article sub-heading with
+ * the values as a plain definition list, not a bordered field grid. */
+function Section({ title, children }) {
   if (!children) return null;
   return (
-    <div style={sectionStyle}>
-      <div style={{
-        padding: "9px 14px",
-        borderBottom: "1px solid var(--border-subtle)",
-        fontSize: "var(--font-base)", fontWeight: 700,
-        color: "var(--accent)", textTransform: "uppercase",
-        letterSpacing: "0.08em",
-        display: "flex", alignItems: "center", gap: 8,
-        fontFamily: "var(--font-display)",
-      }}>
-        <Icon icon={SECTION_ICONS[titleKey] || "mdi:information-outline"} style={{ fontSize: "var(--font-sm)" }} />
-        {title}
-      </div>
+    <div className="viz-block">
+      <h3 className="viz-block-title">{title}</h3>
       {children}
     </div>
   );
@@ -81,23 +20,26 @@ function safeStr(v) {
   return String(v);
 }
 
+function Fields({ fields }) {
+  if (!fields || fields.length === 0) return null;
+  return (
+    <dl className="article-rows">
+      {fields.map((f, i) => (
+        <div className="article-row" key={i}>
+          <dt>{f.label}</dt>
+          <dd style={{ wordBreak: "break-word" }}>{f.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 function Tags({ items }) {
   if (!items || items.length === 0) return null;
   return (
-    <div style={{ padding: "6px 14px", display: "flex", flexWrap: "wrap", gap: 4 }}>
-      {items.map((t, i) => (
-        <span key={i} style={{
-          fontSize: "var(--font-sm)", padding: "2px 7px",
-          background: "var(--bg-deep)",
-          border: "1px solid var(--border-subtle)",
-          borderRadius: 3, color: "var(--text-secondary)",
-          fontFamily: "var(--font-mono)",
-          transition: "border-color var(--dur-fast) var(--ease-smooth)",
-        }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; }}>
-          {safeStr(t)}
-        </span>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+      {items.map((tg, i) => (
+        <span key={i} className="article-chip">{safeStr(tg)}</span>
       ))}
     </div>
   );
@@ -223,24 +165,21 @@ export default function ProjectileVisualization({ item }) {
   if (!item || item.type !== "projectile") return null;
 
   const sections = [
-    ballistics.length > 0 && { title: t("ballistics"), titleKey: "ballistics", children: <Fields fields={ballistics} /> },
-    effects.length > 0 && { title: t("results"), titleKey: "results", children: <Fields fields={effects} /> },
-    behavior.length > 0 && { title: t("behavior"), titleKey: "behavior", children: <Fields fields={behavior} /> },
-    config.length > 0 && { title: t("config"), titleKey: "config", children: <Fields fields={config} /> },
-    visual.length > 0 && { title: t("visual"), titleKey: "visual", children: <Fields fields={visual} /> },
-    tags && Array.isArray(tags) && tags.length > 0 && {
-      title: t("field_tags"), titleKey: "tags",
-      children: <Tags items={tags} />,
-    },
+    ballistics.length > 0 && { title: t("ballistics"), children: <Fields fields={ballistics} /> },
+    effects.length > 0 && { title: t("results"), children: <Fields fields={effects} /> },
+    behavior.length > 0 && { title: t("behavior"), children: <Fields fields={behavior} /> },
+    config.length > 0 && { title: t("config"), children: <Fields fields={config} /> },
+    visual.length > 0 && { title: t("visual"), children: <Fields fields={visual} /> },
+    tags && Array.isArray(tags) && tags.length > 0 && { title: t("field_tags"), children: <Tags items={tags} /> },
   ].filter(Boolean);
 
   if (sections.length === 0) return null;
 
   return (
-    <div>
+    <VizFrame icon="mdi:chart-bell-curve" title={t("projectile_data")} lead={t("viz_lead_projectile")}>
       {sections.map((s, i) => (
-        <Section key={i} title={s.title} titleKey={s.titleKey}>{s.children}</Section>
+        <Section key={i} title={s.title}>{s.children}</Section>
       ))}
-    </div>
+    </VizFrame>
   );
 }

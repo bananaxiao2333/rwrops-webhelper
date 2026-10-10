@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Box, Cylinder, Sphere, Plane } from "@react-three/drei";
 import { useAsset } from "../assetLoader.jsx";
 import { useI18n } from "../i18n.jsx";
+import VizFrame from "./VizFrame";
 
 function VehicleModel({ item }) {
   const extent = item.extent || [3, 1, 5];
@@ -216,37 +217,24 @@ export default function VehicleVisualization({ item }) {
   const cameraDist = Math.max(Math.abs(extent[0]), Math.abs(extent[2])) * 2.5 + 6;
 
   return (
-    <div style={{
-      border: "1px solid var(--border-subtle)",
-      background: "var(--bg-surface)",
-      fontFamily: "var(--font-mono)",
-    }}>
-      <div style={{
-        padding: "10px 14px",
-        borderBottom: "1px solid var(--border-subtle)",
-        fontSize: "var(--font-md)", fontWeight: 700,
-        color: "var(--accent)", textTransform: "uppercase",
-        letterSpacing: "0.08em",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        fontFamily: "var(--font-display)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Icon icon="mdi:car" style={{ fontSize: "var(--font-md)", color: "var(--accent)" }} />
-          <span>{t("vehicle_3d")}</span>
-        </div>
-        <div style={{
+    <VizFrame
+      icon="mdi:car"
+      title={t("vehicle_3d")}
+      lead={t("viz_lead_vehicle")}
+      actions={
+        <span style={{
           cursor: "pointer", padding: "2px 8px",
           border: "1px solid var(--border-subtle)",
-          fontSize: "var(--font-sm)", color: "var(--text-muted)",
-          display: "flex", alignItems: "center", gap: 4,
+          fontSize: "var(--font-xs)", color: "var(--text-muted)",
+          display: "inline-flex", alignItems: "center", gap: 4,
           fontFamily: "var(--font-mono)",
         }} onClick={toggleFullscreen}
           title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}>
           <Icon icon={isFullscreen ? "mdi:fullscreen-exit" : "mdi:fullscreen"} style={{ fontSize: 12 }} />
           {isFullscreen ? t("exit_full") : t("fullscreen")}
-        </div>
-      </div>
-
+        </span>
+      }
+    >
       {!isFullscreen && (
         <div style={{
           display: "flex", gap: 4, flexWrap: "wrap",
@@ -358,6 +346,6 @@ export default function VehicleVisualization({ item }) {
           </>
         )}
       </div>
-    </div>
+    </VizFrame>
   );
 }
