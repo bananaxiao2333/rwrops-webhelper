@@ -121,7 +121,7 @@ function MetadataFooter({ metadata, isMobile }) {
 }
 
 /* ── HomePage ── */
-export function HomePage({ data }) {
+export function HomePage({ data, onTourOpen }) {
   const isMobile = useIsMobile();
   const t = useT();
   const { metadata } = useData();
@@ -215,16 +215,59 @@ export function HomePage({ data }) {
           </div>
         </div>
 
-        {/* A wiki front page says what it is before it lists anything */}
-        <p style={{
-          maxWidth: "72ch",
-          fontSize: "var(--font-base)",
-          lineHeight: 1.75,
-          color: "var(--text-secondary)",
+        {/* A wiki front page says what it is before it lists anything. The
+            depth here is easy to miss, so the intro explains what the site is,
+            what you can do with it, and how to read a page — in plain words. */}
+        <div style={{
+          maxWidth: "80ch",
+          display: "flex", flexDirection: "column", gap: isMobile ? 16 : 20,
           animation: "fade-in 0.5s var(--ease-smooth) 0.1s both",
         }}>
-          {t("home_intro")}
-        </p>
+          <p style={{ fontSize: "var(--font-base)", lineHeight: 1.75, color: "var(--text-secondary)", margin: 0 }}>
+            {t("home_intro")}
+          </p>
+          <p style={{ fontSize: "var(--font-base)", lineHeight: 1.75, color: "var(--text-secondary)", margin: 0 }}>
+            {t("home_intro_2")}
+          </p>
+
+          <div>
+            <h3 style={{ fontSize: "var(--font-base)", fontWeight: 600, color: "var(--text-primary)", marginBottom: 8 }}>
+              {t("home_what_title")}
+            </h3>
+            <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 7 }}>
+              {["home_what_1", "home_what_2", "home_what_3", "home_what_4"].map((k) => (
+                <li key={k} style={{ display: "flex", gap: 10, fontSize: "var(--font-sm)", lineHeight: 1.7, color: "var(--text-secondary)" }}>
+                  <span style={{ color: "var(--accent)", flexShrink: 0 }}>—</span>
+                  <span>{t(k)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div style={{ borderLeft: "2px solid var(--border-mid)", paddingLeft: 14 }}>
+            <h3 style={{ fontSize: "var(--font-base)", fontWeight: 600, color: "var(--text-primary)", marginBottom: 6 }}>
+              {t("home_read_title")}
+            </h3>
+            <p style={{ fontSize: "var(--font-sm)", lineHeight: 1.75, color: "var(--text-secondary)", margin: 0 }}>
+              {t("home_read_body")}
+            </p>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <button
+              onClick={onTourOpen}
+              style={{
+                cursor: "pointer", padding: "9px 20px",
+                background: "var(--accent)", border: "1px solid var(--accent)",
+                color: "var(--bg-deep)", fontFamily: "var(--font-body)",
+                fontSize: "var(--font-sm)", fontWeight: 700, borderRadius: "var(--radius-sm)",
+              }}
+            >
+              {t("home_tour_cta")}
+            </button>
+            <span style={{ fontSize: "var(--font-xs)", color: "var(--text-muted)" }}>{t("home_tour_hint")}</span>
+          </div>
+        </div>
 
         {/* Guides before the data index: a wiki leads with its writing. */}
         {sectionEnabled("docs") && (
@@ -235,7 +278,7 @@ export function HomePage({ data }) {
         )}
 
         {/* Data index */}
-        <section style={{ animation: "fade-in 0.5s var(--ease-smooth) 0.2s both" }}>
+        <section data-tour="index" style={{ animation: "fade-in 0.5s var(--ease-smooth) 0.2s both" }}>
           <h2 style={sectionHead}>{t("home_index")}</h2>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {categories.map((cat, i) => {
@@ -255,7 +298,7 @@ export function HomePage({ data }) {
 
         {/* Tools */}
         {sectionEnabled("tools") && (
-        <section style={{ animation: "fade-in 0.5s var(--ease-smooth) 0.3s both" }}>
+        <section data-tour="tools" style={{ animation: "fade-in 0.5s var(--ease-smooth) 0.3s both" }}>
           <h2 style={sectionHead}>{t("nav_tools")}</h2>
           <div style={{ minWidth: 0 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Icon } from "@iconify/react";
 import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
@@ -139,10 +140,34 @@ function ActionRow({ action, index, data }) {
 export default function CommandVisualization({ item }) {
   const { data } = useData();
   const { t } = useI18n();
+  const [copied, setCopied] = useState(false);
   if (!item || item.type !== "command_config") return null;
 
   const actions = item.actions || [];
   const permColor = PERM_COLORS[item.permission] || PERM_COLORS.admin;
+
+  /* One-click copy of the in-game command, so a player can paste it straight
+   * into chat. Falls back to a temporary textarea where the async clipboard
+   * API is unavailable (insecure origin). */
+  const copyCommand = () => {
+    const text = `/${item.command}`;
+    const done = () => { setCopied(true); setTimeout(() => setCopied(false), 1200); };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => {});
+      return;
+    }
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      done();
+    } catch { /* clipboard unavailable — no-op */ }
+  };
 
   return (
     <VizFrame
@@ -150,17 +175,37 @@ export default function CommandVisualization({ item }) {
       title={`/${item.command}`}
       lead={item.description || t("viz_lead_command")}
       actions={
-        <span style={{
-          fontSize: "var(--font-xxs)", fontWeight: 600,
-          padding: "2px 8px",
-          border: `1px solid ${permColor.text}`,
-          color: permColor.text,
-          textTransform: "uppercase", letterSpacing: "0.08em",
-        }}>
-          <Icon icon={item.permission === "moderator" ? "mdi:shield-edit-outline" : "mdi:shield-key"}
-            style={{ fontSize: 10, marginRight: 3 }} />
-          {item.permission}
-        </span>
+        <>
+          <span style={{
+            fontSize: "var(--font-xxs)", fontWeight: 600,
+            padding: "2px 8px",
+            border: `1px solid ${permColor.text}`,
+            color: permColor.text,
+            textTransform: "uppercase", letterSpacing: "0.08em",
+          }}>
+            <Icon icon={item.permission === "moderator" ? "mdi:shield-edit-outline" : "mdi:shield-key"}
+              style={{ fontSize: 10, marginRight: 3 }} />
+            {item.permission}
+          </span>
+          <button
+            onClick={copyCommand}
+            aria-label={t("share_copy")}
+            title={t("share_copy")}
+            style={{
+              cursor: "pointer",
+              padding: "2px 8px",
+              border: `1px solid ${copied ? "var(--success)" : "var(--border-subtle)"}`,
+              background: "transparent",
+              color: copied ? "var(--success)" : "var(--text-secondary)",
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--font-xxs)",
+              display: "inline-flex", alignItems: "center", gap: 4,
+            }}
+          >
+            <Icon icon={copied ? "mdi:check" : "mdi:content-copy"} style={{ fontSize: 11 }} />
+            {copied ? t("share_copied") : t("share_copy")}
+          </button>
+        </>
       }
     >
       {item.effects && (

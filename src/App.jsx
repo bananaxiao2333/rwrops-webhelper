@@ -19,6 +19,7 @@ const Showcase = lazy(() => import("./tools/Showcase.jsx"));
 import ErrorBoundary from "./ErrorBoundary.jsx";
 import { ShareProvider } from "./ShareContext.jsx";
 import ShareModal from "./ShareModal.jsx";
+import Tour, { tourSeen } from "./Tour.jsx";
 
 /* ── Language first-time picker modal ── */
 import List from "./List.jsx";
@@ -139,7 +140,7 @@ function useTheme() {
 }
 
 /* ── Persistent Status Bar (RXSEND-inspired header) ── */
-function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, onShareOpen, showShare, onNav, activeSection }) {
+function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, onShareOpen, showShare, onNav, activeSection, onTourOpen }) {
   const { t } = useI18n();
   const gap = isMobile ? 4 : 8;
   return (
@@ -199,7 +200,7 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
 
       {/* Nav items (desktop only) */}
       {!isMobile && (
-        <nav aria-label="Main sections" style={{
+        <nav aria-label="Main sections" data-tour="nav" style={{
           display: "flex", alignItems: "stretch", height: "100%",
           marginLeft: 4,
         }}>
@@ -237,6 +238,7 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
       <button
         onClick={onSearchOpen}
         aria-label="Open search"
+        data-tour="search"
         style={{
           border: "1px solid var(--border-subtle)",
           padding: isMobile ? "2px 6px" : "3px 10px",
@@ -285,6 +287,24 @@ function StatusBar({ viewName, count, isMobile, onSidebarToggle, onSearchOpen, o
         </button>
       )}
 
+      {/* Guided tour — replayable */}
+      <button
+        onClick={onTourOpen}
+        aria-label={t("tour_label")}
+        title={t("tour_label")}
+        style={{
+          border: "1px solid var(--border-subtle)",
+          padding: isMobile ? "2px 6px" : "3px 8px",
+          background: "var(--bg-deep)",
+          display: "flex", alignItems: "center",
+          cursor: "pointer", fontFamily: "inherit", fontSize: "inherit",
+          borderRadius: "var(--radius-sm)",
+          marginLeft: 4,
+        }}
+      >
+        <Icon icon="mdi:help-circle-outline" style={{ fontSize: 13, color: "var(--accent)" }} />
+      </button>
+
       {/* Language switch */}
       <PackageSelector isMobile={isMobile} />
       <LanguageSelector />
@@ -312,6 +332,7 @@ function PackageSelector({ isMobile }) {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={t("nav_package")}
+        data-tour="package"
         style={{
           cursor: "pointer", padding: "3px 6px",
           border: "1px solid var(--border-subtle)",
@@ -686,6 +707,7 @@ export default function App() {
   const [sinkIconless, setSinkIconless] = useState(true);
   const [rollItem, setRollItem] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const [articleMetas, setArticleMetas] = useState({});
   const isMobile = useIsMobile();
   useTheme();
@@ -716,6 +738,16 @@ export default function App() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  /* First-visit tour. Wait for the data and the language picker so the two
+   * modals never stack, and only on the home page where the tour's anchors
+   * exist. Once dismissed it stays dismissed until replayed from the "?" button. */
+  useEffect(() => {
+    if (!data || showLangModal || tourSeen()) return;
+    if (segmentsList.length !== 0) return;   // home only
+    const id = setTimeout(() => setTourOpen(true), 900);
+    return () => clearTimeout(id);
+  }, [data, showLangModal, segmentsList.length]);
 
   // Build nav sections: config + dynamic children
   // Use sync fallback initially — slugs derived from file glob, no docs.js needed
@@ -853,6 +885,7 @@ export default function App() {
         onShareOpen={() => setShareOpen(true)}
         onNav={(path) => navigate(path)}
         activeSection={activeSection}
+        onTourOpen={() => setTourOpen(true)}
       />
 
       {/* Dataset switch in flight — the page stays up, so say what is happening */}
@@ -932,6 +965,7 @@ export default function App() {
             <HomePage
               allKeywords={extractAllKeywords(data)}
               data={data}
+              onTourOpen={() => setTourOpen(true)}
             />
           ) : isDocs && activeDocSlug ? (
             <DocsPage slug={activeDocSlug} />
@@ -985,6 +1019,9 @@ export default function App() {
           onSelect={(locale) => { setLang(locale); setShowLangModal(false); }}
         />
       )}
+
+      {/* ── Guided tour ── (remount on open so it always restarts at step 1) */}
+      <Tour key={tourOpen ? "tour-open" : "tour-closed"} open={tourOpen} onClose={() => setTourOpen(false)} />
 
       {/* ── Global Search Modal ── */}
       <GlobalSearch

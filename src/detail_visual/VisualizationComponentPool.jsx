@@ -13,6 +13,7 @@ import ClothingVisualization from "./ClothingVisualization";
 import CommandVisualization from "./CommandVisualization";
 import ModifiersVisualization from "./ModifiersVisualization";
 import SupplyVisualization from "./SupplyVisualization";
+import AcquisitionVisualization from "./AcquisitionVisualization";
 import VehicleArmamentVisualization from "./VehicleArmamentVisualization";
 import VehicleEventsVisualization from "./VehicleEventsVisualization";
 import VisualizationErrorBoundary from "./ErrorBoundary";
@@ -39,6 +40,10 @@ const visualizationComponents = [
     ((item.commonness && typeof item.commonness === "object") ||
      (Array.isArray(item.capacities) && item.capacities.length) ||
      (item.inventory && typeof item.inventory === "object")) },
+  // Exchange sources + command paths. The command scan needs the full dataset,
+  // so the component guards internally and this only gates by item type.
+  { name: "Acquisition", component: AcquisitionVisualization, shouldRender: (item) => item &&
+    ["carry_item", "weapon", "vehicle", "projectile", "call"].includes(item.type) },
   { name: "Stance", component: StanceVisualization, shouldRender: (item) => item && Array.isArray(item.stances) && item.stances.length > 0 },
   { name: "Vehicle", component: VehicleVisualization, shouldRender: (item) => item && item.type === "vehicle" },
   { name: "Armament", component: VehicleArmamentVisualization, shouldRender: (item) => item && item.type === "vehicle" && Array.isArray(item.turrets) && item.turrets.length > 0 },
