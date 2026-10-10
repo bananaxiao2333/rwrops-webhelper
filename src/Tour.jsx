@@ -28,6 +28,12 @@ const STEPS = [
   { key: "index", route: "/", target: '[data-tour="index"]', place: "center" },
   { key: "category", route: "/params/weapon", target: '[data-tour="list"]', place: "center" },
   { key: "detail", route: "ITEM", target: '[data-tour="article"]', place: "center" },
+  // The item page's visualization sections — the site's actual depth. Each
+  // section is tagged with data-share-id by the visualization pool.
+  { key: "viz_gun", route: null, target: '[data-share-id="vis_Gun Performance"]', place: "dock" },
+  { key: "viz_modifiers", route: null, target: '[data-share-id="vis_Modifiers"]', place: "dock" },
+  { key: "viz_supply", route: null, target: '[data-share-id="vis_Supply"]', place: "dock" },
+  { key: "viz_acquisition", route: null, target: '[data-share-id="vis_Acquisition"]', place: "dock" },
   { key: "docs", route: "/docs", target: '[data-tour="docs"]', place: "center" },
   { key: "tools", route: "/tools", target: '[data-tour="tools"]', place: "center" },
   { key: "end", route: "/", target: null, place: "center" },
@@ -65,8 +71,15 @@ export default function Tour({ open, onClose, onNavigate }) {
     if (!s?.route) return null;
     if (s.route === "ITEM") {
       const d = dataRef.current;
-      const wk = d?.weapon && Object.keys(d.weapon)[0];
-      return wk ? `/params/weapon/${wk}` : "/params/weapon";
+      const entries = d?.weapon ? Object.entries(d.weapon) : [];
+      // Prefer a weapon that actually renders the sections the tour points at,
+      // so the spotlight steps land on real content rather than an empty page.
+      const rich = entries.find(([, w]) =>
+        Array.isArray(w.modifiers) && w.modifiers.length &&
+        w.projectile_result_kill_probability !== undefined &&
+        Array.isArray(w.capacities) && w.capacities.length);
+      const key = rich?.[0] || entries[0]?.[0];
+      return key ? `/params/weapon/${key}` : "/params/weapon";
     }
     return s.route;
   }, []);
@@ -141,7 +154,12 @@ export default function Tour({ open, onClose, onNavigate }) {
     padding: "18px 20px",
   };
   const CARD_H = 210;
-  if (rect && current.place === "bottom" && rect.top + rect.height + 14 + CARD_H < vp.h) {
+  if (current.place === "dock") {
+    // Docked to the bottom so it never covers the section it is describing.
+    cardStyle.bottom = 24;
+    cardStyle.left = "50%";
+    cardStyle.transform = "translateX(-50%)";
+  } else if (rect && current.place === "bottom" && rect.top + rect.height + 14 + CARD_H < vp.h) {
     cardStyle.top = rect.top + rect.height + 14;
     cardStyle.left = Math.max(16, Math.min(rect.left, vp.w - cardW - 16));
   } else if (rect && current.place === "top" && rect.top - 14 - CARD_H > 0) {
