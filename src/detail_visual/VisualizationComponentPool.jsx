@@ -16,6 +16,9 @@ import SupplyVisualization from "./SupplyVisualization";
 import AcquisitionVisualization from "./AcquisitionVisualization";
 import VehicleArmamentVisualization from "./VehicleArmamentVisualization";
 import VehicleEventsVisualization from "./VehicleEventsVisualization";
+import RewardPoolVisualization from "./RewardPoolVisualization";
+import ScriptModuleVisualization from "./ScriptModuleVisualization";
+import DataTableVisualization from "./DataTableVisualization";
 import VisualizationErrorBoundary from "./ErrorBoundary";
 
 /* eslint-disable react-refresh/only-export-components */
@@ -58,10 +61,12 @@ function eventRenders(item) {
   if (item.type === "weapon" || item.type === "carry_item" || item.type === "vehicle") return false;
   return (item.events || item.modifiers || []).some((m) => m && m.class);
 }
-/* Acquisition shows exchange sources AND command paths; either one is content. */
+/* Acquisition shows exchange sources, reward tables AND command paths; any one
+ * of them is content. */
 function acquisitionRenders(item, data) {
   if (!item) return false;
   if (Array.isArray(item.exchange_sources) && item.exchange_sources.length) return true;
+  if (Array.isArray(item.reward_sources) && item.reward_sources.length) return true;
   const cmds = data?.command_config;
   if (!cmds) return false;
   for (const cmd of Object.values(cmds)) {
@@ -131,6 +136,22 @@ const visualizationComponents = [
   { name: "Map", component: MapVisualization, shouldRender: (item) => item && item.type === "map_config" &&
     ("frame_image" in item || "heightmap" in item || "mask_image" in item), findTypes: ["map_config"],
     tour: { titleKey: "map_label", bodyKey: "viz_tour_map" } },
+  /* ── The script layer ──
+   * These three came out of reading every `.as` file instead of two, so they
+   * are the newest content on the site and the deepest: a game mode is wired
+   * together here, and a mod author has nowhere else to read it. */
+  { name: "Reward Pool", component: RewardPoolVisualization, shouldRender: (item) => item && item.type === "reward_pool" &&
+    Array.isArray(item.pools) && item.pools.length > 0, findTypes: ["reward_pool"],
+    tour: { titleKey: "reward_pool_title", bodyKey: "viz_tour_reward_pool" } },
+  { name: "Script Module", component: ScriptModuleVisualization, shouldRender: (item) => item && item.type === "as_module" &&
+    ((item.includes || []).length + (item.classes || []).length + (item.trackers || []).length + (item.xml_classes || []).length > 0),
+    findTypes: ["as_module"],
+    tour: { titleKey: "as_module_title", bodyKey: "viz_tour_script_module" } },
+  { name: "Data Table", component: DataTableVisualization, shouldRender: (item) => item &&
+    ["string_table", "value_table", "resource_list"].includes(item.type) &&
+    ((item.values || []).length + (item.entries || []).length + (item.items || []).length > 0),
+    findTypes: ["string_table", "value_table", "resource_list"],
+    tour: { titleKey: "data_table_title", bodyKey: "viz_tour_data_table" } },
 ];
 
 export { visualizationComponents };

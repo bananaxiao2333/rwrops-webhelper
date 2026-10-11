@@ -16,6 +16,11 @@ const TYPE_COLOR = {
   map_config: "#06b6d4",
   command_config: "#ec4899",
   language: "#14b8a6",
+  as_module: "#a78bfa",
+  reward_pool: "#f472b6",
+  string_table: "#38bdf8",
+  value_table: "#34d399",
+  resource_list: "#fbbf24",
 };
 
 /* ── Tile: icon, readable title, and this type's real stats ──
