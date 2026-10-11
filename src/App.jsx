@@ -876,7 +876,7 @@ export default function App() {
       })()}
       {/* Status Bar */}
       <StatusBar
-        viewName={isHome ? t("omni_parser") : isDocs ? t("nav_docs") : isTools ? t("nav_tools") : (itemKey ? itemKey.toUpperCase() : (activeType || "").toUpperCase())}
+        viewName={isHome ? t("omni_parser") : isDocs ? t("nav_docs") : isTools ? t("nav_tools") : (itemKey ? itemKey.toUpperCase() : activeType ? t(activeType) : "")}
         count={activeType && data?.[activeType] ? Object.keys(data[activeType]).length : undefined}
         isMobile={isMobile}
         onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
