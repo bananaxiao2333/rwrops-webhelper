@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useI18n } from "./i18n.jsx";
 import { searchArticles, buildSearchIndex } from "./docsLazy.js";
+import { entityTitle } from "./entityStats.js";
 
 const LANG_NAMES = { cn: "中文", en: "EN", de: "DE", es: "ES", fr: "FR", ru: "RU" };
 const TYPE_LABELS = {
@@ -14,6 +15,10 @@ const TYPE_LABELS = {
   projectile: "PROJ", call: "CALL", achievement: "ACHV",
   faction: "FACT", rank: "RANK", stance: "STNC",
   map_config: "MAP", language: "LANG",
+  /* The script layer. These carry no `name`, so the badge is the only thing
+   * that says which kind of record a hit is. */
+  as_module: "AS", reward_pool: "POOL", string_table: "STR",
+  value_table: "VTBL", resource_list: "RES",
 };
 
 /* ══════════════════════════════════════════════════
@@ -69,12 +74,16 @@ export default function GlobalSearch({ open, onClose, data, onNavigate }) {
             const rawName = String(item.name || "").toLowerCase();
             const transName = String(translate(item.name || "")).toLowerCase();
             const rawKey = String(key || "").toLowerCase();
+            /* Script-layer records have no `name`, so the title derived from
+             * the key (`AgentManager.m_rewardVehicles` → "Reward Vehicles") is
+             * the only thing a reader would type. */
+            const title = String(entityTitle(item)).toLowerCase();
 
-            if (rawName.includes(q) || transName.includes(q) || rawKey.includes(q)) {
+            if (rawName.includes(q) || transName.includes(q) || rawKey.includes(q) || title.includes(q)) {
               dataResults.push({
                 type: "data",
                 section: type,
-                label: transName || rawName || rawKey,
+                label: transName || rawName || title || rawKey,
                 key,
                 path: `/params/${type}/${key}`,
               });

@@ -21,6 +21,14 @@ const pos = (v) => (typeof v === "number" && v < 0 ? null : num(v));
 const count = (v) => (Array.isArray(v) && v.length > 0 ? String(v.length) : null);
 const str = (v) => (v == null || v === "" ? null : String(v));
 const bool = (v) => (v == null ? null : v ? "YES" : "NO");
+/* A reward pool's real weight is its total entry count: the extractor emits
+ * `pools: [[…], […]]` and one table can hold 175 entries, so "1 pool" says
+ * nothing while "175" says this is the big one. */
+const poolItems = (v) => {
+  if (!Array.isArray(v) || v.length === 0) return null;
+  const n = v.reduce((s, p) => s + (Array.isArray(p) ? p.length : 0), 0);
+  return n > 0 ? String(n) : null;
+};
 
 /* ── [field, label, formatter]; order is display order, so the first three are
  * what the list tile and the detail hero show ── */
@@ -68,10 +76,46 @@ export const STATS = {
     ["locale", "LOCALE", str],
     ["texts", "TEXTS", count],
   ],
+  /* The script layer. These five types came out of reading every `.as` file
+   * instead of two, so their headline stats are the shapes a mod author looks
+   * for: how much a module pulls in, and how big a pool actually is. */
+  as_module: [
+    ["classes", "CLASSES", count],
+    ["trackers", "TRACKERS", count],
+    ["includes", "INCLUDES", count],
+    ["xml_classes", "XML", count],
+  ],
+  reward_pool: [
+    ["pools", "ITEMS", poolItems],
+    ["consumer", "CONSUMER", str],
+  ],
+  string_table: [["values", "VALUES", count]],
+  value_table: [["entries", "ENTRIES", count]],
+  resource_list: [["items", "ITEMS", count]],
 };
 
 const TYPE_SUFFIX =
   /\.(weapon|vehicle|carry_item|projectile|call|command_config|map_config|faction|achievement|language)$/;
+
+/* Records read out of the script layer are keyed by a path (`scripts/gamemodes/
+ * invasion/gamemode_invasion.as`) or by a dotted member name (`AgentManager.
+ * m_rewardVehicles`). Neither reads as a title, so the readable name is the
+ * last segment, with the `m_` member prefix and camel humps split apart. */
+const SCRIPT_TYPES = new Set(["as_module", "string_table", "value_table", "reward_pool", "resource_list"]);
+
+function scriptTitle(key) {
+  const last = String(key).split("/").pop() || String(key);
+  const bare = last.replace(/\.as$/i, "");
+  const seg = bare.includes(".") ? bare.slice(bare.lastIndexOf(".") + 1) : bare;
+  const words = seg
+    .replace(/^m_/, "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_.-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!words) return String(key);
+  return words.replace(/\b[a-z]/g, (c) => c.toUpperCase());
+}
 
 /**
  * Readable title for a record.
@@ -86,6 +130,7 @@ export function entityTitle(item) {
   if (name) return name;
   const key = String(item?.key ?? "").trim();
   if (!key || key === "?") return "—";
+  if (SCRIPT_TYPES.has(item?.type)) return scriptTitle(key);
   const base = key.split("@")[0].replace(TYPE_SUFFIX, "");
   const words = base.replace(/[_.]+/g, " ").replace(/\s+/g, " ").trim();
   if (!words) return key;
@@ -189,6 +234,13 @@ export const FACTS = {
   map_config: ["min_factions", "max_factions", "custom_bases", "heightmap", "mask_image"],
   command_config: ["command", "permission"],
   language: ["locale", "encoding", "font_key"],
+  /* Script-layer records lead with their provenance; the list they hold is the
+   * visualization's job, not the stat block's (a 175-entry array would print as
+   * one comma-joined line). */
+  reward_pool: ["group", "consumer"],
+  string_table: ["owner", "function", "variable"],
+  value_table: ["owner", "function", "variable"],
+  resource_list: ["group", "variable"],
 };
 
 /* `weapon.class` is a bare integer (0/2/4) and tells a reader nothing, so the

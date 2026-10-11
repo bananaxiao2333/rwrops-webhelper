@@ -22,9 +22,16 @@ function needsAn(label) {
  * are removed from these groups, so nothing appears twice. Anything in neither
  * list still reaches the page, in the collapsed "technical data" block. */
 /* Fields claimed by a dedicated visualization (Modifiers / Supply / Vehicle
- * Events). They are removed from the section blocks and from the raw block so
- * the page never shows the same data twice — the viz is the only rendering. */
-const VIZ_OWNED = new Set(["modifiers", "events", "commonness", "capacities", "inventory"]);
+ * Events / the script layer). They are removed from the section blocks and from
+ * the raw block so the page never shows the same data twice — the viz is the
+ * only rendering. */
+const VIZ_OWNED = new Set([
+  "modifiers", "events", "commonness", "capacities", "inventory",
+  // reward_sources → Acquisition; the script-layer arrays → their own viz.
+  "reward_sources",
+  "pools", "values", "entries", "items",
+  "includes", "classes", "trackers", "xml_classes",
+]);
 
 const SECTIONS = {
   vehicle: [
@@ -59,6 +66,12 @@ const SECTIONS = {
   ],
   command_config: [{ label: "DEFINITION", keys: ["actions"] }],
   language: [{ label: "TEXTS", keys: ["texts"] }],
+  /* Script-layer records: the list they hold is the visualization's job, so the
+   * sections here only carry the provenance scalars. */
+  reward_pool: [{ label: "CONFIG", keys: ["consumer", "label"] }],
+  string_table: [{ label: "DATA", keys: ["owner", "function", "variable"] }],
+  value_table: [{ label: "DATA", keys: ["owner", "function", "variable"] }],
+  resource_list: [{ label: "DATA", keys: ["variable"] }],
 };
 
 /* Fields that name another record and should render as a link. */

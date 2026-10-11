@@ -14,6 +14,13 @@ import VizFrame from "./VizFrame";
  *     category's pools live on the input item's `exchange_prizes`, and this
  *     item's probability is its weight ÷ the pool's total weight.
  *
+ *   reward_sources  [{ group, source, consumer }]  — the weighted reward tables
+ *     that can hand it out, emitted for weapon / carry_item / vehicle /
+ *     projectile. A *pointer*, not a copy: the table itself is a `reward_pool`
+ *     record keyed by `group`, which is where the weights (and so the real
+ *     odds) live. This covers what the exchange sets do not — the stage crates
+ *     and agent rewards a game mode drops in.
+ *
  *   command_config.actions  [{ type, class, key }]  — in-game commands that
  *     spawn/grant the item (e.g. `/god` → spawn god_vest). Found by scanning
  *     every command for an action that names this key.
@@ -29,6 +36,19 @@ function sourceChance(src, itemKey, data) {
         if (me && total > 0) return { prob: (me.score || 0) / total, count: me.count };
       }
     }
+  }
+  return null;
+}
+
+/* The odds implied by a reward table: this item's weight ÷ that pool's total
+ * weight. Read off the `reward_pool` record the pointer names. */
+function rewardChance(group, itemKey, data) {
+  const table = data?.reward_pool?.[group];
+  for (const pool of table?.pools || []) {
+    if (!Array.isArray(pool)) continue;
+    const total = pool.reduce((s, p) => s + (Number(p.score) || 0), 0);
+    const me = pool.find((p) => p && p.key === itemKey);
+    if (me && total > 0) return { prob: (Number(me.score) || 0) / total, count: me.count };
   }
   return null;
 }
@@ -67,6 +87,7 @@ export default function AcquisitionVisualization({ item }) {
   const { data } = useData();
 
   const sources = item?.exchange_sources || [];
+  const rewards = item?.reward_sources || [];
 
   // Scan every command for an action that names this item. Cheap (a few
   // hundred commands) and keeps the component free of a manual memo the React
@@ -88,7 +109,7 @@ export default function AcquisitionVisualization({ item }) {
     return out;
   })();
 
-  if (sources.length === 0 && commands.length === 0) return null;
+  if (sources.length === 0 && rewards.length === 0 && commands.length === 0) return null;
 
   return (
     <VizFrame icon="mdi:map-marker-path" title={t("how_to_obtain")} lead={t("viz_lead_acquisition")}>
@@ -108,6 +129,51 @@ export default function AcquisitionVisualization({ item }) {
                       ))}
                     </span>
                     <Icon icon="mdi:arrow-right-thin" style={{ fontSize: 14, color: "var(--border-heavy)" }} />
+                    {chance ? (
+                      <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--amber)" }}>
+                        {t("chance", (chance.prob * 100).toFixed(chance.prob < 0.01 ? 2 : 1))}
+                        {chance.count > 1 && <span style={{ color: "var(--text-muted)", fontWeight: 400 }}> ×{chance.count}</span>}
+                      </span>
+                    ) : (
+                      <span style={{ color: "var(--text-dim)", fontSize: "var(--font-xs)" }}>—</span>
+                    )}
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+        </div>
+      )}
+
+      {rewards.length > 0 && (
+        <div className="viz-block">
+          <h3 className="viz-block-title">{t("reward_sources_title")}</h3>
+          <dl className="article-rows">
+            {rewards.map((r, i) => {
+              const chance = rewardChance(r.group, item.key, data);
+              return (
+                <div className="article-row" key={`${r.group}-${i}`}>
+                  <dt>
+                    <a
+                      className="article-chip"
+                      href={`/params/reward_pool/${r.group}`}
+                      onClick={(e) => { e.preventDefault(); navigateTo(`/params/reward_pool/${r.group}`); }}
+                      title={r.group}
+                      style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "var(--font-mono)" }}
+                    >
+                      <Icon icon="mdi:dice-multiple" style={{ fontSize: 11, color: "var(--accent)" }} />
+                      {r.group}
+                    </a>
+                  </dt>
+                  <dd style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    {r.consumer && (
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--text-muted)" }}>
+                        {r.consumer}
+                      </span>
+                    )}
+                    {r.label && (
+                      <span style={{ fontSize: "var(--font-xs)", color: "var(--text-dim)" }}>· {r.label}</span>
+                    )}
                     {chance ? (
                       <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--amber)" }}>
                         {t("chance", (chance.prob * 100).toFixed(chance.prob < 0.01 ? 2 : 1))}

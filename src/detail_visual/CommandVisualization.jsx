@@ -3,12 +3,45 @@ import { Icon } from "@iconify/react";
 import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
 import { useI18n } from "../i18n.jsx";
+import { navigateTo } from "../hashRouter.js";
 import VizFrame from "./VizFrame";
 
+/* Four tiers, not two: reading the whole script layer turned up `player` and
+ * `supporter` alongside the admin/moderator pair the two-file extractor knew. */
 const PERM_COLORS = {
-  moderator: { accent: "var(--accent-dim)", text: "var(--accent)" },
-  admin: { accent: "var(--danger)", text: "var(--danger)" },
+  admin: { text: "var(--danger)" },
+  moderator: { text: "var(--accent)" },
+  supporter: { text: "var(--amber)" },
+  player: { text: "var(--info)" },
 };
+const PERM_ICON = {
+  admin: "mdi:shield-crown-outline",
+  moderator: "mdi:shield-edit-outline",
+  supporter: "mdi:shield-star-outline",
+  player: "mdi:account-outline",
+};
+
+/* One icon per action verb, so a 5-step command can be skimmed by shape. */
+const ACTION_ICON = {
+  spawn: "mdi:plus-circle-outline",
+  destroy_vehicles: "mdi:car-off",
+  emoticon: "mdi:emoticon-outline",
+  animate: "mdi:animation-play-outline",
+  send_xml: "mdi:xml",
+  send_xml_class: "mdi:xml",
+  send_xml_element: "mdi:xml",
+  chat_reply: "mdi:message-reply-outline",
+  kick_player: "mdi:account-remove-outline",
+  lookup_player_sid: "mdi:account-search-outline",
+  fill_inventory: "mdi:package-variant-plus",
+};
+
+/* What an action says, in the order that reads best. `key` and `class` are the
+ * last resort because they are identifiers, not prose. */
+function actionText(action) {
+  return action.message || action.xml || action.animation || action.class ||
+    action.key || action.variable || "";
+}
 
 function ActionRow({ action, index, data }) {
   const { translate } = useI18n();
@@ -48,7 +81,7 @@ function ActionRow({ action, index, data }) {
           display: "inline-flex", alignItems: "center", gap: 3,
           flexShrink: 0,
         }}>
-          <Icon icon="mdi:plus-circle-outline" style={{ fontSize: 10 }} />
+          <Icon icon={ACTION_ICON[action.type] || "mdi:plus-circle-outline"} style={{ fontSize: 10 }} />
           {action.type}
         </span>
 
@@ -122,16 +155,25 @@ function ActionRow({ action, index, data }) {
         textTransform: "uppercase", flexShrink: 0,
         display: "inline-flex", alignItems: "center", gap: 3,
       }}>
-        <Icon icon="mdi:code-tags" style={{ fontSize: 10 }} />
+        <Icon icon={ACTION_ICON[action.type] || "mdi:code-tags"} style={{ fontSize: 10 }} />
         {action.type}
       </span>
+
+      {action.target && (
+        <span style={{
+          fontSize: "var(--font-xxs)", color: "var(--text-dim)",
+          fontFamily: "var(--font-mono)", flexShrink: 0,
+        }}>
+          → {action.target}
+        </span>
+      )}
 
       <span style={{
         fontSize: "var(--font-xs)", color: "var(--text-secondary)",
         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         fontFamily: "var(--font-mono)",
       }}>
-        {action.message || action.xml || action.variable || action.text || action.detail || ""}
+        {actionText(action)}
       </span>
     </div>
   );
@@ -145,6 +187,16 @@ export default function CommandVisualization({ item }) {
 
   const actions = item.actions || [];
   const permColor = PERM_COLORS[item.permission] || PERM_COLORS.admin;
+  const permLabel =
+    item.permission === "admin" ? t("perm_admin") :
+    item.permission === "moderator" ? t("perm_moderator") :
+    item.permission === "player" ? t("perm_player") :
+    item.permission === "supporter" ? t("perm_supporter") :
+    item.permission;
+
+  /* The command's own .as file is one of the new `as_module` records, so the
+   * provenance line is a link into the script layer rather than dead text. */
+  const scriptKey = item.source && data?.as_module?.[item.source] ? item.source : null;
 
   /* One-click copy of the in-game command, so a player can paste it straight
    * into chat. Falls back to a temporary textarea where the async clipboard
@@ -183,9 +235,8 @@ export default function CommandVisualization({ item }) {
             color: permColor.text,
             textTransform: "uppercase", letterSpacing: "0.08em",
           }}>
-            <Icon icon={item.permission === "moderator" ? "mdi:shield-edit-outline" : "mdi:shield-key"}
-              style={{ fontSize: 10, marginRight: 3 }} />
-            {item.permission}
+            <Icon icon={PERM_ICON[item.permission] || "mdi:shield-key"} style={{ fontSize: 10, marginRight: 3 }} />
+            {permLabel}
           </span>
           <button
             onClick={copyCommand}
@@ -219,7 +270,32 @@ export default function CommandVisualization({ item }) {
         </div>
       )}
 
-      {actions.length > 0 && (
+      {item.source && (
+        <div style={{
+          marginTop: 8, fontSize: "var(--font-xs)", color: "var(--text-muted)",
+          display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap",
+        }}>
+          <Icon icon="mdi:file-code-outline" style={{ fontSize: 12 }} />
+          {t("command_source")}
+          {scriptKey ? (
+            <a
+              href={`/params/as_module/${scriptKey}`}
+              onClick={(e) => { e.preventDefault(); navigateTo(`/params/as_module/${scriptKey}`); }}
+              style={{
+                fontFamily: "var(--font-mono)", color: "var(--accent)",
+                textDecoration: "underline", textDecorationStyle: "dotted",
+                textUnderlineOffset: 2,
+              }}
+            >
+              {item.source}
+            </a>
+          ) : (
+            <code style={{ fontFamily: "var(--font-mono)" }}>{item.source}</code>
+          )}
+        </div>
+      )}
+
+      {actions.length > 0 ? (
         <div>
           <div className="viz-block-title" style={{ marginTop: 12 }}>
             <Icon icon="mdi:format-list-numbered" style={{ fontSize: 12, marginRight: 5, verticalAlign: "-1px" }} />
@@ -229,6 +305,11 @@ export default function CommandVisualization({ item }) {
             <ActionRow key={i} action={action} index={i} data={data} />
           ))}
         </div>
+      ) : (
+        /* 24 of the 232 commands only got a name and a permission: their handler
+         * calls a script function the extractor does not model yet. Say so
+         * rather than render an empty section. */
+        <p className="viz-lead" style={{ marginTop: 12 }}>{t("no_actions")}</p>
       )}
     </VizFrame>
   );
