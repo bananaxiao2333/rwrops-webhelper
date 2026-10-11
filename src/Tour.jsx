@@ -128,13 +128,18 @@ export default function Tour({ open, onClose, onNavigate }) {
     if (route) navRef.current?.(route);
   }, [steps]);
 
-  // On open, start from the home page so the tour always begins in the same place.
+  /* Start every run from the home page so the tour always begins in the same
+   * place. The caller remounts this component per run (a `key` on `open`), so
+   * `initRef` is per-run and the step starts at 0. The guard cannot be
+   * mount-only: this component is mounted while closed too, and firing there
+   * made the first step's route (`/`) override whatever the reader had
+   * actually opened — every deep link and shared URL landed on the home page. */
   useEffect(() => {
-    if (initRef.current) return;
+    if (!open || initRef.current || steps.length === 0) return;
     initRef.current = true;
     const route = steps[0]?.route;
     if (route) navRef.current?.(route);
-  }, [steps]);
+  }, [open, steps]);
 
   const measure = useCallback(() => {
     if (typeof window === "undefined") return;
