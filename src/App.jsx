@@ -1037,9 +1037,8 @@ export default function App() {
       />
 
       {/* ── Footer ── */}
-      {rollItem && rollItem.exchange_prizes && (
+      {rollItem && rollItem.reward_inputs && (
         <ExchangeRollModal
-          exchangePrizes={rollItem.exchange_prizes}
           item={rollItem}
           data={data}
           onClose={() => setRollItem(null)}

@@ -1,7 +1,8 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useRef } from "react";
 import { useItemIcon } from "../assetLoader.jsx";
 import { useI18n } from "../i18n.jsx";
 import { Icon } from "@iconify/react";
+import { rewardTables, poolsOf, tableLabel } from "./rewardTables.js";
 
 function pickFromPool(pool) {
   const total = pool.reduce((s, p) => s + (p.score || 0), 0);
@@ -163,7 +164,7 @@ function SpeechBubble({ text, highlight }) {
   );
 }
 
-export default function ExchangeRollModal({ exchangePrizes, data, item, onClose }) {
+export default function ExchangeRollModal({ data, item, onClose }) {
   const { t, translate } = useI18n();
   const timerRef = useRef(null);
 
@@ -172,12 +173,11 @@ export default function ExchangeRollModal({ exchangePrizes, data, item, onClose 
   const [phase, setPhase] = useState("setup");
   const [results, setResults] = useState([]);
 
-  const pools = useMemo(() => {
-    if (!exchangePrizes) return [];
-    return exchangePrizes.flatMap(cat => cat.prize_pools || []);
-  }, [exchangePrizes]);
-
-  const categoryLabel = exchangePrizes?.[0]?.category?.replace("Setup ", "") || "";
+  // The tables this item can trigger; each table's pools are what a draw picks
+  // from. Resolved from the `reward_pool` records the item points at.
+  const tables = rewardTables(item, data, "reward_inputs");
+  const pools = poolsOf(tables);
+  const categoryLabel = tables.length ? tableLabel(tables[0].table, tables[0].group) : "";
   const inputName = translate(item?.name) || item?.key?.split(".")[0] || "";
 
   const handleStart = () => {
