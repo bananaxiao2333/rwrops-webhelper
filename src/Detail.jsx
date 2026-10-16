@@ -27,8 +27,9 @@ function needsAn(label) {
  * only rendering. */
 const VIZ_OWNED = new Set([
   "modifiers", "events", "commonness", "capacities", "inventory",
-  // reward_sources → Acquisition; the script-layer arrays → their own viz.
-  "reward_sources",
+  // reward_inputs → Exchange (the pools it draws from); reward_sources →
+  // Acquisition; the script-layer arrays → their own viz.
+  "reward_inputs", "reward_sources",
   "pools", "values", "entries", "items",
   "includes", "classes", "trackers", "xml_classes",
 ]);

@@ -61,11 +61,10 @@ function eventRenders(item) {
   if (item.type === "weapon" || item.type === "carry_item" || item.type === "vehicle") return false;
   return (item.events || item.modifiers || []).some((m) => m && m.class);
 }
-/* Acquisition shows exchange sources, reward tables AND command paths; any one
- * of them is content. */
+/* Acquisition shows the reward tables that yield this item (exchange recipes
+ * and drop tables alike) AND command paths; any one of them is content. */
 function acquisitionRenders(item, data) {
   if (!item) return false;
-  if (Array.isArray(item.exchange_sources) && item.exchange_sources.length) return true;
   if (Array.isArray(item.reward_sources) && item.reward_sources.length) return true;
   const cmds = data?.command_config;
   if (!cmds) return false;
@@ -92,7 +91,7 @@ function clothingRenders(item, data) {
 const visualizationComponents = [
   { name: "Rank", component: RankVisualization, shouldRender: rankRenders, findTypes: ["weapon", "carry_item", "call", "projectile", "vehicle"],
     tour: { titleKey: "unlock_rank", bodyKey: "viz_tour_rank" } },
-  { name: "Exchange", component: ExchangeVisualization, shouldRender: (item) => item && Array.isArray(item.exchange_prizes) && item.exchange_prizes.length > 0, findTypes: ["weapon", "carry_item", "vehicle"],
+  { name: "Exchange", component: ExchangeVisualization, shouldRender: (item) => item && Array.isArray(item.reward_inputs) && item.reward_inputs.length > 0, findTypes: ["carry_item", "weapon", "vehicle"],
     tour: { titleKey: "exchange_title", bodyKey: "viz_tour_exchange" } },
   { name: "Clothing", component: ClothingVisualization, shouldRender: (item) => item && item.type === "carry_item", renders: clothingRenders, findTypes: ["carry_item"],
     tour: { titleKey: "degradation_chain", bodyKey: "viz_tour_clothing" } },

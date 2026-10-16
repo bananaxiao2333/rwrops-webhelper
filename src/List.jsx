@@ -113,10 +113,10 @@ export default function List({ data, type, searchText, isMobile, priceFilter, ex
       result = result.filter(i => i.inventory_price !== undefined || i.inventory?.price !== undefined);
     }
     if (exchangeSourceFilter) {
-      result = result.filter(i => i.exchange_sources && i.exchange_sources.length > 0);
+      result = result.filter(i => i.reward_sources && i.reward_sources.length > 0);
     }
     if (exchangePrizeFilter) {
-      result = result.filter(i => i.exchange_prizes && i.exchange_prizes.length > 0);
+      result = result.filter(i => i.reward_inputs && i.reward_inputs.length > 0);
     }
     if (searchText) {
       const q = searchText.toLowerCase();

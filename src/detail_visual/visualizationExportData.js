@@ -305,17 +305,17 @@ export const visualizationExportData = [
     fieldCount: 0,
     fields: [
       {
-        path: "carry_item.exchange_prizes", label: "Exchange Prizes", type: "array",
+        path: "carry_item.reward_inputs", label: "Reward Inputs", type: "array",
         children: [
-          { path: "carry_item.exchange_prizes.category", label: "Category", type: "string" },
-          { path: "carry_item.exchange_prizes.prize_pools", label: "Prize Pools", type: "array" },
+          { path: "carry_item.reward_inputs.group", label: "Reward Table", type: "string" },
+          { path: "carry_item.reward_inputs.source", label: "Source File", type: "string" },
         ],
       },
       {
-        path: "carry_item.exchange_sources", label: "Exchange Sources", type: "array",
+        path: "carry_item.reward_sources", label: "Reward Sources", type: "array",
         children: [
-          { path: "carry_item.exchange_sources.input", label: "Input Items", type: "string" },
-          { path: "carry_item.exchange_sources.category", label: "Category", type: "string" },
+          { path: "carry_item.reward_sources.group", label: "Reward Table", type: "string" },
+          { path: "carry_item.reward_sources.source", label: "Source File", type: "string" },
         ],
       },
     ],

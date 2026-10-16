@@ -3,6 +3,7 @@ import { useData } from "../DataContext.jsx";
 import { useItemIcon } from "../assetLoader.jsx";
 import { useI18n } from "../i18n.jsx";
 import { navigateTo } from "../hashRouter.js";
+import { rewardTables, tableLabel } from "./rewardTables.js";
 
 function PrizeChip({ entry, data, maxScore, totalScore }) {
   const { translate } = useI18n();
@@ -78,81 +79,78 @@ function PrizeChip({ entry, data, maxScore, totalScore }) {
   );
 }
 
+/* The tables this item can trigger — it is the `input` you hand over, and the
+ * `pools` are what you draw from. Both halves live on the `reward_pool` record
+ * the item's `reward_inputs` pointer names. */
 export default function ExchangeVisualization({ item, onOpenRoll }) {
   const { data } = useData();
   const { t } = useI18n();
-  const exchangePrizes = item?.exchange_prizes;
-  const exchangeSources = item?.exchange_sources;
+  const tables = rewardTables(item, data, "reward_inputs");
 
-  if (!exchangePrizes && !exchangeSources) return null;
+  if (tables.length === 0) return null;
 
   return (
-    <>
-      {exchangePrizes && exchangePrizes.length > 0 && (
-        <section className="viz-section">
-          <div className="viz-section-title">
-            <Icon icon="mdi:gift-open-outline" className="viz-icon" />
-            <h2>{t("exchange_title")}</h2>
-            <span className="viz-count">{exchangePrizes.length} {exchangePrizes.length > 1 ? "SETS" : "SET"}</span>
-            <span className="viz-actions">
-              <span onClick={() => onOpenRoll && onOpenRoll(item)}
-                style={{
-                  cursor: "pointer", userSelect: "none",
-                  padding: "2px 10px",
-                  border: "1px solid var(--accent)",
-                  color: "var(--accent)",
-                  fontSize: "var(--font-xxs)", fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  transition: "all var(--dur-fast) var(--ease-smooth)",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--accent)"; e.currentTarget.style.color = "var(--bg-deep)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--accent)"; }}
-              >
-                <Icon icon="mdi:dice-3" style={{ fontSize: 10, marginRight: 3 }} />
-                {t("roll_draw")}
-              </span>
-            </span>
+    <section className="viz-section">
+      <div className="viz-section-title">
+        <Icon icon="mdi:gift-open-outline" className="viz-icon" />
+        <h2>{t("exchange_title")}</h2>
+        <span className="viz-count">{tables.length} {tables.length > 1 ? "SETS" : "SET"}</span>
+        <span className="viz-actions">
+          <span onClick={() => onOpenRoll && onOpenRoll(item)}
+            style={{
+              cursor: "pointer", userSelect: "none",
+              padding: "2px 10px",
+              border: "1px solid var(--accent)",
+              color: "var(--accent)",
+              fontSize: "var(--font-xxs)", fontWeight: 700,
+              letterSpacing: "0.08em",
+              transition: "all var(--dur-fast) var(--ease-smooth)",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--accent)"; e.currentTarget.style.color = "var(--bg-deep)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--accent)"; }}
+          >
+            <Icon icon="mdi:dice-3" style={{ fontSize: 10, marginRight: 3 }} />
+            {t("roll_draw")}
+          </span>
+        </span>
+      </div>
+
+      {tables.map(({ group, table }) => (
+        <div key={group} className="viz-block">
+          <h3 className="viz-block-title">{tableLabel(table, group)}</h3>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%), 1fr))",
+            gap: 12, marginTop: 6,
+          }}>
+            {(table.pools || []).map((pool, pi) => {
+              const maxScore = Math.max(...pool.map(p => p.score), 0);
+              const totalScore = pool.reduce((s, p) => s + p.score, 0);
+              return (
+                <div key={pi}>
+                  <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    paddingBottom: 4, marginBottom: 2,
+                    borderBottom: "1px solid var(--border-subtle)",
+                    fontSize: "var(--font-xxs)", color: "var(--text-muted)", letterSpacing: "0.06em",
+                  }}>
+                    <span>{t("pool_label", pi + 1)}</span>
+                    <span style={{ display: "flex", gap: 12, fontFamily: "var(--font-mono)" }}>
+                      <span>{t("items_count", pool.length)}</span>
+                      <span style={{ color: "var(--amber)" }}>Σ {totalScore.toFixed(1)}</span>
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {[...pool].sort((a, b) => (b.score || 0) - (a.score || 0)).map((prize, i) => (
+                      <PrizeChip key={i} entry={prize} data={data} maxScore={maxScore} totalScore={totalScore} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-
-          {exchangePrizes.map((cat, ci) => (
-            <div key={ci} className="viz-block">
-              <h3 className="viz-block-title">{cat.category?.replace("Setup ", "") || `Set ${ci + 1}`}</h3>
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%), 1fr))",
-                gap: 12, marginTop: 6,
-              }}>
-                {cat.prize_pools.map((pool, pi) => {
-                  const maxScore = Math.max(...pool.map(p => p.score), 0);
-                  const totalScore = pool.reduce((s, p) => s + p.score, 0);
-                  return (
-                    <div key={pi}>
-                      <div style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
-                        paddingBottom: 4, marginBottom: 2,
-                        borderBottom: "1px solid var(--border-subtle)",
-                        fontSize: "var(--font-xxs)", color: "var(--text-muted)", letterSpacing: "0.06em",
-                      }}>
-                        <span>{t("pool_label", pi + 1)}</span>
-                        <span style={{ display: "flex", gap: 12, fontFamily: "var(--font-mono)" }}>
-                          <span>{t("items_count", pool.length)}</span>
-                          <span style={{ color: "var(--amber)" }}>Σ {totalScore.toFixed(1)}</span>
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        {[...pool].sort((a, b) => (b.score || 0) - (a.score || 0)).map((prize, i) => (
-                          <PrizeChip key={i} entry={prize} data={data} maxScore={maxScore} totalScore={totalScore} />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-
-    </>
+        </div>
+      ))}
+    </section>
   );
 }
