@@ -30,6 +30,21 @@ export default class VisualizationErrorBoundary extends React.Component {
               Failed to render visualization component.{" "}
               {this.state.error?.message || "Unknown error occurred."}
             </span>
+            {/* The usual cause is something rewriting the DOM behind React's
+                back (browser translation, an extension). A reload re-mounts the
+                tree against the real DOM and clears it. */}
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              style={{
+                marginTop: '0.5rem', cursor: 'pointer',
+                padding: '0.25rem 0.75rem',
+                border: '1px solid #b91c1c', background: 'transparent',
+                color: '#b91c1c', fontSize: '0.8125rem', fontWeight: 600,
+              }}
+            >
+              Reload page
+            </button>
           </div>
         </div>
       );
